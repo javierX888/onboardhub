@@ -67,12 +67,18 @@ cd onboardhub
 
 ### Paso 2: Configurar la Base de Datos
 
-#### 🪟 Windows
+Elige **una** de las dos opciones:
 
-1. Abre **pgAdmin** (se instala junto con PostgreSQL).
-2. Conéctate al servidor local (`localhost`, usuario: `postgres`, contraseña: la que pusiste al instalar).
-3. Haz clic derecho en **Databases** → **Create** → **Database**.
-4. Nombre: `onboardhub` → **Save**.
+#### Opción A: Instalación nativa de PostgreSQL
+
+<details>
+<summary>🪟 Windows</summary>
+
+1. Descarga e instala PostgreSQL desde [postgresql.org/download/windows](https://www.postgresql.org/download/windows/).
+2. Abre **pgAdmin** (se instala junto con PostgreSQL).
+3. Conéctate al servidor local (`localhost`, usuario: `postgres`, contraseña: la que pusiste al instalar).
+4. Haz clic derecho en **Databases** → **Create** → **Database**.
+5. Nombre: `onboardhub` → **Save**.
 
 Alternativamente, desde **PowerShell** o **CMD**:
 ```powershell
@@ -83,16 +89,50 @@ Alternativamente, desde **PowerShell** o **CMD**:
 CREATE DATABASE onboardhub;
 \q
 ```
+</details>
 
-#### 🐧 Linux
+<details>
+<summary>🐧 Linux</summary>
 
 ```bash
+sudo apt install postgresql postgresql-client   # Debian/Ubuntu
 sudo -u postgres psql
 CREATE DATABASE onboardhub;
 \q
 ```
+</details>
 
----
+#### Opción B: Usar Docker / Docker Desktop (recomendado)
+
+Si tienes **Docker Desktop** (Windows/Mac) o **Docker/Podman** (Linux), solo ejecuta:
+
+```bash
+# Desde la raíz del proyecto
+docker compose up -d
+```
+
+Esto levanta PostgreSQL 15 automáticamente con:
+- **Usuario:** `postgres`
+- **Contraseña:** `postgres`
+- **Base de datos:** `onboardhub`
+- **Puerto:** `5432`
+
+> **Windows:** Necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo.
+>
+> **Linux con Podman:** Usa `podman-compose up -d` o `podman compose up -d` en su lugar. Si tienes problemas de red, agrega `--dns 8.8.8.8`:
+> ```bash
+> podman run -d --name onboardhub_db --network host --dns 8.8.8.8 \
+>   -e POSTGRES_USER=postgres \
+>   -e POSTGRES_PASSWORD=postgres \
+>   -e POSTGRES_DB=onboardhub \
+>   docker.io/library/postgres:15-alpine
+> ```
+
+Para detener el contenedor:
+```bash
+docker compose down        # Mantiene los datos
+docker compose down -v     # Elimina los datos (reset completo)
+```
 
 ### Paso 3: Configurar Variables de Entorno
 
