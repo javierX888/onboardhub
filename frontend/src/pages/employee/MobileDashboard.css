@@ -1,0 +1,176 @@
+.mobile-super-container {
+    background: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Phone Frame */
+.phone-frame {
+    width: 375px;
+    height: 812px;
+    background: #f8fafc;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 
+      0 0 0 12px #1a1a2e,
+      0 0 0 14px #333,
+      0 50px 100px rgba(0,0,0,0.5);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Status Bar */
+.status-bar {
+    height: 44px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 32px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+}
+
+/* App Content */
+.app-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Screens Styles */
+.journey-screen {
+    background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+.journey-header {
+    padding: 20px 20px 0;
+    color: white;
+}
+
+.journey-greeting {
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.journey-progress-card {
+    margin: 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.journey-content {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 28px 28px 0 0;
+    padding: 24px 20px;
+    margin-top: 8px;
+}
+
+/* Timeline */
+.timeline-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 24px;
+    position: relative;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 16px;
+    top: 40px;
+    width: 2px;
+    height: calc(100% - 40px);
+    background: #e2e8f0;
+}
+.timeline-line.completed { background: #10b981; }
+
+.timeline-marker {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e8f0;
+    color: #94a3b8;
+    z-index: 1;
+}
+.timeline-marker.completed { background: #10b981; color: white; }
+.timeline-marker.current {
+    background: #4f46e5;
+    color: white;
+    box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.2);
+}
+
+.timeline-card {
+    flex: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+}
+.timeline-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-top: 4px;
+}
+
+/* Bottom Nav */
+.bottom-nav {
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 8px 16px 28px;
+    display: flex;
+    justify-content: space-around;
+}
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 12px;
+}
+.nav-item span {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+}
+.nav-item.active { background: #0f62fe; border-radius: 12px; padding: 10px 20px;}
+.nav-item.active span { color: white; margin-top:2px; font-weight: 600;}
+.nav-item.active svg { color: white; }

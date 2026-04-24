@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy[asyncio]
+asyncpg
+pydantic
+pydantic-settings
+alembic
+python-keycloak
+python-multipart
+python-dotenv
