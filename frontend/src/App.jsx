@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import EmpresasList from './pages/admin/EmpresasList';
 import EmpresaForm from './pages/admin/EmpresaForm';
 import UsuariosList from './pages/admin/UsuariosList';
+import PlantillasList from './pages/admin/PlantillasList';
+import PlantillaForm from './pages/admin/PlantillaForm';
 import MobileDashboard from './pages/employee/MobileDashboard';
 
 function AdminLayout({ children }) {
@@ -18,6 +20,7 @@ function AdminLayout({ children }) {
         <nav className="sidebar-nav">
           <a href="/admin/empresas" className={isActive('/admin/empresas')}>Empresas</a>
           <a href="/admin/usuarios" className={isActive('/admin/usuarios')}>Usuarios</a>
+          <a href="/admin/plantillas" className={isActive('/admin/plantillas')}>Plantillas</a>
         </nav>
       </aside>
       <main className="main-content">
@@ -44,6 +47,9 @@ function App() {
               <Route path="empresas/new" element={<EmpresaForm />} />
               <Route path="empresas/:id/edit" element={<EmpresaForm />} />
               <Route path="usuarios" element={<UsuariosList />} />
+              <Route path="plantillas" element={<PlantillasList />} />
+              <Route path="plantillas/new" element={<PlantillaForm />} />
+              <Route path="plantillas/:id/edit" element={<PlantillaForm />} />
             </Routes>
           </AdminLayout>
         } />

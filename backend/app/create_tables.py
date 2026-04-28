@@ -9,6 +9,7 @@ from app.models.base import Base
 from app.models.empresa import Empresa
 from app.models.usuario import Usuario
 from app.models.journey import Journey, Task
+from app.models.plantilla import PlantillaOnboarding, TareaPlantilla
 
 async def create_all():
     async with engine.begin() as conn:
