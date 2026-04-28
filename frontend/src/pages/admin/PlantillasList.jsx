@@ -67,16 +67,16 @@ export default function PlantillasList() {
                                 <td style={{ fontWeight: 500 }}>{plantilla.nombre}</td>
                                 <td>{plantilla.descripcion || '-'}</td>
                                 <td>
-                                    <span style={{background: '#e2e8f0', padding: '2px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold'}}>
+                                    <span style={{background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold'}}>
                                         {plantilla.tareas?.length || 0}
                                     </span>
                                 </td>
                                 <td>
-                                    <div className="action-buttons">
-                                        <button className="btn btn-sm btn-outline" onClick={() => navigate(`/admin/plantillas/${plantilla.id}/edit`)}>
+                                    <div className="action-buttons" style={{ display: 'flex', gap: '8px' }}>
+                                        <button className="btn btn-sm btn-outline" style={{ background: 'var(--surface)', color: 'var(--text-main)', border: '1px solid var(--border)' }} onClick={() => navigate(`/admin/plantillas/${plantilla.id}/edit`)}>
                                             Editar
                                         </button>
-                                        <button className="btn btn-sm btn-danger" onClick={() => handleDelete(plantilla.id)}>
+                                        <button className="btn btn-sm btn-danger" style={{ background: '#ef4444', color: 'white', border: 'none' }} onClick={() => handleDelete(plantilla.id)}>
                                             Eliminar
                                         </button>
                                     </div>
