@@ -91,6 +91,12 @@ export default function PlantillaForm() {
         setSubmitting(true);
         setError(null);
 
+        if (tareas.length === 0) {
+            setError("La plantilla debe tener al menos una tarea o etapa configurada.");
+            setSubmitting(false);
+            return;
+        }
+
         // Preparamos payload asignando el orden final basado en la posición en el array
         const payloadTareas = tareas.map((t, idx) => ({
             titulo: t.titulo,
