@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { Rocket } from 'lucide-react';
 import EmpresasList from './pages/admin/EmpresasList';
 import EmpresaForm from './pages/admin/EmpresaForm';
 import UsuariosList from './pages/admin/UsuariosList';
@@ -15,12 +16,13 @@ function AdminLayout({ children }) {
     <div className="app-container">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          🚀 OnBoardHub
+          <Rocket size={24} style={{ marginRight: '8px' }} />
+          OnBoardHub
         </div>
         <nav className="sidebar-nav">
-          <a href="/admin/empresas" className={isActive('/admin/empresas')}>Empresas</a>
-          <a href="/admin/usuarios" className={isActive('/admin/usuarios')}>Usuarios</a>
-          <a href="/admin/plantillas" className={isActive('/admin/plantillas')}>Plantillas</a>
+          <Link to="/admin/empresas" className={isActive('/admin/empresas')}>Empresas</Link>
+          <Link to="/admin/usuarios" className={isActive('/admin/usuarios')}>Usuarios</Link>
+          <Link to="/admin/plantillas" className={isActive('/admin/plantillas')}>Plantillas</Link>
         </nav>
       </aside>
       <main className="main-content">
