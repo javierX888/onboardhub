@@ -138,83 +138,83 @@ export default function PlantillaForm() {
 
             <form onSubmit={handleSubmit} className="card" style={{ maxWidth: '800px' }}>
                 <div className="form-group">
-                    <label>Nombre del Proceso / Plantilla *</label>
+                    <label className="form-label">Nombre del Proceso / Plantilla *</label>
                     <input
                         type="text"
                         name="nombre"
                         value={formData.nombre}
                         onChange={handleInputChange}
                         required
-                        className="form-control"
+                        className="form-input"
                         placeholder="Ej. Onboarding Desarrolladores"
                     />
                 </div>
                 
                 <div className="form-group">
-                    <label>Descripción</label>
+                    <label className="form-label">Descripción</label>
                     <textarea
                         name="descripcion"
                         value={formData.descripcion}
                         onChange={handleInputChange}
-                        className="form-control"
+                        className="form-input"
                         placeholder="Breve descripción del objetivo de este onboarding..."
                         rows="3"
                     />
                 </div>
 
-                <hr style={{ margin: '30px 0', borderColor: '#e2e8f0' }} />
+                <hr style={{ margin: '30px 0', borderColor: 'var(--border)' }} />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ margin: 0, color: '#1e293b' }}>Etapas / Tareas ({tareas.length})</h3>
+                    <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Etapas / Tareas ({tareas.length})</h3>
                     <button type="button" className="btn btn-sm btn-primary" onClick={addTarea}>
                         + Agregar Tarea
                     </button>
                 </div>
 
                 {tareas.length === 0 ? (
-                    <div style={{ background: '#f8fafc', padding: '30px', textAlign: 'center', borderRadius: '8px', border: '1px dashed #cbd5e1', marginBottom: '20px' }}>
-                        <p style={{ color: '#64748b', margin: 0 }}>No has agregado tareas. Haz clic en "Agregar Tarea" para empezar a diseñar el proceso.</p>
+                    <div style={{ background: 'var(--bg-color)', padding: '30px', textAlign: 'center', borderRadius: '8px', border: '1px dashed var(--border)', marginBottom: '20px' }}>
+                        <p style={{ color: 'var(--text-muted)', margin: 0 }}>No has agregado tareas. Haz clic en "Agregar Tarea" para empezar a diseñar el proceso.</p>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
                         {tareas.map((tarea, index) => (
                             <div key={tarea.id_temp || index} style={{ 
-                                background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', 
+                                background: 'var(--bg-color)', border: '1px solid var(--border)', borderRadius: '10px', 
                                 padding: '15px', display: 'flex', gap: '15px', alignItems: 'flex-start'
                             }}>
                                 {/* Controles de Ordenamiento */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '5px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', paddingTop: '28px', alignItems: 'center' }}>
                                     <button type="button" onClick={() => moveUp(index)} disabled={index === 0}
-                                        style={{ background: 'none', border: 'none', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1, fontSize: '18px' }}
+                                        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1, fontSize: '14px', width: '28px', height: '28px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Mover Arriba"
-                                    >⬆️</button>
-                                    <span style={{ textAlign: 'center', fontWeight: 'bold', color: '#94a3b8', fontSize: '12px' }}>{index + 1}</span>
+                                    >&#8593;</button>
+                                    <span style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)', fontSize: '12px' }}>{index + 1}</span>
                                     <button type="button" onClick={() => moveDown(index)} disabled={index === tareas.length - 1}
-                                        style={{ background: 'none', border: 'none', cursor: index === tareas.length - 1 ? 'not-allowed' : 'pointer', opacity: index === tareas.length - 1 ? 0.3 : 1, fontSize: '18px' }}
+                                        style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', cursor: index === tareas.length - 1 ? 'not-allowed' : 'pointer', opacity: index === tareas.length - 1 ? 0.3 : 1, fontSize: '14px', width: '28px', height: '28px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         title="Mover Abajo"
-                                    >⬇️</button>
+                                    >&#8595;</button>
                                 </div>
 
                                 {/* Campos de la tarea */}
                                 <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px' }}>
                                     <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: '12px', marginBottom: '5px' }}>Título de la Tarea *</label>
+                                        <label className="form-label" style={{ fontSize: '12px', marginBottom: '5px' }}>Título de la Tarea *</label>
                                         <input
                                             type="text"
                                             value={tarea.titulo}
                                             onChange={(e) => updateTarea(index, 'titulo', e.target.value)}
                                             required
-                                            className="form-control"
+                                            className="form-input"
                                             style={{ padding: '8px' }}
                                         />
                                     </div>
                                     <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label style={{ fontSize: '12px', marginBottom: '5px' }}>Tipo de Contenido *</label>
+                                        <label className="form-label" style={{ fontSize: '12px', marginBottom: '5px' }}>Tipo de Contenido *</label>
                                         <select
                                             value={tarea.tipo}
                                             onChange={(e) => updateTarea(index, 'tipo', e.target.value)}
                                             required
-                                            className="form-control"
+                                            className="form-input"
                                             style={{ padding: '8px' }}
                                         >
                                             <option value="document">Documento (PDF/Doc)</option>
@@ -225,12 +225,12 @@ export default function PlantillaForm() {
                                         </select>
                                     </div>
                                     <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: 0 }}>
-                                        <label style={{ fontSize: '12px', marginBottom: '5px' }}>Instrucciones / Descripción (Opcional)</label>
+                                        <label className="form-label" style={{ fontSize: '12px', marginBottom: '5px' }}>Instrucciones / Descripción (Opcional)</label>
                                         <input
                                             type="text"
                                             value={tarea.descripcion || ''}
                                             onChange={(e) => updateTarea(index, 'descripcion', e.target.value)}
-                                            className="form-control"
+                                            className="form-input"
                                             style={{ padding: '8px' }}
                                         />
                                     </div>
@@ -238,17 +238,17 @@ export default function PlantillaForm() {
 
                                 {/* Botón eliminar tarea */}
                                 <button type="button" onClick={() => removeTarea(index)} 
-                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '20px', padding: '5px' }}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '16px', padding: '5px', paddingTop: '28px' }}
                                     title="Eliminar Tarea"
                                 >
-                                    ❌
+                                    &#10006;
                                 </button>
                             </div>
                         ))}
                     </div>
                 )}
 
-                <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+                <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
                     <button type="button" className="btn btn-outline" onClick={() => navigate('/admin/plantillas')} disabled={submitting}>
                         Cancelar
                     </button>
