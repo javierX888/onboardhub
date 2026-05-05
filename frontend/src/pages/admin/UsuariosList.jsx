@@ -26,6 +26,7 @@ export default function UsuariosList() {
         fecha_inicio: '',
         fecha_termino: ''
     });
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     const fetchData = async () => {
         try {
@@ -118,7 +119,8 @@ export default function UsuariosList() {
                 fecha_termino: assignData.fecha_termino || null
             });
             setShowAssignModal(false);
-            alert(`Onboarding asignado correctamente a ${assignUser.nombre}`);
+            setToast({ show: true, message: `Onboarding asignado correctamente a ${assignUser.nombre}`, type: 'success' });
+            setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
         } catch (err) {
             setAssignError(err.response?.data?.detail || 'Error al asignar el onboarding.');
         } finally {
@@ -374,6 +376,20 @@ export default function UsuariosList() {
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+
+            {/* Toast Notification */}
+            {toast.show && (
+                <div style={{
+                    position: 'fixed', bottom: '2rem', right: '2rem',
+                    background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+                    color: 'white', padding: '1rem 1.5rem', borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    fontWeight: 500, animation: 'fadeIn 0.3s ease'
+                }}>
+                    {toast.message}
                 </div>
             )}
         </div>
