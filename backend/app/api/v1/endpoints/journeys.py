@@ -46,7 +46,7 @@ async def asignar_plantilla_a_empleado(asignacion: JourneyAsignar, db: AsyncSess
         fecha_inicio=asignacion.fecha_inicio,
         fecha_termino=asignacion.fecha_termino,
         progreso=0,
-        rol=usuario.cargo # Si tiene cargo
+        rol=usuario.rol # El modelo Usuario tiene 'rol', no 'cargo'
     )
     db.add(nuevo_journey)
     await db.flush() # Para obtener el ID del journey

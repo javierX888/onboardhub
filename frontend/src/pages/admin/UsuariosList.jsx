@@ -236,7 +236,7 @@ export default function UsuariosList() {
                     alignItems: 'center', justifyContent: 'center', zIndex: 1000
                 }}>
                     <div style={{
-                        background: 'var(--bg-card, white)', borderRadius: '16px',
+                        background: 'var(--surface)', borderRadius: '16px',
                         padding: '2rem', width: '450px', maxWidth: '90vw'
                     }}>
                         <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>{editingUser ? 'Editar Usuario' : 'Invitar Usuario'}</h2>
@@ -314,7 +314,7 @@ export default function UsuariosList() {
                     alignItems: 'center', justifyContent: 'center', zIndex: 1000
                 }}>
                     <div style={{
-                        background: 'var(--bg-card, white)', borderRadius: '16px',
+                        background: 'var(--surface)', borderRadius: '16px',
                         padding: '2rem', width: '450px', maxWidth: '90vw'
                     }}>
                         <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Asignar Onboarding a {assignUser?.nombre}</h2>
