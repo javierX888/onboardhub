@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from app.api.deps import get_db
 from app.models.journey import Journey, Task
@@ -52,6 +53,7 @@ async def asignar_plantilla_a_empleado(asignacion: JourneyAsignar, db: AsyncSess
     await db.flush() # Para obtener el ID del journey
 
     # 4. Crear las tareas del Journey copiándolas de la plantilla
+    tareas_creadas = []
     for tp in tareas_plantilla:
         nueva_tarea = Task(
             client_id=usuario.client_id,
@@ -64,8 +66,14 @@ async def asignar_plantilla_a_empleado(asignacion: JourneyAsignar, db: AsyncSess
             # fecha_limite se podría calcular basada en fecha_inicio + orden, pero por ahora lo dejamos vacío o igual a fecha_termino
         )
         db.add(nueva_tarea)
+        tareas_creadas.append(nueva_tarea)
 
     await db.commit()
-    await db.refresh(nuevo_journey)
-
-    return nuevo_journey
+    
+    # Obtener el journey completo con las tareas para retornarlo y evitar MissingGreenlet
+    result = await db.execute(
+        select(Journey)
+        .options(selectinload(Journey.tasks))
+        .where(Journey.id == nuevo_journey.id)
+    )
+    return result.scalars().first()
