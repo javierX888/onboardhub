@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { asignarJourney } from '../../services/journeyService';
 import { getPlantillas } from '../../services/plantillaService';
+import { getEmpresas } from '../../services/empresaService';
 
 export default function UsuariosList() {
     const [usuarios, setUsuarios] = useState([]);
@@ -30,20 +31,12 @@ export default function UsuariosList() {
 
     const fetchData = async () => {
         try {
-            const [empRes, empresasRes] = await Promise.all([
-                api.get('/empresas/'),
-                api.get('/empresas/')
+            const [empresasRes, usuariosRes] = await Promise.all([
+                getEmpresas(),
+                api.get('/usuarios/')
             ]);
-            setEmpresas(empRes.data);
-            // Load users from all empresas
-            const allUsers = [];
-            for (const empresa of empRes.data) {
-                try {
-                    const res = await api.get(`/usuarios/empresa/${empresa.id}`);
-                    allUsers.push(...res.data);
-                } catch { /* skip */ }
-            }
-            setUsuarios(allUsers);
+            setEmpresas(empresasRes);
+            setUsuarios(usuariosRes.data);
         } catch (err) {
             console.error("Error fetching data", err);
         } finally {

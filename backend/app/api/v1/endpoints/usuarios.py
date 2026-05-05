@@ -35,6 +35,11 @@ async def create_usuario(usuario: UsuarioCreate, db: AsyncSession = Depends(get_
     await db.refresh(db_usuario)
     return db_usuario
 
+@router.get("/", response_model=list[UsuarioResponse])
+async def read_all_usuarios(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Usuario))
+    return result.scalars().all()
+
 @router.get("/empresa/{client_id}", response_model=list[UsuarioResponse])
 async def read_usuarios_by_empresa(client_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Usuario).where(Usuario.client_id == client_id))
