@@ -5,7 +5,14 @@ import { getPlantillas, deletePlantilla } from '../../services/plantillaService'
 export default function PlantillasList() {
     const [plantillas, setPlantillas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [deleteConfirm, setDeleteConfirm] = useState(null); // stores the id of the template to delete
     const navigate = useNavigate();
+
+    const showToast = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+    };
 
     useEffect(() => {
         loadPlantillas();
@@ -17,21 +24,23 @@ export default function PlantillasList() {
             setPlantillas(data);
         } catch (error) {
             console.error("Error cargando plantillas:", error);
-            alert("Error al cargar las plantillas");
+            showToast("Error al cargar las plantillas", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if(window.confirm("¿Estás seguro de que quieres eliminar esta plantilla?")) {
-            try {
-                await deletePlantilla(id);
-                setPlantillas(plantillas.filter(p => p.id !== id));
-            } catch (error) {
-                console.error("Error al eliminar plantilla:", error);
-                alert("Error al eliminar la plantilla");
-            }
+    const confirmDelete = async () => {
+        if(!deleteConfirm) return;
+        try {
+            await deletePlantilla(deleteConfirm);
+            setPlantillas(plantillas.filter(p => p.id !== deleteConfirm));
+            showToast("Plantilla eliminada correctamente");
+        } catch (error) {
+            console.error("Error al eliminar plantilla:", error);
+            showToast("Error al eliminar la plantilla", "error");
+        } finally {
+            setDeleteConfirm(null);
         }
     };
 
@@ -76,7 +85,7 @@ export default function PlantillasList() {
                                         <button className="btn btn-sm btn-outline" style={{ background: 'var(--surface)', color: 'var(--text-main)', border: '1px solid var(--border)' }} onClick={() => navigate(`/admin/plantillas/${plantilla.id}/edit`)}>
                                             Editar
                                         </button>
-                                        <button className="btn btn-sm btn-danger" style={{ background: '#ef4444', color: 'white', border: 'none' }} onClick={() => handleDelete(plantilla.id)}>
+                                        <button className="btn btn-sm btn-danger" style={{ background: '#ef4444', color: 'white', border: 'none' }} onClick={() => setDeleteConfirm(plantilla.id)}>
                                             Eliminar
                                         </button>
                                     </div>
@@ -93,6 +102,48 @@ export default function PlantillasList() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal: Confirmar Eliminación */}
+            {deleteConfirm && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'var(--surface)', borderRadius: '16px',
+                        padding: '2rem', width: '400px', maxWidth: '90vw',
+                        textAlign: 'center'
+                    }}>
+                        <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem', color: '#ef4444' }}>Eliminar Plantilla</h2>
+                        <p style={{ marginBottom: '2rem', color: 'var(--text-muted)' }}>
+                            ¿Estás seguro de que quieres eliminar esta plantilla de onboarding? Esta acción no se puede deshacer.
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>
+                                Cancelar
+                            </button>
+                            <button className="btn btn-danger" style={{ background: '#ef4444', color: 'white', border: 'none' }} onClick={confirmDelete}>
+                                Sí, eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast Notification */}
+            {toast.show && (
+                <div style={{
+                    position: 'fixed', bottom: '2rem', right: '2rem',
+                    background: toast.type === 'success' ? '#22c55e' : '#ef4444',
+                    color: 'white', padding: '1rem 1.5rem', borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', zIndex: 9999,
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    fontWeight: 500, animation: 'fadeIn 0.3s ease'
+                }}>
+                    {toast.message}
+                </div>
+            )}
         </div>
     );
 }
