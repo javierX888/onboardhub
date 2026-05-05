@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.database import get_db
+from app.api.deps import get_db
 from app.models.journey import Journey, Task
 from app.models.plantilla import PlantillaOnboarding, TareaPlantilla
 from app.models.usuario import Usuario

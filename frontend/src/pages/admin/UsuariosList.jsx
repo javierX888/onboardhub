@@ -191,7 +191,9 @@ export default function UsuariosList() {
                                             padding: '2px 10px',
                                             borderRadius: '12px',
                                             fontSize: '12px',
-                                            fontWeight: 600
+                                            fontWeight: 600,
+                                            whiteSpace: 'nowrap',
+                                            display: 'inline-block'
                                         }}>
                                             {usr.rol}
                                         </span>
@@ -202,13 +204,15 @@ export default function UsuariosList() {
                                             {usr.estado ? 'Activo' : 'Inactivo'}
                                         </span>
                                     </td>
-                                    <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem' }}
-                                            onClick={() => openEditModal(usr)}>Editar</button>
-                                        <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', color: usr.estado ? '#ef4444' : '#22c55e' }}
-                                            onClick={() => toggleEstado(usr)}>
-                                            {usr.estado ? 'Desactivar' : 'Activar'}
-                                        </button>
+                                    <td style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem' }}
+                                                onClick={() => openEditModal(usr)}>Editar</button>
+                                            <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', color: usr.estado ? '#ef4444' : '#22c55e' }}
+                                                onClick={() => toggleEstado(usr)}>
+                                                {usr.estado ? 'Desactivar' : 'Activar'}
+                                            </button>
+                                        </div>
                                         {usr.rol === 'EMPLEADO' && (
                                             <button className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '12px' }}
                                                 onClick={() => openAssignModal(usr)}>
