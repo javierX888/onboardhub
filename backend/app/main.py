@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.v1.endpoints import empresas, empleado, usuarios, plantillas
+from .api.v1.endpoints import empresas, empleado, usuarios, plantillas, journeys
 
 app = FastAPI(
     title="OnBoardHub API",
@@ -22,6 +22,7 @@ app.include_router(empresas.router, prefix="/api/v1/empresas", tags=["empresas"]
 app.include_router(empleado.router, prefix="/api/v1/empleado", tags=["empleado"])
 app.include_router(usuarios.router, prefix="/api/v1/usuarios", tags=["usuarios"])
 app.include_router(plantillas.router, prefix="/api/v1/plantillas", tags=["plantillas"])
+app.include_router(journeys.router, prefix="/api/v1/journeys", tags=["journeys"])
 
 @app.get("/")
 async def root():

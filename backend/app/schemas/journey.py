@@ -20,8 +20,17 @@ class Task(TaskBase):
 
 class JourneyBase(BaseModel):
     empleado_id: int
-    rol: str
-    progreso: int
+    plantilla_id: Optional[int] = None
+    rol: Optional[str] = None
+    progreso: int = 0
+    fecha_inicio: Optional[datetime] = None
+    fecha_termino: Optional[datetime] = None
+
+class JourneyAsignar(BaseModel):
+    empleado_id: int
+    plantilla_id: int
+    fecha_inicio: Optional[datetime] = None
+    fecha_termino: Optional[datetime] = None
 
 class Journey(JourneyBase):
     id: int

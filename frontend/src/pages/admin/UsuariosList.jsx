@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
+import { asignarJourney } from '../../services/journeyService';
+import { getPlantillas } from '../../services/plantillaService';
 
 export default function UsuariosList() {
     const [usuarios, setUsuarios] = useState([]);
@@ -12,6 +14,18 @@ export default function UsuariosList() {
     });
     const [formError, setFormError] = useState('');
     const [formLoading, setFormLoading] = useState(false);
+
+    // Estados para Asignación de Journey (HU-04)
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [assignUser, setAssignUser] = useState(null);
+    const [plantillas, setPlantillas] = useState([]);
+    const [assignLoading, setAssignLoading] = useState(false);
+    const [assignError, setAssignError] = useState('');
+    const [assignData, setAssignData] = useState({
+        plantilla_id: '',
+        fecha_inicio: '',
+        fecha_termino: ''
+    });
 
     const fetchData = async () => {
         try {
@@ -76,6 +90,40 @@ export default function UsuariosList() {
         setFormData({ email: usr.email, nombre: usr.nombre, password: '', rol: usr.rol, client_id: String(usr.client_id) });
         setFormError('');
         setShowModal(true);
+    };
+
+    const openAssignModal = async (usr) => {
+        setAssignUser(usr);
+        setAssignError('');
+        setAssignData({ plantilla_id: '', fecha_inicio: '', fecha_termino: '' });
+        setShowAssignModal(true);
+        try {
+            const data = await getPlantillas();
+            setPlantillas(data);
+        } catch (error) {
+            console.error("Error cargando plantillas:", error);
+            setAssignError("Error al cargar las plantillas disponibles.");
+        }
+    };
+
+    const handleAssignSubmit = async (e) => {
+        e.preventDefault();
+        setAssignError('');
+        setAssignLoading(true);
+        try {
+            await asignarJourney({
+                empleado_id: assignUser.id,
+                plantilla_id: parseInt(assignData.plantilla_id),
+                fecha_inicio: assignData.fecha_inicio ? new Date(assignData.fecha_inicio).toISOString() : null,
+                fecha_termino: assignData.fecha_termino ? new Date(assignData.fecha_termino).toISOString() : null
+            });
+            setShowAssignModal(false);
+            alert(`Onboarding asignado correctamente a ${assignUser.nombre}`);
+        } catch (err) {
+            setAssignError(err.response?.data?.detail || 'Error al asignar el onboarding.');
+        } finally {
+            setAssignLoading(false);
+        }
     };
 
     const toggleEstado = async (usr) => {
@@ -154,13 +202,19 @@ export default function UsuariosList() {
                                             {usr.estado ? 'Activo' : 'Inactivo'}
                                         </span>
                                     </td>
-                                    <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                         <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem' }}
                                             onClick={() => openEditModal(usr)}>Editar</button>
                                         <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', color: usr.estado ? '#ef4444' : '#22c55e' }}
                                             onClick={() => toggleEstado(usr)}>
                                             {usr.estado ? 'Desactivar' : 'Activar'}
                                         </button>
+                                        {usr.rol === 'EMPLEADO' && (
+                                            <button className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '12px' }}
+                                                onClick={() => openAssignModal(usr)}>
+                                                Asignar Onboarding
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -245,6 +299,73 @@ export default function UsuariosList() {
                                 </button>
                                 <button type="submit" className="btn btn-primary" disabled={formLoading}>
                                     {formLoading ? 'Guardando...' : (editingUser ? 'Guardar Cambios' : 'Crear Usuario')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Asignar Onboarding */}
+            {showAssignModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'var(--bg-card, white)', borderRadius: '16px',
+                        padding: '2rem', width: '450px', maxWidth: '90vw'
+                    }}>
+                        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Asignar Onboarding a {assignUser?.nombre}</h2>
+                        
+                        {assignError && (
+                            <p style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '0.875rem' }}>{assignError}</p>
+                        )}
+
+                        <form onSubmit={handleAssignSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Plantilla de Onboarding</label>
+                                <select 
+                                    className="form-input" 
+                                    value={assignData.plantilla_id}
+                                    onChange={(e) => setAssignData({...assignData, plantilla_id: e.target.value})}
+                                    required
+                                >
+                                    <option value="">Seleccionar plantilla...</option>
+                                    {plantillas.map(p => (
+                                        <option key={p.id} value={p.id}>{p.nombre} ({p.tareas?.length || 0} tareas)</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Fecha de Inicio (Opcional)</label>
+                                <input 
+                                    type="date" 
+                                    className="form-input"
+                                    value={assignData.fecha_inicio}
+                                    onChange={(e) => setAssignData({...assignData, fecha_inicio: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Fecha de Término / Límite Global (Opcional)</label>
+                                <input 
+                                    type="date" 
+                                    className="form-input"
+                                    value={assignData.fecha_termino}
+                                    onChange={(e) => setAssignData({...assignData, fecha_termino: e.target.value})}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                                <button type="button" className="btn btn-secondary"
+                                    onClick={() => setShowAssignModal(false)}>
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="btn btn-primary" disabled={assignLoading || !assignData.plantilla_id}>
+                                    {assignLoading ? 'Asignando...' : 'Confirmar Asignación'}
                                 </button>
                             </div>
                         </form>
