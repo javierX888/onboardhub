@@ -39,13 +39,17 @@ async def asignar_plantilla_a_empleado(asignacion: JourneyAsignar, db: AsyncSess
     if not tareas_plantilla:
         raise HTTPException(status_code=400, detail="La plantilla no tiene tareas configuradas")
 
+    # Asegurar que las fechas sean offset-naive (sin zona horaria) para PostgreSQL
+    fecha_inicio_naive = asignacion.fecha_inicio.replace(tzinfo=None) if asignacion.fecha_inicio else None
+    fecha_termino_naive = asignacion.fecha_termino.replace(tzinfo=None) if asignacion.fecha_termino else None
+
     # 3. Crear el nuevo Journey
     nuevo_journey = Journey(
         client_id=usuario.client_id, # Heredar del usuario
         empleado_id=asignacion.empleado_id,
         plantilla_id=asignacion.plantilla_id,
-        fecha_inicio=asignacion.fecha_inicio,
-        fecha_termino=asignacion.fecha_termino,
+        fecha_inicio=fecha_inicio_naive,
+        fecha_termino=fecha_termino_naive,
         progreso=0,
         rol=usuario.rol # El modelo Usuario tiene 'rol', no 'cargo'
     )

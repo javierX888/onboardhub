@@ -114,8 +114,8 @@ export default function UsuariosList() {
             await asignarJourney({
                 empleado_id: assignUser.id,
                 plantilla_id: parseInt(assignData.plantilla_id),
-                fecha_inicio: assignData.fecha_inicio ? new Date(assignData.fecha_inicio).toISOString() : null,
-                fecha_termino: assignData.fecha_termino ? new Date(assignData.fecha_termino).toISOString() : null
+                fecha_inicio: assignData.fecha_inicio || null,
+                fecha_termino: assignData.fecha_termino || null
             });
             setShowAssignModal(false);
             alert(`Onboarding asignado correctamente a ${assignUser.nombre}`);
