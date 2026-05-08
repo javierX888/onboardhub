@@ -345,7 +345,7 @@ onboardhub/
 |:-----|:-----------|:--------------|
 | **Backend** | Python + FastAPI | Indicado por Alloxentric. Alto rendimiento async, ideal para APIs REST |
 | **ORM** | SQLAlchemy (async) + Alembic | ORM estándar Python, soporte multi-tenant, migraciones versionadas |
-| **Base de Datos** | PostgreSQL | Modelo relacional robusto, soporte multi-tenant por `client_id` |
+| **Base de Datos** | PostgreSQL (Supabase) | Modelo relacional robusto, hosting serverless con Session Pooler |
 | **Autenticación** | Keycloak | Requerimiento directo del cliente (Max Kreimerman, reunión 14-04-2026) |
 | **Driver BD** | asyncpg | Driver asíncrono nativo para PostgreSQL |
 | **Frontend Web** | React.js | Portal Admin y Portal RRHH/Empleado |
