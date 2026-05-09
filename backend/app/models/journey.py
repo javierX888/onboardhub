@@ -6,24 +6,30 @@ from datetime import datetime
 class Journey(MultiTenantBase):
     __tablename__ = "journeys"
 
-    empleado_id = Column(Integer, index=True, nullable=False) # Quemado para la demo
-    plantilla_id = Column(Integer, ForeignKey("plantillas.id"), nullable=True) # Referencia opcional a la plantilla original
-    rol = Column(String(50))
-    progreso = Column(Integer, default=0) # Porcentaje 0-100
-    fecha_inicio = Column(DateTime, nullable=True)
-    fecha_termino = Column(DateTime, nullable=True)
+    employee_id = Column(Integer, index=True, nullable=False) # Previously 'empleado_id'
+    template_id = Column(Integer, ForeignKey("templates.id"), nullable=True) # Previously 'plantilla_id'
+    role = Column(String(50)) # Previously 'rol'
+    progress = Column(Integer, default=0) # Previously 'progreso'
+    start_date = Column(DateTime, nullable=True) # Previously 'fecha_inicio'
+    end_date = Column(DateTime, nullable=True) # Previously 'fecha_termino'
     
-    tasks = relationship("Task", back_populates="journey")
+    # New field: site/location for this specific onboarding
+    location = Column(String(255), nullable=True) 
+    
+    tasks = relationship("JourneyTask", back_populates="journey")
 
-class Task(MultiTenantBase):
-    __tablename__ = "tasks"
+class JourneyTask(MultiTenantBase):
+    __tablename__ = "journey_tasks" # Previously 'tasks'
     
     journey_id = Column(Integer, ForeignKey("journeys.id"), nullable=False)
-    titulo = Column(String(200), nullable=False)
-    etapa = Column(String(100)) # ej. "Día 1: Bienvenida"
-    tipo = Column(String(50)) # ej. "document", "video", "form"
-    descripcion = Column(String(500), nullable=True)
-    completada = Column(Boolean, default=False)
-    fecha_limite = Column(DateTime, nullable=True)
+    title = Column(String(200), nullable=False) # Previously 'titulo'
+    stage = Column(String(100)) # Previously 'etapa'
+    type = Column(String(50)) # Previously 'tipo'
+    description = Column(String(500), nullable=True)
+    completed = Column(Boolean, default=False) # Previously 'completada'
+    deadline = Column(DateTime, nullable=True) # Previously 'fecha_limite'
+    
+    # New field: Specific user responsible for this task
+    responsible_id = Column(Integer, nullable=True)
 
     journey = relationship("Journey", back_populates="tasks")

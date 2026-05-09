@@ -1,33 +1,33 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.v1.endpoints import empresas, empleado, usuarios, plantillas, journeys
+from .api.v1.endpoints import companies, employee, users, templates, journeys
 
 app = FastAPI(
     title="OnBoardHub API",
-    description="Sistema inteligente para gestionar la incorporación de talento en Alloxentric (SaaS Multi-tenant)",
-    version="0.1.0",
+    description="Intelligent system to manage talent onboarding at Alloxentric (Multi-tenant SaaS)",
+    version="0.2.0",
 )
 
-# Configuración de CORS
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Ajustar en producción
+    allow_origins=["*"],  # Adjust in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(empresas.router, prefix="/api/v1/empresas", tags=["empresas"])
-app.include_router(empleado.router, prefix="/api/v1/empleado", tags=["empleado"])
-app.include_router(usuarios.router, prefix="/api/v1/usuarios", tags=["usuarios"])
-app.include_router(plantillas.router, prefix="/api/v1/plantillas", tags=["plantillas"])
+app.include_router(companies.router, prefix="/api/v1/companies", tags=["companies"])
+app.include_router(employee.router, prefix="/api/v1/employee", tags=["employee"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(templates.router, prefix="/api/v1/templates", tags=["templates"])
 app.include_router(journeys.router, prefix="/api/v1/journeys", tags=["journeys"])
 
 @app.get("/")
 async def root():
     return {
-        "message": "Bienvenido a OnBoardHub API",
+        "message": "Welcome to OnBoardHub API",
         "status": "Running",
         "docs": "/docs"
     }

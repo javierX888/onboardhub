@@ -1,83 +1,91 @@
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
-from app.api.deps import get_db
-from app.models.journey import Journey, Task
-from app.models.plantilla import PlantillaOnboarding, TareaPlantilla
-from app.models.usuario import Usuario
-from app.schemas.journey import JourneyAsignar, Journey as JourneySchema
+from app.core.database import get_db
+from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
+from app.models.template import Template as TemplateModel
+from app.schemas.journey import Journey, JourneyCreate, JourneyTaskUpdate
 
 router = APIRouter()
 
-@router.post("/asignar", response_model=JourneySchema)
-async def asignar_plantilla_a_empleado(asignacion: JourneyAsignar, db: AsyncSession = Depends(get_db)):
-    # 1. Validar que el usuario (empleado) exista
-    # En un sistema real se verificaría el rol o permisos.
-    result_user = await db.execute(select(Usuario).where(Usuario.id == asignacion.empleado_id))
-    usuario = result_user.scalars().first()
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Empleado no encontrado")
-
-    # 2. Validar que la plantilla exista
-    result_plantilla = await db.execute(
-        select(PlantillaOnboarding).where(PlantillaOnboarding.id == asignacion.plantilla_id)
+@router.get("/employee/{employee_id}", response_model=List[Journey])
+async def read_employee_journeys(
+    employee_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    result = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.employee_id == employee_id)
     )
-    plantilla = result_plantilla.scalars().first()
-    if not plantilla:
-        raise HTTPException(status_code=404, detail="Plantilla no encontrada")
+    return result.scalars().all()
 
-    # Obtener las tareas de la plantilla ordenadas
-    result_tareas_plantilla = await db.execute(
-        select(TareaPlantilla)
-        .where(TareaPlantilla.plantilla_id == asignacion.plantilla_id)
-        .order_by(TareaPlantilla.orden)
-    )
-    tareas_plantilla = result_tareas_plantilla.scalars().all()
+@router.post("/", response_model=Journey)
+async def create_journey(
+    *,
+    db: AsyncSession = Depends(get_db),
+    journey_in: JourneyCreate,
+) -> Any:
+    # 1. Create Journey
+    journey_data = journey_in.model_dump()
+    
+    # Date sanitization (standardizing to UTC without TZ info for PG compatibility)
+    for date_field in ["start_date", "end_date"]:
+        if journey_data.get(date_field):
+            if isinstance(journey_data[date_field], datetime):
+                journey_data[date_field] = journey_data[date_field].replace(tzinfo=None)
 
-    if not tareas_plantilla:
-        raise HTTPException(status_code=400, detail="La plantilla no tiene tareas configuradas")
+    journey = JourneyModel(**journey_data)
+    db.add(journey)
+    await db.commit()
+    await db.refresh(journey)
 
-    # Asegurar que las fechas sean offset-naive (sin zona horaria) para PostgreSQL
-    fecha_inicio_naive = asignacion.fecha_inicio.replace(tzinfo=None) if asignacion.fecha_inicio else None
-    fecha_termino_naive = asignacion.fecha_termino.replace(tzinfo=None) if asignacion.fecha_termino else None
-
-    # 3. Crear el nuevo Journey
-    nuevo_journey = Journey(
-        client_id=usuario.client_id, # Heredar del usuario
-        empleado_id=asignacion.empleado_id,
-        plantilla_id=asignacion.plantilla_id,
-        fecha_inicio=fecha_inicio_naive,
-        fecha_termino=fecha_termino_naive,
-        progreso=0,
-        rol=usuario.rol # El modelo Usuario tiene 'rol', no 'cargo'
-    )
-    db.add(nuevo_journey)
-    await db.flush() # Para obtener el ID del journey
-
-    # 4. Crear las tareas del Journey copiándolas de la plantilla
-    tareas_creadas = []
-    for tp in tareas_plantilla:
-        nueva_tarea = Task(
-            client_id=usuario.client_id,
-            journey_id=nuevo_journey.id,
-            titulo=tp.titulo,
-            tipo=tp.tipo,
-            descripcion=tp.descripcion,
-            etapa=tp.titulo, # Usamos titulo como etapa por ahora
-            completada=False
-            # fecha_limite se podría calcular basada en fecha_inicio + orden, pero por ahora lo dejamos vacío o igual a fecha_termino
+    # 2. If template provided, clone tasks
+    if journey.template_id:
+        result = await db.execute(
+            select(TemplateModel)
+            .options(selectinload(TemplateModel.tasks))
+            .where(TemplateModel.id == journey.template_id)
         )
-        db.add(nueva_tarea)
-        tareas_creadas.append(nueva_tarea)
+        template = result.scalar_one_or_none()
+        
+        if template:
+            for t_task in template.tasks:
+                j_task = JourneyTaskModel(
+                    journey_id=journey.id,
+                    client_id=journey.client_id,
+                    title=t_task.title,
+                    type=t_task.type,
+                    description=t_task.description,
+                    stage=f"Step {t_task.order}",
+                    completed=False
+                )
+                db.add(j_task)
+            await db.commit()
+
+    await db.refresh(journey)
+    return journey
+
+@router.put("/task/{task_id}")
+async def update_task_status(
+    task_id: int,
+    task_in: JourneyTaskUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(JourneyTaskModel).where(JourneyTaskModel.id == task_id))
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    if task_in.completed is not None:
+        task.completed = task_in.completed
+    
+    if task_in.responsible_id is not None:
+        task.responsible_id = task_in.responsible_id
 
     await db.commit()
-    
-    # Obtener el journey completo con las tareas para retornarlo y evitar MissingGreenlet
-    result = await db.execute(
-        select(Journey)
-        .options(selectinload(Journey.tasks))
-        .where(Journey.id == nuevo_journey.id)
-    )
-    return result.scalars().first()
+    return {"status": "success"}

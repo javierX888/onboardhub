@@ -1,18 +1,40 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: onboardhub_db
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: onboardhub
+  backend:
+    build: ./backend
+    container_name: onboardhub-backend
     ports:
-      - "5432:5432"
+      - "8000:8000"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    restart: always
 
-volumes:
-  postgres_data:
+  frontend:
+    build: ./frontend
+    container_name: onboardhub-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
+    restart: always
+
+  # Mobile App (Optional service for development)
+  mobile:
+    image: ghcr.io/cirruslabs/flutter:stable
+    container_name: onboardhub-mobile
+    volumes:
+      - .:/home/developer/app:Z
+    working_dir: /home/developer/app/mobile_src
+    ports:
+      - "8080:8080"
+    command: bash -c "flutter pub get && flutter run -d web-server --web-port 8080 --web-hostname 0.0.0.0"
+    depends_on:
+      - backend

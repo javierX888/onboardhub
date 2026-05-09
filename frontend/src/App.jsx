@@ -1,21 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
-import { Rocket } from 'lucide-react';
-import EmpresasList from './pages/admin/EmpresasList';
-import EmpresaForm from './pages/admin/EmpresaForm';
-import UsuariosList from './pages/admin/UsuariosList';
-import PlantillasList from './pages/admin/PlantillasList';
-import PlantillaForm from './pages/admin/PlantillaForm';
+import { Rocket, Settings, LogOut } from 'lucide-react';
+import CompaniesList from './pages/admin/CompaniesList';
+import CompanyForm from './pages/admin/CompanyForm';
+import UsersList from './pages/admin/UsersList';
+import TemplatesList from './pages/admin/TemplatesList';
+import TemplateForm from './pages/admin/TemplateForm';
 import MobileDashboard from './pages/employee/MobileDashboard';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
 
-function AdminLayout({ children }) {
+function LoginPage({ onLogin }) {
+  const [user, setUser] = useState('');
+  const [pass, setPass] = useState('');
+  const { t } = useLanguage();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (user === 'admin' && pass === 'admin123') {
+      localStorage.setItem('onboardhub_auth', 'true');
+      onLogin();
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)' }}>
+      <form onSubmit={handleSubmit} className="card" style={{ width: '350px', padding: '2rem' }}>
+        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>{t('login_title')}</h2>
+        <div className="form-group">
+          <label className="form-label">{t('login_user')}</label>
+          <input className="form-input" type="text" value={user} onChange={e => setUser(e.target.value)} required />
+        </div>
+        <div className="form-group" style={{ marginBottom: '2rem' }}>
+          <label className="form-label">{t('login_pass')}</label>
+          <input className="form-input" type="password" value={pass} onChange={e => setPass(e.target.value)} required />
+        </div>
+        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>{t('login_btn')}</button>
+      </form>
+    </div>
+  );
+}
+
+function AdminLayout({ children, onLogout }) {
   const [showSettings, setShowSettings] = React.useState(false);
   const location = useLocation();
-  const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item';
   const { t } = useLanguage();
+  const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item';
 
   return (
     <div className="app-container">
@@ -25,16 +58,18 @@ function AdminLayout({ children }) {
           OnBoardHub
         </div>
         <nav className="sidebar-nav">
-          <Link to="/admin/empresas" className={isActive('/admin/empresas')}>{t('sidebar_empresas')}</Link>
-          <Link to="/admin/usuarios" className={isActive('/admin/usuarios')}>{t('sidebar_usuarios')}</Link>
-          <Link to="/admin/plantillas" className={isActive('/admin/plantillas')}>{t('sidebar_plantillas')}</Link>
-          <button 
-            className="nav-item" 
-            style={{ background: 'transparent', border: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
-            onClick={() => setShowSettings(true)}
-          >
-            {t('sidebar_ajustes')}
-          </button>
+          <Link to="/admin/companies" className={isActive('/admin/companies')}>{t('sidebar_empresas')}</Link>
+          <Link to="/admin/users" className={isActive('/admin/users')}>{t('sidebar_usuarios')}</Link>
+          <Link to="/admin/templates" className={isActive('/admin/templates')}>{t('sidebar_plantillas')}</Link>
+          
+          <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+            <button className="nav-item" onClick={() => setShowSettings(true)} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}>
+              <Settings size={18} style={{ marginRight: '8px' }} /> {t('sidebar_ajustes')}
+            </button>
+            <button className="nav-item" onClick={onLogout} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', color: '#ef4444' }}>
+              <LogOut size={18} style={{ marginRight: '8px' }} /> {t('btn_close')}
+            </button>
+          </div>
         </nav>
       </aside>
       <main className="main-content">
@@ -47,29 +82,39 @@ function AdminLayout({ children }) {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('onboardhub_auth') === 'true');
+
+  const handleLogout = () => {
+    localStorage.removeItem('onboardhub_auth');
+    setIsAuthenticated(false);
+  };
+
   return (
     <ThemeProvider>
       <LanguageProvider>
         <Router>
           <Routes>
             <Route path="/" element={<Navigate to="/employee" replace />} />
-            
-            {/* Rutas App Móvil (Empleado) - PRIORIDAD PRESENTACIÓN */}
             <Route path="/employee" element={<MobileDashboard />} />
             
-            {/* Rutas de Administrador */}
+            <Route path="/admin/login" element={
+              isAuthenticated ? <Navigate to="/admin/companies" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />
+            } />
+
             <Route path="/admin/*" element={
-              <AdminLayout>
-                <Routes>
-                  <Route path="empresas" element={<EmpresasList />} />
-                  <Route path="empresas/new" element={<EmpresaForm />} />
-                  <Route path="empresas/:id/edit" element={<EmpresaForm />} />
-                  <Route path="usuarios" element={<UsuariosList />} />
-                  <Route path="plantillas" element={<PlantillasList />} />
-                  <Route path="plantillas/new" element={<PlantillaForm />} />
-                  <Route path="plantillas/:id/edit" element={<PlantillaForm />} />
-                </Routes>
-              </AdminLayout>
+              isAuthenticated ? (
+                <AdminLayout onLogout={handleLogout}>
+                  <Routes>
+                    <Route path="companies" element={<CompaniesList />} />
+                    <Route path="companies/new" element={<CompanyForm />} />
+                    <Route path="companies/:id/edit" element={<CompanyForm />} />
+                    <Route path="users" element={<UsersList />} />
+                    <Route path="templates" element={<TemplatesList />} />
+                    <Route path="templates/new" element={<TemplateForm />} />
+                    <Route path="*" element={<Navigate to="companies" />} />
+                  </Routes>
+                </AdminLayout>
+              ) : <Navigate to="/admin/login" />
             } />
           </Routes>
         </Router>
@@ -79,4 +124,3 @@ function App() {
 }
 
 export default App;
-
