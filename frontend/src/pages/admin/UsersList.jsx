@@ -19,6 +19,7 @@ export default function UsersList() {
     
     // Forms
     const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123' });
+    const [viewingJourney, setViewingJourney] = useState(null);
     const [assignmentData, setAssignmentData] = useState({ 
         template_id: '', 
         start_date: '', 
@@ -144,9 +145,19 @@ export default function UsersList() {
                                             {companiesMap[user.client_id] || user.client_id}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td style={{ display: 'flex', gap: '8px' }}>
                                         <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                            Assign Onboarding
+                                            Assign
+                                        </button>
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={async () => {
+                                                const data = await userService.getDashboard(user.email);
+                                                setViewingJourney(data);
+                                            }}
+                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
+                                        >
+                                            Track
                                         </button>
                                     </td>
                                 </tr>
@@ -334,6 +345,73 @@ export default function UsersList() {
                             </button>
                             <button className="btn btn-secondary" onClick={() => setSelectedUser(null)} style={{ flex: 1 }}>Cancel</button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal: Track Progress */}
+            {viewingJourney && (
+                <div className="modal-overlay">
+                    <div className="card" style={{ width: '95%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.25rem' }}>Progress: {viewingJourney.user.name}</h2>
+                            <button className="btn btn-secondary" onClick={() => setViewingJourney(null)} style={{ padding: '5px' }}><X size={18}/></button>
+                        </div>
+
+                        {!viewingJourney.journey ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <p>No active journey for this user.</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <div style={{ background: 'var(--bg-color)', padding: '1rem', borderRadius: '10px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Overall Progress</div>
+                                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>{viewingJourney.journey.progress}%</div>
+                                    </div>
+                                    <div style={{ width: '100px', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${viewingJourney.journey.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                                    </div>
+                                </div>
+
+                                <div className="table-container">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Task</th>
+                                                <th>Status</th>
+                                                <th>Document</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {viewingJourney.journey.tasks.map(task => (
+                                                <tr key={task.id}>
+                                                    <td style={{ fontSize: '13px' }}>{task.title}</td>
+                                                    <td>
+                                                        <span className={`badge ${task.completed ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '10px' }}>
+                                                            {task.completed ? 'Completed' : 'Pending'}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {task.document_url ? (
+                                                            <a 
+                                                                href={`${import.meta.env.VITE_API_URL?.replace('/api/v1', '')}${task.document_url}`} 
+                                                                target="_blank" 
+                                                                rel="noreferrer"
+                                                                style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '12px', textDecoration: 'none' }}
+                                                            >
+                                                                📥 Download
+                                                            </a>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>No file</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

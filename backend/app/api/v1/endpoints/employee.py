@@ -58,6 +58,7 @@ async def get_employee_dashboard(
                     "completed": t.completed,
                     "deadline": t.deadline.isoformat() if t.deadline else None,
                     "responsible_id": t.responsible_id,
+                    "document_url": t.document_url,
                     "journey_id": t.journey_id,
                 }
                 for t in journey.tasks

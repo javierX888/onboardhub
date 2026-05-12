@@ -8,6 +8,8 @@ export default function MobileDashboard() {
     const [journey, setJourney] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
     const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
     const { t } = useLanguage();
@@ -76,22 +78,37 @@ export default function MobileDashboard() {
         setActiveModal(task);
     };
 
-    const handleCompleteTask = () => {
+    const handleCompleteTask = async () => {
         if(!activeModal) return;
+        setIsUploading(true);
 
-        const updatedTasks = journey.tasks.map(t => 
-            t.id === activeModal.id ? { ...t, completed: true } : t
-        );
-        const completedCount = updatedTasks.filter(t => t.completed).length;
-        const newProgress = Math.round((completedCount / updatedTasks.length) * 100);
-        
-        setJourney({ 
-            ...journey, 
-            tasks: updatedTasks, 
-            progress: newProgress 
-        });
-        
-        setActiveModal(null);
+        try {
+            const result = await journeyService.completeTask(
+                activeModal.id, 
+                userData.client_id, 
+                selectedFile
+            );
+
+            // Update local state
+            const updatedTasks = journey.tasks.map(t => 
+                t.id === activeModal.id ? { ...t, completed: true, document_url: result.document_url } : t
+            );
+            
+            setJourney({ 
+                ...journey, 
+                tasks: updatedTasks, 
+                progress: result.progress 
+            });
+            
+            setActiveModal(null);
+            setSelectedFile(null);
+            alert("Tarea completada con éxito!");
+        } catch (error) {
+            console.error("Error completing task", error);
+            alert(error.response?.data?.detail || "Error al completar la tarea");
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     if (loading) {
@@ -129,19 +146,49 @@ export default function MobileDashboard() {
                         {activeModal.type === 'link' && <div style={{fontSize: '40px'}}>🔗</div>}
                         
                         <p style={{marginTop: '10px', fontSize: '14px', color: '#64748b'}}>
-                            Preview enabled for next sprint!
+                            {activeModal.description || 'Por favor completa esta etapa para continuar.'}
                         </p>
+
+                        {(activeModal.type === 'document' || activeModal.type === 'pdf') && !activeModal.completed && (
+                            <div style={{ marginTop: '15px', textAlign: 'left' }}>
+                                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#4f46e5', display: 'block', marginBottom: '5px' }}>
+                                    Subir documento (PDF, JPG, PNG)
+                                </label>
+                                <input 
+                                    type="file" 
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                                    style={{ fontSize: '12px', width: '100%' }}
+                                />
+                            </div>
+                        )}
+
+                        {activeModal.completed && (
+                            <div style={{ marginTop: '15px', color: '#10b981', fontWeight: 'bold' }}>
+                                ✅ Tarea completada
+                            </div>
+                        )}
                     </div>
 
                     <div style={{display:'flex', gap: '10px', width: '100%'}}>
                         <button 
-                            onClick={() => setActiveModal(null)}
+                            onClick={() => {
+                                setActiveModal(null);
+                                setSelectedFile(null);
+                            }}
                             style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#f1f5f9', border: 'none', cursor: 'pointer' }}
+                            disabled={isUploading}
                         >{t('btn_cancel')}</button>
-                        <button 
-                            onClick={handleCompleteTask}
-                            style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#10b981', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                        >✓ {t('btn_complete') || 'Complete'}</button>
+                        
+                        {!activeModal.completed && (
+                            <button 
+                                onClick={handleCompleteTask}
+                                style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#4f46e5', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                                disabled={isUploading || ((activeModal.type === 'document' || activeModal.type === 'pdf') && !selectedFile)}
+                            >
+                                {isUploading ? 'Subiendo...' : 'Completar'}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -10,10 +10,12 @@ class JourneyTaskBase(BaseModel):
     completed: bool = False
     deadline: Optional[datetime] = None
     responsible_id: Optional[int] = None
+    document_url: Optional[str] = None
 
 class JourneyTaskUpdate(BaseModel):
     completed: Optional[bool] = None
     responsible_id: Optional[int] = None
+    document_url: Optional[str] = None
 
 class JourneyTask(JourneyTaskBase):
     id: int

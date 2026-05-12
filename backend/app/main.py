@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from .api.v1.endpoints import companies, employee, users, templates, journeys
 
@@ -23,6 +25,11 @@ app.include_router(employee.router, prefix="/api/v1/employee", tags=["employee"]
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(templates.router, prefix="/api/v1/templates", tags=["templates"])
 app.include_router(journeys.router, prefix="/api/v1/journeys", tags=["journeys"])
+
+# Serve Static Files (Uploaded documents)
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 async def root():

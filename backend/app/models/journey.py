@@ -31,5 +31,8 @@ class JourneyTask(MultiTenantBase):
     
     # New field: Specific user responsible for this task
     responsible_id = Column(Integer, nullable=True)
+    
+    # New field for HU-06: Store the path/URL of the uploaded document
+    document_url = Column(String(500), nullable=True)
 
     journey = relationship("Journey", back_populates="tasks")

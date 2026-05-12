@@ -1,9 +1,11 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+import os
+import shutil
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from datetime import datetime
+from typing import Any, List
 
 from app.core.database import get_db
 from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
@@ -76,14 +78,16 @@ async def create_journey(
         .where(JourneyModel.id == journey.id)
     )
     return result.unique().scalar_one()
+# ... existing code ...
 
-@router.put("/task/{task_id}")
-async def update_task_status(
+@router.post("/task/{task_id}/complete")
+async def complete_task(
     task_id: int,
-    client_id: int,
-    task_in: JourneyTaskUpdate,
+    client_id: int = Form(...),
+    file: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
+    # 1. Buscar la tarea
     result = await db.execute(
         select(JourneyTaskModel)
         .where(JourneyTaskModel.id == task_id)
@@ -91,13 +95,58 @@ async def update_task_status(
     )
     task = result.scalar_one_or_none()
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found or unauthorized")
-    
-    if task_in.completed is not None:
-        task.completed = task_in.completed
-    
-    if task_in.responsible_id is not None:
-        task.responsible_id = task_in.responsible_id
+        raise HTTPException(status_code=404, detail="Task not found")
 
+    # 2. Si hay archivo, validarlo y guardarlo
+    if file:
+        # Validar tipo de archivo
+        allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail="Only PDF, JPG, and PNG are allowed")
+        
+        # Validar tamaño (5MB)
+        file_size = 0
+        contents = await file.read()
+        file_size = len(contents)
+        if file_size > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large (Max 5MB)")
+
+        # Crear carpeta si no existe
+        upload_dir = "uploads"
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+
+        # Nombre de archivo único
+        file_ext = os.path.splitext(file.filename)[1]
+        file_name = f"task_{task_id}_{datetime.now().timestamp()}{file_ext}"
+        file_path = os.path.join(upload_dir, file_name)
+
+        # Guardar archivo
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        task.document_url = f"/uploads/{file_name}"
+
+    # 3. Marcar como completada
+    task.completed = True
     await db.commit()
-    return {"status": "success"}
+
+    # 4. Recalcular progreso del Journey
+    result = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.id == task.journey_id)
+    )
+    journey = result.unique().scalar_one()
+    
+    total_tasks = len(journey.tasks)
+    completed_tasks = sum(1 for t in journey.tasks if t.completed)
+    journey.progress = int((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+    
+    await db.commit()
+
+    return {
+        "status": "success",
+        "progress": journey.progress,
+        "document_url": task.document_url
+    }

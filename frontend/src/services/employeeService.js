@@ -19,5 +19,20 @@ export const journeyService = {
         responsible_id: responsibleId 
     });
     return response.data;
+  },
+
+  async completeTask(taskId, clientId, file = null) {
+    const formData = new FormData();
+    formData.append('client_id', clientId);
+    if (file) {
+      formData.append('file', file);
+    }
+    
+    const response = await api.post(`/journeys/task/${taskId}/complete`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
   }
 };

@@ -19,5 +19,10 @@ export const userService = {
   async deleteUser(id) {
     const response = await api.delete(`/users/${id}`);
     return response.data;
+  },
+
+  async getDashboard(email) {
+    const response = await api.get(`/employee/${email}`);
+    return response.data;
   }
 };
