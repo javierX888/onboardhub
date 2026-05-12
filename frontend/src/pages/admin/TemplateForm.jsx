@@ -69,7 +69,7 @@ export default function TemplateForm() {
             </div>
 
             <form onSubmit={handleSubmit}>
-                <div className="grid-form" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}>
+                <div className="grid-form" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', alignItems: 'start' }}>
                     
                     {/* Left: Tasks List */}
                     <div className="card">
@@ -87,8 +87,8 @@ export default function TemplateForm() {
                             <div key={index} style={{ 
                                 background: 'rgba(255,255,255,0.03)', 
                                 borderRadius: '12px', 
-                                padding: '1.5rem', 
-                                marginBottom: '1rem',
+                                padding: '1rem', 
+                                marginBottom: '1.5rem',
                                 border: '1px solid var(--border)',
                                 position: 'relative'
                             }}>
