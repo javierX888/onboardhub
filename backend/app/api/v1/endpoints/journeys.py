@@ -127,54 +127,63 @@ async def complete_task(
 
     # 2. Si hay archivo, validarlo y guardarlo
     if file:
-        # Validar tipo de archivo
-        allowed_types = ["application/pdf", "image/jpeg", "image/png"]
-        if file.content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail="Only PDF, JPG, and PNG are allowed")
-        
-        # Validar tamaño (5MB)
-        file_size = 0
-        contents = await file.read()
-        file_size = len(contents)
-        if file_size > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File too large (Max 5MB)")
+        try:
+            # Validar tipo de archivo
+            allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+            if file.content_type not in allowed_types:
+                raise HTTPException(status_code=400, detail="Only PDF, JPG, and PNG are allowed")
+            
+            # Validar tamaño (5MB)
+            contents = await file.read()
+            if len(contents) > 5 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail="File too large (Max 5MB)")
 
-        # Crear carpeta si no existe
-        upload_dir = "uploads"
-        if not os.path.exists(upload_dir):
-            os.makedirs(upload_dir)
+            # Usar ruta absoluta para evitar problemas en Render
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+            upload_dir = os.path.join(base_dir, "uploads")
+            
+            if not os.path.exists(upload_dir):
+                os.makedirs(upload_dir)
 
-        # Nombre de archivo único
-        file_ext = os.path.splitext(file.filename)[1]
-        file_name = f"task_{task_id}_{datetime.now().timestamp()}{file_ext}"
-        file_path = os.path.join(upload_dir, file_name)
+            # Nombre de archivo único
+            file_ext = os.path.splitext(file.filename)[1]
+            file_name = f"task_{task_id}_{int(datetime.now().timestamp())}{file_ext}"
+            file_path = os.path.join(upload_dir, file_name)
 
-        # Guardar archivo
-        with open(file_path, "wb") as f:
-            f.write(contents)
-        
-        task.document_url = f"/uploads/{file_name}"
+            # Guardar archivo
+            with open(file_path, "wb") as f:
+                f.write(contents)
+            
+            task.document_url = f"/uploads/{file_name}"
+        except Exception as e:
+            print(f"Error saving file: {e}")
+            raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
 
     # 3. Marcar como completada
     task.completed = True
     await db.commit()
 
     # 4. Recalcular progreso del Journey
-    result = await db.execute(
-        select(JourneyModel)
-        .options(selectinload(JourneyModel.tasks))
-        .where(JourneyModel.id == task.journey_id)
-    )
-    journey = result.unique().scalar_one()
-    
-    total_tasks = len(journey.tasks)
-    completed_tasks = sum(1 for t in journey.tasks if t.completed)
-    journey.progress = int((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
-    
-    await db.commit()
+    try:
+        result = await db.execute(
+            select(JourneyModel)
+            .options(selectinload(JourneyModel.tasks))
+            .where(JourneyModel.id == task.journey_id)
+        )
+        journey = result.unique().scalar_one()
+        
+        total_tasks = len(journey.tasks)
+        completed_tasks = sum(1 for t in journey.tasks if t.completed)
+        journey.progress = int((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+        
+        await db.commit()
+    except Exception as e:
+        print(f"Error updating progress: {e}")
+        # No fallar si el progreso falla, al menos la tarea se marcó como completada
+        pass
 
     return {
         "status": "success",
-        "progress": journey.progress,
+        "progress": journey.progress if 'journey' in locals() else 0,
         "document_url": task.document_url
     }
