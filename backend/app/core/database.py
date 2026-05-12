@@ -6,7 +6,7 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
-    connect_args={"prepared_statement_cache_size": 0}
+    connect_args={"statement_cache_size": 0}
 )
 
 # Fábrica de sesiones asíncronas
