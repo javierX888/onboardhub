@@ -69,7 +69,7 @@ export default function TemplateForm() {
             </div>
 
             <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+                <div className="grid-form" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}>
                     
                     {/* Left: Tasks List */}
                     <div className="card">
@@ -92,7 +92,7 @@ export default function TemplateForm() {
                                 border: '1px solid var(--border)',
                                 position: 'relative'
                             }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 150px', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="grid-form" style={{ gap: '1rem', marginBottom: '1rem' }}>
                                     <input 
                                         className="form-input" 
                                         placeholder="Task Title (e.g. Welcome Meeting)"
@@ -129,7 +129,7 @@ export default function TemplateForm() {
                     </div>
 
                     {/* Right: Template Info */}
-                    <div className="card" style={{ position: 'sticky', top: '2rem' }}>
+                    <div className="card" style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Template Settings</h3>
                         
                         <div className="form-group">

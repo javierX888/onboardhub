@@ -104,11 +104,12 @@ export default function UsersList() {
                 </button>
             </div>
 
-            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+            <div className="card" style={{ padding: '0' }}>
                 {loading ? (
                     <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users...</div>
                 ) : (
-                    <table className="data-table">
+                    <div className="table-container">
+                        <table className="data-table">
                         <thead>
                             <tr>
                                 <th>{t('table_id')}</th>
@@ -151,7 +152,8 @@ export default function UsersList() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 )}
             </div>
 
@@ -159,8 +161,11 @@ export default function UsersList() {
             {showAddModal && (
                 <div className="modal-overlay" style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.4)' }}>
                     <div className="card" style={{ 
-                        width: '450px', 
-                        padding: '2.5rem', 
+                        width: '95%',
+                        maxWidth: '450px', 
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        padding: '2rem', 
                         position: 'relative',
                         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                         border: '1px solid rgba(255,255,255,0.1)'
@@ -198,7 +203,7 @@ export default function UsersList() {
                                     required 
                                 />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="grid-form">
                                 <div className="form-group">
                                     <label className="form-label">{t('table_role')}</label>
                                     <select 
@@ -249,8 +254,11 @@ export default function UsersList() {
             {selectedUser && (
                 <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <div className="card" style={{ 
-                        width: '480px', 
-                        padding: '2.5rem',
+                        width: '95%',
+                        maxWidth: '480px', 
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        padding: '2rem',
                         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
                         border: '1px solid rgba(255,255,255,0.1)'
                     }}>
@@ -294,7 +302,7 @@ export default function UsersList() {
                             </select>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="grid-form" style={{ gap: '1rem' }}>
                             <div className="form-group">
                                 <label className="form-label">{t('table_location')}</label>
                                 <div style={{ position: 'relative' }}>
