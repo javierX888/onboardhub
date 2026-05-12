@@ -36,6 +36,34 @@ async def get_employee_dashboard(
     )
     journey = result.scalars().first()
     
+    journey_data = None
+    if journey:
+        journey_data = {
+            "id": journey.id,
+            "employee_id": journey.employee_id,
+            "template_id": journey.template_id,
+            "role": journey.role,
+            "progress": journey.progress,
+            "start_date": journey.start_date.isoformat() if journey.start_date else None,
+            "end_date": journey.end_date.isoformat() if journey.end_date else None,
+            "location": journey.location,
+            "client_id": journey.client_id,
+            "tasks": [
+                {
+                    "id": t.id,
+                    "title": t.title,
+                    "stage": t.stage,
+                    "type": t.type,
+                    "description": t.description,
+                    "completed": t.completed,
+                    "deadline": t.deadline.isoformat() if t.deadline else None,
+                    "responsible_id": t.responsible_id,
+                    "journey_id": t.journey_id,
+                }
+                for t in journey.tasks
+            ]
+        }
+
     return {
         "user": {
             "id": user.id,
@@ -44,5 +72,5 @@ async def get_employee_dashboard(
             "role": user.role,
             "client_id": user.client_id
         },
-        "journey": journey
+        "journey": journey_data
     }
