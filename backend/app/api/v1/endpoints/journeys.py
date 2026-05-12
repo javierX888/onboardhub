@@ -80,6 +80,34 @@ async def create_journey(
     return result.unique().scalar_one()
 # ... existing code ...
 
+@router.put("/task/{task_id}")
+async def update_task_status(
+    task_id: int,
+    client_id: int,
+    task_in: JourneyTaskUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(JourneyTaskModel)
+        .where(JourneyTaskModel.id == task_id)
+        .where(JourneyTaskModel.client_id == client_id)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found or unauthorized")
+    
+    if task_in.completed is not None:
+        task.completed = task_in.completed
+    
+    if task_in.responsible_id is not None:
+        task.responsible_id = task_in.responsible_id
+    
+    if task_in.document_url is not None:
+        task.document_url = task_in.document_url
+
+    await db.commit()
+    return {"status": "success"}
+
 @router.post("/task/{task_id}/complete")
 async def complete_task(
     task_id: int,
