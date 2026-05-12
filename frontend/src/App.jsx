@@ -19,7 +19,7 @@ function LoginPage({ onLogin }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (user === 'admin' && pass === 'admin123') {
-      localStorage.setItem('onboardhub_auth', 'true');
+      sessionStorage.setItem('onboardhub_auth', 'true');
       onLogin();
     } else {
       alert('Invalid credentials');
@@ -82,10 +82,10 @@ function AdminLayout({ children, onLogout }) {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('onboardhub_auth') === 'true');
+  const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('onboardhub_auth') === 'true');
 
   const handleLogout = () => {
-    localStorage.removeItem('onboardhub_auth');
+    sessionStorage.removeItem('onboardhub_auth');
     setIsAuthenticated(false);
   };
 

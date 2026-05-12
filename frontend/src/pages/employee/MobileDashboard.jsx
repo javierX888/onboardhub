@@ -8,8 +8,8 @@ export default function MobileDashboard() {
     const [journey, setJourney] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState(null);
-    const [email, setEmail] = useState(localStorage.getItem('onboardhub_employee_email') || '');
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('onboardhub_employee_email'));
+    const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
+    const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
     const { t } = useLanguage();
 
     useEffect(() => {
@@ -38,13 +38,13 @@ export default function MobileDashboard() {
     const handleLogin = (e) => {
         e.preventDefault();
         if (email) {
-            localStorage.setItem('onboardhub_employee_email', email);
+            sessionStorage.setItem('onboardhub_employee_email', email);
             setIsLoggedIn(true);
         }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('onboardhub_employee_email');
+        sessionStorage.removeItem('onboardhub_employee_email');
         setIsLoggedIn(false);
         setUserData(null);
         setJourney(null);
