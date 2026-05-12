@@ -56,8 +56,15 @@ async def create_template(
         db.add(task)
     
     await db.commit()
-    await db.refresh(template)
-    return template
+    
+    # Reload with tasks to avoid MissingGreenlet error in response
+    result = await db.execute(
+        select(TemplateModel)
+        .options(selectinload(TemplateModel.tasks))
+        .where(TemplateModel.id == template.id)
+    )
+    return result.unique().scalar_one()
+
 
 @router.put("/{id}", response_model=Template)
 async def update_template(
@@ -95,8 +102,15 @@ async def update_template(
             db.add(task)
             
     await db.commit()
-    await db.refresh(template)
-    return template
+    
+    # Reload with tasks for the response
+    result = await db.execute(
+        select(TemplateModel)
+        .options(selectinload(TemplateModel.tasks))
+        .where(TemplateModel.id == id)
+    )
+    return result.unique().scalar_one()
+
 
 @router.delete("/{id}", response_model=Template)
 async def delete_template(
