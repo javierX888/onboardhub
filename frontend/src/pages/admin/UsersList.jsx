@@ -94,10 +94,10 @@ export default function UsersList() {
 
     return (
         <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            <div className="page-header">
+            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
                     <h1 className="page-title">{t('sidebar_usuarios')}</h1>
-                    <p className="page-subtitle">Manage your organization members and their journey</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Manage your organization members and their journey</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <UserPlus size={18} /> {t('btn_add')}
@@ -159,7 +159,7 @@ export default function UsersList() {
 
             {/* Modal: Create User (Premium Glassmorphism) */}
             {showAddModal && (
-                <div className="modal-overlay" style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+                <div className="modal-overlay">
                     <div className="card" style={{ 
                         width: '95%',
                         maxWidth: '450px', 
@@ -252,7 +252,7 @@ export default function UsersList() {
 
             {/* Modal: Assign Onboarding (Premium Glassmorphism) */}
             {selectedUser && (
-                <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <div className="modal-overlay">
                     <div className="card" style={{ 
                         width: '95%',
                         maxWidth: '480px', 
