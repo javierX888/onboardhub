@@ -34,7 +34,7 @@ async def get_employee_dashboard(
         .where(JourneyModel.employee_id == user.id)
         .order_by(JourneyModel.id.desc())
     )
-    journey = result.scalars().first()
+    journey = result.unique().scalars().first()
     
     journey_data = None
     if journey:
