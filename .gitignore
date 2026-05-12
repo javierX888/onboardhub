@@ -6,7 +6,9 @@ __pycache__/
 dist/
 build/
 venv/
+venv_new/
 .env
+
 
 # Node
 node_modules/
@@ -22,3 +24,10 @@ Thumbs.db
 
 # PostgreSQL data
 data/
+
+# Local Project Documentation (for local reference only)
+BOOT.md
+STATE.md
+DECISIONS.md
+NEXT_STEPS.md
+

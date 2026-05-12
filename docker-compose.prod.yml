@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    image: onboardhub-backend:latest
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PROJECT_NAME=OnBoardHub
+    ports:
+      - "8000:8000"
+    restart: always
+
+  # El frontend se recomienda desplegar en Vercel, 
+  # pero esta imagen sirve para despliegue en VPS si se requiere.
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: onboardhub-frontend:latest
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "5173:5173"
+    restart: always

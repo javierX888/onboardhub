@@ -93,7 +93,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildNextTaskCard(journey) {
-    final pendingTasks = journey.tasks.where((t) => !t.completada).toList();
+    final pendingTasks = journey.tasks.where((t) => !t.completed).toList();
     if (pendingTasks.isEmpty) {
       return const Card(
         child: Padding(
@@ -111,10 +111,11 @@ class HomeScreen extends StatelessWidget {
           backgroundColor: Colors.blue.shade100,
           child: const Icon(Icons.assignment, color: Colors.blue),
         ),
-        title: Text(nextTask.titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(nextTask.etapa),
+        title: Text(nextTask.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(nextTask.stage),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );
   }
+
 }

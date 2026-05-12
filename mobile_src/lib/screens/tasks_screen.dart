@@ -34,15 +34,15 @@ class TasksScreen extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: CheckboxListTile(
                   title: Text(
-                    task.titulo,
+                    task.title,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      decoration: task.completada ? TextDecoration.lineThrough : null,
-                      color: task.completada ? Colors.grey : Colors.black87,
+                      decoration: task.completed ? TextDecoration.lineThrough : null,
+                      color: task.completed ? Colors.grey : Colors.black87,
                     ),
                   ),
-                  subtitle: Text(task.etapa),
-                  value: task.completada,
+                  subtitle: Text(task.stage),
+                  value: task.completed,
                   activeColor: Theme.of(context).colorScheme.primary,
                   onChanged: (bool? newValue) {
                     if (newValue != null) {
@@ -51,6 +51,7 @@ class TasksScreen extends StatelessWidget {
                   },
                 ),
               );
+
             },
           );
         },

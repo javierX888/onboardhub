@@ -11,8 +11,9 @@ class JourneyProvider with ChangeNotifier {
   String? error;
   bool isOfflineMode = false;
 
-  // En un entorno real, esto vendría del Login. Para MVP, hardcodeado.
-  final int empleadoId = 1;
+  // In a real environment, these would come from the Login. For MVP, hardcoded.
+  final int employeeId = 1;
+  final int clientId = 1;
 
   Future<void> fetchJourney() async {
     isLoading = true;
@@ -20,22 +21,23 @@ class JourneyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Intentar obtener de la API
-      final response = await _api.get('/journeys/empleado/$empleadoId');
+      // Try to fetch from the API
+      // Backend endpoint: GET /api/v1/journeys/employee/{id}?client_id={id}
+      final response = await _api.get('/journeys/employee/$employeeId?client_id=$clientId');
       
-      // La API devuelve un array, asumimos el primero
+      // API returns an array, assume the first one
       if (response.data is List && response.data.isNotEmpty) {
         final Map<String, dynamic> journeyData = response.data[0];
         currentJourney = JourneyModel.fromJson(journeyData);
         
-        // Guardar en caché local
+        // Save to local cache
         await LocalStorage.saveJourneyData(journeyData);
         isOfflineMode = false;
       } else {
         error = "No tienes onboarding asignado.";
       }
     } catch (e) {
-      // Falló la red (Offline), intentar cargar de caché
+      // Network failed (Offline), try to load from cache
       print("Error de red: $e. Intentando cargar caché local...");
       final cachedData = LocalStorage.getCachedJourney();
       
@@ -54,29 +56,32 @@ class JourneyProvider with ChangeNotifier {
   Future<void> toggleTaskStatus(int taskId, bool newStatus) async {
     if (currentJourney == null) return;
 
-    // Actualización optimista UI
+    // Optimistic UI update
     final taskIndex = currentJourney!.tasks.indexWhere((t) => t.id == taskId);
     if (taskIndex == -1) return;
 
-    currentJourney!.tasks[taskIndex] = currentJourney!.tasks[taskIndex].copyWith(completada: newStatus);
+    currentJourney!.tasks[taskIndex] = currentJourney!.tasks[taskIndex].copyWith(completed: newStatus);
     notifyListeners();
 
     if (isOfflineMode) {
-      // Guardar el estado offline para luego sincronizar
+      // Save offline state to sync later
       await LocalStorage.saveJourneyData(currentJourney!.toJson());
       return;
     }
 
     try {
-      // Enviar al backend real
-      await _api.put('/journeys/task/$taskId', {"completada": newStatus});
-      // Actualizar la caché con el nuevo JSON exacto
+      // Send to real backend
+      // Backend endpoint: PUT /api/v1/journeys/task/{id}?client_id={id}
+      await _api.put('/journeys/task/$taskId?client_id=$clientId', {"completed": newStatus});
+      
+      // Update cache with the exact new JSON
       await LocalStorage.saveJourneyData(currentJourney!.toJson());
     } catch (e) {
       print("Error actualizando tarea en backend: $e");
-      // Revertir estado si falla
-      currentJourney!.tasks[taskIndex] = currentJourney!.tasks[taskIndex].copyWith(completada: !newStatus);
+      // Revert state if failed
+      currentJourney!.tasks[taskIndex] = currentJourney!.tasks[taskIndex].copyWith(completed: !newStatus);
       notifyListeners();
     }
   }
 }
+

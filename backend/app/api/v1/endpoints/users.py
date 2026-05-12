@@ -48,6 +48,30 @@ async def create_user(
     await db.refresh(user)
     return user
 
+@router.put("/{id}", response_model=User)
+async def update_user(
+    *,
+    db: AsyncSession = Depends(get_db),
+    id: int,
+    user_in: UserUpdate,
+) -> Any:
+    result = await db.execute(select(UserModel).where(UserModel.id == id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = user_in.model_dump(exclude_unset=True)
+    if "password" in update_data:
+        password = update_data.pop("password")
+        update_data["password_hash"] = f"hashed_{password}"
+    
+    for field, value in update_data.items():
+        setattr(user, field, value)
+    
+    await db.commit()
+    await db.refresh(user)
+    return user
+
 @router.delete("/{id}", response_model=User)
 async def delete_user(
     *,

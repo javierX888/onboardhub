@@ -2,22 +2,22 @@ import 'task_model.dart';
 
 class JourneyModel {
   final int id;
-  final int empleadoId;
-  final int plantillaId;
-  final String rol;
-  final int progreso;
-  final String? fechaInicio;
-  final String? fechaTermino;
+  final int employeeId;
+  final int templateId;
+  final String role;
+  final int progress;
+  final String? startDate;
+  final String? endDate;
   final List<TaskModel> tasks;
 
   JourneyModel({
     required this.id,
-    required this.empleadoId,
-    required this.plantillaId,
-    required this.rol,
-    required this.progreso,
-    this.fechaInicio,
-    this.fechaTermino,
+    required this.employeeId,
+    required this.templateId,
+    required this.role,
+    required this.progress,
+    this.startDate,
+    this.endDate,
     required this.tasks,
   });
 
@@ -27,12 +27,12 @@ class JourneyModel {
 
     return JourneyModel(
       id: json['id'],
-      empleadoId: json['empleado_id'],
-      plantillaId: json['plantilla_id'],
-      rol: json['rol'] ?? 'EMPLEADO',
-      progreso: json['progreso'] ?? 0,
-      fechaInicio: json['fecha_inicio'],
-      fechaTermino: json['fecha_termino'],
+      employeeId: json['employee_id'],
+      templateId: json['template_id'],
+      role: json['role'] ?? 'EMPLOYEE',
+      progress: json['progress'] ?? 0,
+      startDate: json['start_date'],
+      endDate: json['end_date'],
       tasks: tasksList,
     );
   }
@@ -40,12 +40,12 @@ class JourneyModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'empleado_id': empleadoId,
-      'plantilla_id': plantillaId,
-      'rol': rol,
-      'progreso': progreso,
-      'fecha_inicio': fechaInicio,
-      'fecha_termino': fechaTermino,
+      'employee_id': employeeId,
+      'template_id': templateId,
+      'role': role,
+      'progress': progress,
+      'start_date': startDate,
+      'end_date': endDate,
       'tasks': tasks.map((t) => t.toJson()).toList(),
     };
   }
@@ -53,7 +53,8 @@ class JourneyModel {
   // Calculate local progress based on completed tasks
   int get calculatedProgress {
     if (tasks.isEmpty) return 0;
-    int completed = tasks.where((t) => t.completada).length;
-    return ((completed / tasks.length) * 100).round();
+    int completedCount = tasks.where((t) => t.completed).length;
+    return ((completedCount / tasks.length) * 100).round();
   }
 }
+

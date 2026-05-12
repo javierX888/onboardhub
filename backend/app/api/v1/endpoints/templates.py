@@ -59,6 +59,45 @@ async def create_template(
     await db.refresh(template)
     return template
 
+@router.put("/{id}", response_model=Template)
+async def update_template(
+    *,
+    db: AsyncSession = Depends(get_db),
+    id: int,
+    template_in: TemplateUpdate,
+) -> Any:
+    result = await db.execute(
+        select(TemplateModel)
+        .options(selectinload(TemplateModel.tasks))
+        .where(TemplateModel.id == id)
+    )
+    template = result.scalar_one_or_none()
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    update_data = template_in.model_dump(exclude_unset=True)
+    tasks_data = update_data.pop("tasks", None)
+    
+    for field, value in update_data.items():
+        setattr(template, field, value)
+    
+    if tasks_data is not None:
+        # Simple implementation: Delete old tasks and create new ones
+        await db.execute(
+            select(TemplateTaskModel).where(TemplateTaskModel.template_id == id)
+        )
+        # Actually, let's just delete them
+        from sqlalchemy import delete
+        await db.execute(delete(TemplateTaskModel).where(TemplateTaskModel.template_id == id))
+        
+        for task_data in tasks_data:
+            task = TemplateTaskModel(**task_data, template_id=id, client_id=template.client_id)
+            db.add(task)
+            
+    await db.commit()
+    await db.refresh(template)
+    return template
+
 @router.delete("/{id}", response_model=Template)
 async def delete_template(
     *,

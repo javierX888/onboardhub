@@ -29,6 +29,7 @@ class TemplateCreate(TemplateBase):
 class TemplateUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    tasks: Optional[List[TemplateTaskCreate]] = None
 
 class Template(TemplateBase):
     id: int

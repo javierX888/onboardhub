@@ -1,37 +1,37 @@
 class TaskModel {
   final int id;
   final int journeyId;
-  final String titulo;
-  final String etapa;
-  final String tipo;
-  final bool completada;
-  final String? fechaLimite;
-  final String? descripcion;
-  final String? textoBoton;
+  final String title;
+  final String stage;
+  final String type;
+  final bool completed;
+  final String? deadline;
+  final String? description;
+  final String? buttonText;
 
   TaskModel({
     required this.id,
     required this.journeyId,
-    required this.titulo,
-    required this.etapa,
-    required this.tipo,
-    required this.completada,
-    this.fechaLimite,
-    this.descripcion,
-    this.textoBoton,
+    required this.title,
+    required this.stage,
+    required this.type,
+    required this.completed,
+    this.deadline,
+    this.description,
+    this.buttonText,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
       id: json['id'],
       journeyId: json['journey_id'],
-      titulo: json['titulo'],
-      etapa: json['etapa'],
-      tipo: json['tipo'],
-      completada: json['completada'] ?? false,
-      fechaLimite: json['fecha_limite'],
-      descripcion: json['descripcion'],
-      textoBoton: json['texto_boton'],
+      title: json['title'],
+      stage: json['stage'],
+      type: json['type'],
+      completed: json['completed'] ?? false,
+      deadline: json['deadline'],
+      description: json['description'],
+      buttonText: json['button_text'],
     );
   }
 
@@ -39,28 +39,29 @@ class TaskModel {
     return {
       'id': id,
       'journey_id': journeyId,
-      'titulo': titulo,
-      'etapa': etapa,
-      'tipo': tipo,
-      'completada': completada,
-      'fecha_limite': fechaLimite,
-      'descripcion': descripcion,
-      'texto_boton': textoBoton,
+      'title': title,
+      'stage': stage,
+      'type': type,
+      'completed': completed,
+      'deadline': deadline,
+      'description': description,
+      'button_text': buttonText,
     };
   }
 
-  // Permite crear una copia de la tarea marcándola como completada
-  TaskModel copyWith({bool? completada}) {
+  // Allows creating a copy of the task marking it as completed
+  TaskModel copyWith({bool? completed}) {
     return TaskModel(
       id: id,
       journeyId: journeyId,
-      titulo: titulo,
-      etapa: etapa,
-      tipo: tipo,
-      completada: completada ?? this.completada,
-      fechaLimite: fechaLimite,
-      descripcion: descripcion,
-      textoBoton: textoBoton,
+      title: title,
+      stage: stage,
+      type: type,
+      completed: completed ?? this.completed,
+      deadline: deadline,
+      description: description,
+      buttonText: buttonText,
     );
   }
 }
+

@@ -15,12 +15,14 @@ router = APIRouter()
 @router.get("/employee/{employee_id}", response_model=List[Journey])
 async def read_employee_journeys(
     employee_id: int,
+    client_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     result = await db.execute(
         select(JourneyModel)
         .options(selectinload(JourneyModel.tasks))
         .where(JourneyModel.employee_id == employee_id)
+        .where(JourneyModel.client_id == client_id)
     )
     return result.scalars().all()
 
@@ -73,13 +75,18 @@ async def create_journey(
 @router.put("/task/{task_id}")
 async def update_task_status(
     task_id: int,
+    client_id: int,
     task_in: JourneyTaskUpdate,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(JourneyTaskModel).where(JourneyTaskModel.id == task_id))
+    result = await db.execute(
+        select(JourneyTaskModel)
+        .where(JourneyTaskModel.id == task_id)
+        .where(JourneyTaskModel.client_id == client_id)
+    )
     task = result.scalar_one_or_none()
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Task not found or unauthorized")
     
     if task_in.completed is not None:
         task.completed = task_in.completed
