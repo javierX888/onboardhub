@@ -94,10 +94,10 @@ export default function UsersList() {
 
     return (
         <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div className="page-header">
                 <div>
                     <h1 className="page-title">{t('sidebar_usuarios')}</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Manage your organization members and their journey</p>
+                    <p className="page-subtitle">Manage your organization members and their journey</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <UserPlus size={18} /> {t('btn_add')}

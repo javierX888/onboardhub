@@ -44,7 +44,8 @@ export default function CompaniesList() {
                 ) : error ? (
                     <p style={{ color: '#ef4444' }}>{error}</p>
                 ) : (
-                    <table className="data-table">
+                    <div className="table-container">
+                        <table className="data-table">
                         <thead>
                             <tr>
                                 <th>{t('table_id')}</th>
@@ -81,7 +82,8 @@ export default function CompaniesList() {
                                 </tr>
                             )}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 )}
             </div>
         </div>

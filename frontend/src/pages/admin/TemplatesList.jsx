@@ -49,7 +49,8 @@ export default function TemplatesList() {
 
             <div className="card">
                 {loading ? <p>Loading...</p> : (
-                    <table className="data-table">
+                    <div className="table-container">
+                        <table className="data-table">
                         <thead>
                             <tr>
                                 <th>{t('table_id')}</th>
@@ -74,7 +75,8 @@ export default function TemplatesList() {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 )}
             </div>
         </div>
