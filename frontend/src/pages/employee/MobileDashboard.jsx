@@ -8,25 +8,69 @@ export default function MobileDashboard() {
     const [journey, setJourney] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState(null);
+    const [email, setEmail] = useState(localStorage.getItem('onboardhub_employee_email') || '');
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('onboardhub_employee_email'));
     const { t } = useLanguage();
 
     useEffect(() => {
-        const fetchDashboard = async () => {
-            try {
-                // For demo, we use a fixed email or get from local storage
-                const email = "empleado@alloxentric.com"; 
-                const data = await employeeService.getDashboard(email);
-                setUserData(data.user);
-                setJourney(data.journey);
-            } catch (error) {
-                console.error("Error fetching dashboard data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (isLoggedIn && email) {
+            fetchDashboard();
+        } else {
+            setLoading(false);
+        }
+    }, [isLoggedIn, email]);
 
-        fetchDashboard();
-    }, []);
+    const fetchDashboard = async () => {
+        setLoading(true);
+        try {
+            const data = await employeeService.getDashboard(email);
+            setUserData(data.user);
+            setJourney(data.journey);
+        } catch (error) {
+            console.error("Error fetching dashboard data", error);
+            alert("Usuario no encontrado o error de conexión");
+            handleLogout();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogin = (e) => {
+        e.preventDefault();
+        if (email) {
+            localStorage.setItem('onboardhub_employee_email', email);
+            setIsLoggedIn(true);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('onboardhub_employee_email');
+        setIsLoggedIn(false);
+        setUserData(null);
+        setJourney(null);
+    };
+
+    if (!isLoggedIn) {
+        return (
+            <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)', padding: '20px' }}>
+                <form onSubmit={handleLogin} className="card" style={{ width: '100%', maxWidth: '350px', padding: '2rem' }}>
+                    <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Acceso Empleado</h2>
+                    <div className="form-group">
+                        <label className="form-label">Email de la Empresa</label>
+                        <input 
+                            className="form-input" 
+                            type="email" 
+                            placeholder="ej: javier@alloxentric.com"
+                            value={email} 
+                            onChange={e => setEmail(e.target.value)} 
+                            required 
+                        />
+                    </div>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Entrar al Onboarding</button>
+                </form>
+            </div>
+        );
+    }
 
     const openTaskModal = (task) => {
         setActiveModal(task);
