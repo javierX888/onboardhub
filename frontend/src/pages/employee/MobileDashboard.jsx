@@ -10,6 +10,7 @@ export default function MobileDashboard() {
     const [activeModal, setActiveModal] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [toastMessage, setToastMessage] = useState(null); // Custom Toast state
     const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
     const { t } = useLanguage();
@@ -102,13 +103,32 @@ export default function MobileDashboard() {
             
             setActiveModal(null);
             setSelectedFile(null);
-            alert("Tarea completada con éxito!");
+            showToast("✅ Tarea completada con éxito", "success");
         } catch (error) {
             console.error("Error completing task", error);
-            alert(error.response?.data?.detail || "Error al completar la tarea");
+            let errorMsg = "Error al completar la tarea";
+            
+            // Extract detailed error from FastAPI
+            if (error.response?.data?.detail) {
+                if (Array.isArray(error.response.data.detail)) {
+                    // FastAPI validation error array
+                    errorMsg = error.response.data.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(', ');
+                } else {
+                    errorMsg = error.response.data.detail;
+                }
+            } else if (error.message) {
+                errorMsg = error.message;
+            }
+            
+            showToast(`❌ ${errorMsg}`, "error");
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const showToast = (message, type = "success") => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 4000);
     };
 
     if (loading) {
@@ -158,7 +178,7 @@ export default function MobileDashboard() {
                                     type="file" 
                                     accept=".pdf,.jpg,.jpeg,.png"
                                     onChange={(e) => setSelectedFile(e.target.files[0])}
-                                    style={{ fontSize: '12px', width: '100%' }}
+                                    style={{ fontSize: '12px', width: '100%', padding: '10px', background: 'white', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                 />
                             </div>
                         )}
@@ -304,6 +324,30 @@ export default function MobileDashboard() {
                     </button>
                 </div>
             </div>
+
+            {/* Premium Toast Notification */}
+            {toastMessage && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: toastMessage.type === 'error' ? '#ef4444' : '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'fadeInUp 0.3s ease-out'
+                }}>
+                    {toastMessage.message}
+                </div>
+            )}
         </div>
     );
 }
