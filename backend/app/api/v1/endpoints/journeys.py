@@ -24,7 +24,7 @@ async def read_employee_journeys(
         .where(JourneyModel.employee_id == employee_id)
         .where(JourneyModel.client_id == client_id)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 @router.post("/", response_model=Journey)
 async def create_journey(
@@ -69,8 +69,13 @@ async def create_journey(
                 db.add(j_task)
             await db.commit()
 
-    await db.refresh(journey)
-    return journey
+    # Reload with tasks to avoid serialization error
+    result = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.id == journey.id)
+    )
+    return result.unique().scalar_one()
 
 @router.put("/task/{task_id}")
 async def update_task_status(
