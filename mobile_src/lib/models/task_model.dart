@@ -49,18 +49,28 @@ class TaskModel {
     };
   }
 
-  // Allows creating a copy of the task marking it as completed
-  TaskModel copyWith({bool? completed}) {
+  // Create a copy with optional parameter changes
+  TaskModel copyWith({
+    int? id,
+    int? journeyId,
+    String? title,
+    String? stage,
+    String? type,
+    bool? completed,
+    String? deadline,
+    String? description,
+    String? buttonText,
+  }) {
     return TaskModel(
-      id: id,
-      journeyId: journeyId,
-      title: title,
-      stage: stage,
-      type: type,
+      id: id ?? this.id,
+      journeyId: journeyId ?? this.journeyId,
+      title: title ?? this.title,
+      stage: stage ?? this.stage,
+      type: type ?? this.type,
       completed: completed ?? this.completed,
-      deadline: deadline,
-      description: description,
-      buttonText: buttonText,
+      deadline: deadline ?? this.deadline,
+      description: description ?? this.description,
+      buttonText: buttonText ?? this.buttonText,
     );
   }
 }
