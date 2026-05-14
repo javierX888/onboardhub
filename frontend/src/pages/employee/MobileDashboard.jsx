@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './MobileDashboard.css';
-import { employeeService } from '../../services/employeeService';
+import { employeeService, journeyService } from '../../services/employeeService';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function MobileDashboard() {
