@@ -27,6 +27,7 @@ export default function UsersList() {
         location: '',
         responsible_id: '' 
     });
+    const [toastMessage, setToastMessage] = useState(null);
     
     const { t } = useLanguage();
 
@@ -51,6 +52,11 @@ export default function UsersList() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const showToast = (message, type = "success") => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 4000);
     };
 
     useEffect(() => {
@@ -85,11 +91,11 @@ export default function UsersList() {
                 location: assignmentData.location || null,
                 responsible_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
             });
-            alert("Success! Onboarding assigned.");
+            showToast("✅ Success! Onboarding assigned.", "success");
             setSelectedUser(null);
             setAssignmentData({ template_id: '', start_date: '', end_date: '', location: '', responsible_id: '' });
         } catch (err) {
-            alert("Error assigning onboarding.");
+            showToast("❌ Error assigning onboarding.", "error");
         }
     };
 
@@ -98,7 +104,7 @@ export default function UsersList() {
             <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div>
                     <h1 className="page-title">{t('sidebar_usuarios')}</h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Manage your organization members and their journey</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('users_subtitle')}</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <UserPlus size={18} /> {t('btn_add')}
@@ -107,7 +113,7 @@ export default function UsersList() {
 
             <div className="card" style={{ padding: '0' }}>
                 {loading ? (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading users...</div>
+                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('msg_loading')}</div>
                 ) : (
                     <div className="table-container">
                         <table className="data-table">
@@ -126,7 +132,7 @@ export default function UsersList() {
                                 <tr>
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                         <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
-                                        No users found. Create your first member to start.
+                                        {t('msg_no_data')}
                                     </td>
                                 </tr>
                             ) : users.map(user => (
@@ -136,7 +142,7 @@ export default function UsersList() {
                                     <td style={{ color: 'var(--text-muted)' }}>{user.email}</td>
                                     <td>
                                         <span className={`badge ${user.role.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
-                                            {user.role}
+                                            {t(`role_${user.role.toLowerCase()}`) || user.role}
                                         </span>
                                     </td>
                                     <td>
@@ -147,7 +153,7 @@ export default function UsersList() {
                                     </td>
                                     <td style={{ display: 'flex', gap: '8px' }}>
                                         <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                            Assign
+                                            {t('btn_assign')}
                                         </button>
                                         <button 
                                             className="btn btn-primary" 
@@ -157,7 +163,7 @@ export default function UsersList() {
                                             }}
                                             style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
                                         >
-                                            Track
+                                            {t('btn_track')}
                                         </button>
                                     </td>
                                 </tr>
@@ -188,8 +194,8 @@ export default function UsersList() {
                             <X size={20} />
                         </button>
                         
-                        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('btn_add')} New Member</h2>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Add a new employee or manager to your platform.</p>
+                        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('users_add_title')}</h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>{t('users_add_subtitle')}</p>
 
                         <form onSubmit={handleCreateUser}>
                             <div className="form-group">
@@ -222,13 +228,13 @@ export default function UsersList() {
                                         value={newUser.role}
                                         onChange={e => setNewUser({...newUser, role: e.target.value})}
                                     >
-                                        <option value="EMPLOYEE">Employee</option>
-                                        <option value="MANAGER">Manager</option>
-                                        <option value="ADMIN">Admin</option>
+                                        <option value="EMPLOYEE">{t('role_employee')}</option>
+                                        <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
+                                        <option value="ADMIN">{t('role_admin')}</option>
                                     </select>
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Password</label>
+                                    <label className="form-label">{t('login_pass')}</label>
                                     <input 
                                         className="form-input" 
                                         type="password" 
@@ -246,7 +252,7 @@ export default function UsersList() {
                                     onChange={e => setNewUser({...newUser, client_id: e.target.value})}
                                     required
                                 >
-                                    <option value="">Select Company...</option>
+                                    <option value="">-- {t('table_company')} --</option>
                                     {companiesList.map(c => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
@@ -413,6 +419,30 @@ export default function UsersList() {
                             </div>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* Premium Toast Notification */}
+            {toastMessage && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: toastMessage.type === 'error' ? '#ef4444' : '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'fadeInUp 0.3s ease-out'
+                }}>
+                    {toastMessage.message}
                 </div>
             )}
         </div>

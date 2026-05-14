@@ -8,8 +8,14 @@ export default function TemplatesList() {
     const [templates, setTemplates] = useState([]);
     const [companies, setCompanies] = useState({});
     const [loading, setLoading] = useState(true);
+    const [toastMessage, setToastMessage] = useState(null);
     const navigate = useNavigate();
     const { t } = useLanguage();
+
+    const showToast = (message, type = "success") => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 4000);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,8 +39,14 @@ export default function TemplatesList() {
 
     const handleDelete = async (id) => {
         if (window.confirm(t('msg_confirm_delete'))) {
-            await templateService.deleteTemplate(id);
-            setTemplates(templates.filter(t => t.id !== id));
+            try {
+                await templateService.deleteTemplate(id);
+                setTemplates(prev => prev.filter(t => t.id !== id));
+                showToast(t('msg_success_delete'), "success");
+            } catch (err) {
+                console.error("Error deleting template:", err);
+                showToast(t('msg_error_generic'), "error");
+            }
         }
     };
 
@@ -48,15 +60,15 @@ export default function TemplatesList() {
             </div>
 
             <div className="card">
-                {loading ? <p>Loading...</p> : (
+                {loading ? <p>{t('msg_loading')}</p> : (
                     <div className="table-container">
-                        <table className="data-table">
+                    <table className="data-table">
                         <thead>
                             <tr>
                                 <th>{t('table_id')}</th>
                                 <th>{t('table_name')}</th>
                                 <th>{t('table_company')}</th>
-                                <th>Tasks</th>
+                                <th>{t('table_tasks')}</th>
                                 <th>{t('table_actions')}</th>
                             </tr>
                         </thead>
@@ -68,17 +80,46 @@ export default function TemplatesList() {
                                     <td>{companies[temp.client_id] || temp.client_id}</td>
                                     <td>{temp.tasks?.length || 0}</td>
                                     <td>
-                                        <button className="btn btn-secondary" onClick={() => handleDelete(temp.id)}>
+                                        <button className="btn btn-secondary" onClick={() => handleDelete(temp.id)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
                                             {t('btn_delete')}
                                         </button>
                                     </td>
                                 </tr>
                             ))}
+                            {templates.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
+                                </tr>
+                            )}
                         </tbody>
-                        </table>
+                    </table>
                     </div>
                 )}
             </div>
+
+            {/* Premium Toast Notification */}
+            {toastMessage && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: toastMessage.type === 'error' ? '#ef4444' : '#10b981',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                    zIndex: 9999,
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'fadeInUp 0.3s ease-out'
+                }}>
+                    {toastMessage.message}
+                </div>
+            )}
         </div>
     );
 }

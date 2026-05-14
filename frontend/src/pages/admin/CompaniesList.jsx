@@ -31,7 +31,7 @@ export default function CompaniesList() {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">{t('sidebar_empresas')}</h1>
-                    <p className="page-subtitle">SaaS Multi-tenant administration.</p>
+                    <p className="page-subtitle">{t('companies_subtitle')}</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => navigate('/admin/companies/new')}>
                     + {t('btn_add')}
@@ -40,12 +40,11 @@ export default function CompaniesList() {
 
             <div className="card">
                 {loading ? (
-                    <p>Loading...</p>
+                    <p>{t('msg_loading')}</p>
                 ) : error ? (
                     <p style={{ color: '#ef4444' }}>{error}</p>
                 ) : (
-                    <div className="table-container">
-                        <table className="data-table">
+                    <table className="data-table">
                         <thead>
                             <tr>
                                 <th>{t('table_id')}</th>
@@ -71,19 +70,18 @@ export default function CompaniesList() {
                                     <td>
                                         <button className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem' }}
                                             onClick={() => navigate(`/admin/companies/${company.id}/edit`)}>
-                                            Edit
+                                            {t('btn_edit')}
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                             {companies.length === 0 && (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center' }}>No companies found.</td>
+                                    <td colSpan="6" style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
                                 </tr>
                             )}
                         </tbody>
-                        </table>
-                    </div>
+                    </table>
                 )}
             </div>
         </div>
