@@ -4,7 +4,8 @@ import shutil
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from datetime import datetime
+from datetime import datetime, timedelta
+import re
 from typing import Any, List
 
 from app.core.database import get_db
@@ -59,13 +60,23 @@ async def create_journey(
         
         if template:
             for t_task in template.tasks:
+                task_deadline = None
+                if journey.start_date:
+                    days_offset = 0
+                    if t_task.stage:
+                        match = re.search(r'\d+', t_task.stage)
+                        if match:
+                            days_offset = int(match.group())
+                    task_deadline = journey.start_date + timedelta(days=days_offset)
+
                 j_task = JourneyTaskModel(
                     journey_id=journey.id,
                     client_id=journey.client_id,
                     title=t_task.title,
                     type=t_task.type,
                     description=t_task.description,
-                    stage=f"Step {t_task.order}",
+                    stage=t_task.stage if t_task.stage else f"Step {t_task.order}",
+                    deadline=task_deadline,
                     completed=False
                 )
                 db.add(j_task)

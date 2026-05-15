@@ -6,6 +6,7 @@ class TemplateTaskBase(BaseModel):
     type: str
     description: Optional[str] = None
     order: int = 0
+    stage: Optional[str] = "Day 1"
     responsible_role: Optional[str] = "HR"
 
 class TemplateTaskCreate(TemplateTaskBase):

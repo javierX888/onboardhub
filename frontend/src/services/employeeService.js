@@ -28,7 +28,11 @@ export const journeyService = {
       formData.append('file', file);
     }
     
-    const response = await api.post(`/journeys/task/${taskId}/complete`, formData);
+    const response = await api.post(`/journeys/task/${taskId}/complete`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   }
 };

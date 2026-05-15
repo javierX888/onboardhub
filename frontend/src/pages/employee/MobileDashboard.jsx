@@ -255,6 +255,7 @@ export default function MobileDashboard() {
                                         const isCompleted = task.completed;
                                         const isCurrent = !isCompleted && (idx === 0 || journey.tasks[idx - 1].completed);
                                         const isLocked = !isCompleted && !isCurrent;
+                                        const isOverdue = !isCompleted && task.deadline && new Date(task.deadline) < new Date();
                                         
                                         return (
                                             <div className="timeline-item" key={task.id}>
@@ -263,10 +264,26 @@ export default function MobileDashboard() {
                                                 </div>
                                                 
                                                 <div className={`timeline-card ${isLocked ? 'locked' : ''}`}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{task.stage}</div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 'bold' }}>{task.stage}</div>
+                                                        <div style={{ 
+                                                            fontSize: '10px', 
+                                                            padding: '2px 6px', 
+                                                            borderRadius: '4px', 
+                                                            background: isCompleted ? '#dcfce7' : isOverdue ? '#fee2e2' : '#e0e7ff', 
+                                                            color: isCompleted ? '#166534' : isOverdue ? '#991b1b' : '#3730a3',
+                                                            fontWeight: 'bold'
+                                                        }}>
+                                                            {isCompleted ? 'Completada' : isOverdue ? 'Atrasada' : 'Pendiente'}
+                                                        </div>
                                                     </div>
                                                     <div className="timeline-card-title">{task.title}</div>
+                                                    
+                                                    {task.deadline && (
+                                                        <div style={{ fontSize: '11px', color: isOverdue ? '#ef4444' : '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span>📅</span> Vence: {new Date(task.deadline).toLocaleDateString()}
+                                                        </div>
+                                                    )}
                                                     
                                                     {task.description && isCurrent && (
                                                         <p style={{ fontSize: '12px', color: '#0f62fe', background:'#eef2ff', padding:'5px', borderRadius:'5px', marginTop:'5px' }}>

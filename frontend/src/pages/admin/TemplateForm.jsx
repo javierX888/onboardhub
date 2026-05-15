@@ -9,7 +9,7 @@ export default function TemplateForm() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t } = useLanguage();
-    
+
     const [companies, setCompanies] = useState([]);
     const [template, setTemplate] = useState({
         name: '',
@@ -70,7 +70,7 @@ export default function TemplateForm() {
 
             <form onSubmit={handleSubmit}>
                 <div className="grid-form" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', alignItems: 'start' }}>
-                    
+
                     {/* Left: Tasks List */}
                     <div className="card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -84,40 +84,40 @@ export default function TemplateForm() {
                         </div>
 
                         {template.tasks.map((task, index) => (
-                            <div key={index} style={{ 
-                                background: 'rgba(255,255,255,0.03)', 
-                                borderRadius: '12px', 
-                                padding: '1rem', 
+                            <div key={index} style={{
+                                background: 'rgba(255,255,255,0.03)',
+                                borderRadius: '12px',
+                                padding: '1rem',
                                 marginBottom: '1.5rem',
                                 border: '1px solid var(--border)',
                                 position: 'relative'
                             }}>
                                 <div className="grid-form" style={{ gap: '1rem', marginBottom: '1rem' }}>
-                                    <input 
-                                        className="form-input" 
+                                    <input
+                                        className="form-input"
                                         placeholder="Task Title (e.g. Welcome Meeting)"
                                         value={task.title}
                                         onChange={e => updateTask(index, 'title', e.target.value)}
                                         required
                                     />
-                                    <input 
-                                        className="form-input" 
+                                    <input
+                                        className="form-input"
                                         placeholder="Stage (e.g. Day 1)"
                                         value={task.stage}
                                         onChange={e => updateTask(index, 'stage', e.target.value)}
                                     />
                                 </div>
-                                <textarea 
-                                    className="form-input" 
+                                <textarea
+                                    className="form-input"
                                     placeholder="Brief description of what the employee should do..."
                                     style={{ height: '80px', resize: 'none' }}
                                     value={task.description}
                                     onChange={e => updateTask(index, 'description', e.target.value)}
                                 />
-                                
+
                                 {template.tasks.length > 1 && (
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => removeTask(index)}
                                         style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                     >
@@ -131,25 +131,25 @@ export default function TemplateForm() {
                     {/* Right: Template Info */}
                     <div className="card" style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
                         <h3 style={{ marginBottom: '1.5rem' }}>Template Settings</h3>
-                        
+
                         <div className="form-group">
                             <label className="form-label">Template Name</label>
-                            <input 
-                                className="form-input" 
-                                type="text" 
+                            <input
+                                className="form-input"
+                                type="text"
                                 value={template.name}
-                                onChange={e => setTemplate({...template, name: e.target.value})}
+                                onChange={e => setTemplate({ ...template, name: e.target.value })}
                                 placeholder="e.g. Sales Onboarding"
-                                required 
+                                required
                             />
                         </div>
 
                         <div className="form-group">
                             <label className="form-label">Company</label>
-                            <select 
+                            <select
                                 className="form-input"
                                 value={template.client_id}
-                                onChange={e => setTemplate({...template, client_id: e.target.value})}
+                                onChange={e => setTemplate({ ...template, client_id: e.target.value })}
                                 required
                             >
                                 <option value="">Select Company...</option>
@@ -172,6 +172,6 @@ export default function TemplateForm() {
     );
 }
 
-const X = ({size}) => (
+const X = ({ size }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 );
