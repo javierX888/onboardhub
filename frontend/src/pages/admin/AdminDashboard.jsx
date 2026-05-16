@@ -141,8 +141,9 @@ const AdminDashboard = () => {
                   onChange={(e) => setRoleFilter(e.target.value)}
                 >
                   <option value="">Todos los roles</option>
-                  <option value="EMPLOYEE">Empleado</option>
-                  <option value="MANAGER">Manager</option>
+                  <option value="EMPLOYEE">{t('role_employee')}</option>
+                  <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
+                  <option value="ADMIN">{t('role_admin')}</option>
                 </select>
               </div>
             </div>
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
               <tbody>
                 {data.employee_status
                   .filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                  .filter(emp => roleFilter ? emp.role === roleFilter : true)
+                  .filter(emp => roleFilter ? emp.role.toUpperCase() === roleFilter.toUpperCase() : true)
                   .map((emp, i) => (
                   <tr key={i}>
                     <td>
