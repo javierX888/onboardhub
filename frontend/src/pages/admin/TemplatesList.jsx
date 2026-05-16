@@ -19,10 +19,14 @@ export default function TemplatesList() {
 
     useEffect(() => {
         const fetchData = async () => {
+            const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+            const isAdmin = authUser.role === 'SUPERADMIN';
+            const clientId = authUser.client_id;
+
             try {
                 const [temps, comps] = await Promise.all([
-                    templateService.getTemplates(),
-                    companyService.getCompanies()
+                    isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId),
+                    isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }])
                 ]);
                 setTemplates(temps);
                 const compMap = {};

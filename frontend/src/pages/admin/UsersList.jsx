@@ -33,11 +33,15 @@ export default function UsersList() {
 
     const fetchData = async () => {
         setLoading(true);
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const isAdmin = authUser.role === 'SUPERADMIN';
+        const clientId = authUser.client_id;
+
         try {
             const [usersData, companiesData, templatesData] = await Promise.all([
-                userService.getUsers(),
-                companyService.getCompanies(),
-                templateService.getTemplates()
+                isAdmin ? userService.getUsers() : userService.getUsersByCompany(clientId),
+                isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }]),
+                isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId)
             ]);
 
             setUsers(usersData);
@@ -65,10 +69,13 @@ export default function UsersList() {
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const finalClientId = authUser.role === 'SUPERADMIN' ? newUser.client_id : authUser.client_id;
+
         try {
             await userService.createUser({
                 ...newUser,
-                client_id: parseInt(newUser.client_id)
+                client_id: parseInt(finalClientId)
             });
             setShowAddModal(false);
             setNewUser({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123' });
@@ -248,8 +255,9 @@ export default function UsersList() {
                                 <label className="form-label">{t('table_company')}</label>
                                 <select 
                                     className="form-input" 
-                                    value={newUser.client_id}
+                                    value={JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' ? newUser.client_id : JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').client_id}
                                     onChange={e => setNewUser({...newUser, client_id: e.target.value})}
+                                    disabled={JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role !== 'SUPERADMIN'}
                                     required
                                 >
                                     <option value="">-- {t('table_company')} --</option>

@@ -54,7 +54,19 @@ const translations = {
     role_admin: "Administrador",
     role_onboarding_manager: "Encargado Onboarding",
     role_employee: "Empleado",
-    role_superadmin: "Super Administrador"
+    role_superadmin: "Super Administrador",
+    sidebar_dashboard: "Dashboard",
+    dashboard_title: "Dashboard",
+    dashboard_subtitle: "Vista general del onboarding",
+    dashboard_kpi_active: "Procesos Activos",
+    dashboard_kpi_employees: "Empleados en Onboarding",
+    dashboard_kpi_overdue: "Tareas Vencidas",
+    dashboard_kpi_nps: "NPS Promedio",
+    dashboard_employee_status: "Estado de Empleados",
+    dashboard_recent_alerts: "Alertas Recientes",
+    dashboard_new_process: "Nuevo Proceso",
+    portal_admin: "Portal Admin",
+    portal_employee: "Portal Empleado"
   },
   en: {
     sidebar_empresas: "Companies",
@@ -107,7 +119,19 @@ const translations = {
     role_admin: "Admin",
     role_onboarding_manager: "Onboarding Manager",
     role_employee: "Employee",
-    role_superadmin: "Super Admin"
+    role_superadmin: "Super Admin",
+    sidebar_dashboard: "Dashboard",
+    dashboard_title: "Dashboard",
+    dashboard_subtitle: "Onboarding Overview",
+    dashboard_kpi_active: "Active Processes",
+    dashboard_kpi_employees: "Employees in Onboarding",
+    dashboard_kpi_overdue: "Overdue Tasks",
+    dashboard_kpi_nps: "Average NPS",
+    dashboard_employee_status: "Employee Status",
+    dashboard_recent_alerts: "Recent Alerts",
+    dashboard_new_process: "New Process",
+    portal_admin: "Admin Portal",
+    portal_employee: "Employee Portal"
   }
 };
 

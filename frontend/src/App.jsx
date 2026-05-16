@@ -6,6 +6,7 @@ import CompanyForm from './pages/admin/CompanyForm';
 import UsersList from './pages/admin/UsersList';
 import TemplatesList from './pages/admin/TemplatesList';
 import TemplateForm from './pages/admin/TemplateForm';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import MobileDashboard from './pages/employee/MobileDashboard';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
@@ -18,11 +19,20 @@ function LoginPage({ onLogin }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let authData = null;
+
     if (user === 'admin' && pass === 'admin123') {
+      authData = { role: 'SUPERADMIN', client_id: null, name: 'Super Admin' };
+    } else if (user === 'hr' && pass === 'hr123') {
+      authData = { role: 'ADMIN', client_id: 1, name: 'HR Manager' };
+    }
+
+    if (authData) {
       sessionStorage.setItem('onboardhub_auth', 'true');
+      sessionStorage.setItem('onboardhub_user', JSON.stringify(authData));
       onLogin();
     } else {
-      alert('Invalid credentials');
+      alert('Invalid credentials (Try: admin/admin123 or hr/hr123)');
     }
   };
 
@@ -48,6 +58,10 @@ function AdminLayout({ children, onLogout }) {
   const [showSettings, setShowSettings] = React.useState(false);
   const location = useLocation();
   const { t } = useLanguage();
+  
+  const user = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+  const isAdmin = user.role === 'SUPERADMIN';
+
   const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item';
 
   return (
@@ -58,7 +72,12 @@ function AdminLayout({ children, onLogout }) {
           OnBoardHub
         </div>
         <nav className="sidebar-nav">
-          <Link to="/admin/companies" className={isActive('/admin/companies')}>{t('sidebar_empresas')}</Link>
+          <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>{t('sidebar_dashboard')}</Link>
+          
+          {isAdmin && (
+            <Link to="/admin/companies" className={isActive('/admin/companies')}>{t('sidebar_empresas')}</Link>
+          )}
+          
           <Link to="/admin/users" className={isActive('/admin/users')}>{t('sidebar_usuarios')}</Link>
           <Link to="/admin/templates" className={isActive('/admin/templates')}>{t('sidebar_plantillas')}</Link>
           
@@ -73,6 +92,16 @@ function AdminLayout({ children, onLogout }) {
         </nav>
       </aside>
       <main className="main-content">
+        <div className="top-bar">
+          <div className="portal-switch">
+            <button className={`portal-btn ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
+              {t('portal_admin')}
+            </button>
+            <Link to="/employee" className="portal-btn">
+              {t('portal_employee')}
+            </Link>
+          </div>
+        </div>
         {children}
       </main>
 
@@ -86,6 +115,7 @@ function App() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('onboardhub_auth');
+    sessionStorage.removeItem('onboardhub_user');
     setIsAuthenticated(false);
   };
 
@@ -98,20 +128,21 @@ function App() {
             <Route path="/employee" element={<MobileDashboard />} />
             
             <Route path="/admin/login" element={
-              isAuthenticated ? <Navigate to="/admin/companies" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />
+              isAuthenticated ? <Navigate to="/admin/dashboard" /> : <LoginPage onLogin={() => setIsAuthenticated(true)} />
             } />
 
             <Route path="/admin/*" element={
               isAuthenticated ? (
                 <AdminLayout onLogout={handleLogout}>
                   <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="companies" element={<CompaniesList />} />
                     <Route path="companies/new" element={<CompanyForm />} />
                     <Route path="companies/:id/edit" element={<CompanyForm />} />
                     <Route path="users" element={<UsersList />} />
                     <Route path="templates" element={<TemplatesList />} />
                     <Route path="templates/new" element={<TemplateForm />} />
-                    <Route path="*" element={<Navigate to="companies" />} />
+                    <Route path="*" element={<Navigate to="dashboard" />} />
                   </Routes>
                 </AdminLayout>
               ) : <Navigate to="/admin/login" />
