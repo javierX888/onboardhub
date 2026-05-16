@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
 from datetime import datetime
 from typing import Any
@@ -41,6 +41,7 @@ async def get_admin_dashboard_stats(
         select(JourneyTaskModel)
         .where(JourneyTaskModel.client_id == client_id)
         .where(JourneyTaskModel.completed == False)
+        .where(JourneyTaskModel.deadline.isnot(None))
         .where(JourneyTaskModel.deadline < now)
     )
     overdue_tasks_list = overdue_tasks_q.scalars().all()
@@ -53,11 +54,22 @@ async def get_admin_dashboard_stats(
     )
     avg_nps = nps_q.scalar() or 4.2
 
-    # 2. Employee Status (Recent Journeys with employee names)
+    # 2. Employee Status (Show only the latest journey per employee to avoid duplicates)
+    latest_journeys_subq = (
+        select(
+            JourneyModel.employee_id,
+            func.max(JourneyModel.id).label("latest_id")
+        )
+        .where(JourneyModel.client_id == client_id)
+        .group_by(JourneyModel.employee_id)
+        .subquery()
+    )
+
     status_q = await db.execute(
         select(JourneyModel, UserModel.name, UserModel.role)
         .options(selectinload(JourneyModel.tasks))
         .join(UserModel, JourneyModel.employee_id == UserModel.id)
+        .join(latest_journeys_subq, JourneyModel.id == latest_journeys_subq.c.latest_id)
         .where(JourneyModel.client_id == client_id)
         .order_by(JourneyModel.created_at.desc())
         .limit(10)
@@ -75,6 +87,7 @@ async def get_admin_dashboard_stats(
                     "title": t.title,
                     "completed": t.completed,
                     "deadline": str(t.deadline.strftime('%Y-%m-%d')) if t.deadline else None,
+                    "is_overdue": not t.completed and t.deadline and t.deadline < now,
                     "stage": t.stage
                 } for t in journey.tasks
             ]

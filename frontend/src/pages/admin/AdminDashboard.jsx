@@ -83,6 +83,8 @@ const AdminDashboard = () => {
                       <span style={{ fontWeight: '500', color: task.completed ? '#065f46' : 'var(--text-main)' }}>{task.title}</span>
                       {task.completed ? (
                         <span className="badge badge-active">Completada</span>
+                      ) : task.is_overdue ? (
+                        <span className="badge badge-inactive" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>Vencida</span>
                       ) : (
                         <span className="badge badge-inactive">Pendiente</span>
                       )}
