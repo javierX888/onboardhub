@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 import os
-import shutil
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -9,6 +8,7 @@ import re
 from typing import Any, List
 
 from app.core.database import get_db
+from app.core.storage import storage_service
 from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
 from app.models.template import Template as TemplateModel
 from app.schemas.journey import Journey, JourneyCreate, JourneyTaskUpdate
@@ -149,25 +149,20 @@ async def complete_task(
             if len(contents) > 5 * 1024 * 1024:
                 raise HTTPException(status_code=400, detail="File too large (Max 5MB)")
 
-            # Usar ruta absoluta para evitar problemas en Render
-            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-            upload_dir = os.path.join(base_dir, "uploads")
-            
-            if not os.path.exists(upload_dir):
-                os.makedirs(upload_dir)
-
-            # Nombre de archivo único
+            # Generar nombre único
             file_ext = os.path.splitext(file.filename)[1]
             file_name = f"task_{task_id}_{int(datetime.now().timestamp())}{file_ext}"
-            file_path = os.path.join(upload_dir, file_name)
 
-            # Guardar archivo
-            with open(file_path, "wb") as f:
-                f.write(contents)
+            # Subir a Supabase Storage
+            public_url = await storage_service.upload_file(
+                file_content=contents,
+                file_name=file_name,
+                content_type=file.content_type
+            )
             
-            task.document_url = f"/uploads/{file_name}"
+            task.document_url = public_url
         except Exception as e:
-            print(f"Error saving file: {e}")
+            print(f"Error uploading to Supabase: {e}")
             raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
 
     # 3. Marcar como completada

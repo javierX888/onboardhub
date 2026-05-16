@@ -9,3 +9,4 @@ python-keycloak
 python-multipart
 python-dotenv
 email-validator
+supabase

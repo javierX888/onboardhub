@@ -11,6 +11,10 @@ class Settings(BaseSettings):
         "DATABASE_URL", 
         "postgresql+asyncpg://postgres:postgres@localhost:5432/onboardhub"
     )
+    
+    # Supabase Storage
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
 
     class Config:
         env_file = ".env"
