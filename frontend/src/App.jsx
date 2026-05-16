@@ -11,6 +11,14 @@ import MobileDashboard from './pages/employee/MobileDashboard';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
+import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard } from 'lucide-react';
+
+const PlaceholderPage = ({ title }) => (
+  <div style={{ padding: '2rem', textAlign: 'center' }}>
+    <h1 className="page-title">{title}</h1>
+    <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Módulo en desarrollo para el siguiente Sprint.</p>
+  </div>
+);
 
 function LoginPage({ onLogin }) {
   const [user, setUser] = useState('');
@@ -72,14 +80,31 @@ function AdminLayout({ children, onLogout }) {
           OnBoardHub
         </div>
         <nav className="sidebar-nav">
-          <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>{t('sidebar_dashboard')}</Link>
+          <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>
+            <LayoutDashboard size={18} style={{ marginRight: '8px' }} /> {t('sidebar_dashboard')}
+          </Link>
           
+          <Link to="/admin/templates" className={isActive('/admin/templates')}>
+            <ClipboardList size={18} style={{ marginRight: '8px' }} /> {t('sidebar_plantillas')}
+          </Link>
+          
+          <Link to="/admin/users" className={isActive('/admin/users')}>
+            <UsersIcon size={18} style={{ marginRight: '8px' }} /> {t('sidebar_usuarios')}
+          </Link>
+
+          <Link to="/admin/alerts" className={isActive('/admin/alerts')}>
+            <Bell size={18} style={{ marginRight: '8px' }} /> {t('sidebar_alertas')}
+          </Link>
+
+          <Link to="/admin/analytics" className={isActive('/admin/analytics')}>
+            <BarChart3 size={18} style={{ marginRight: '8px' }} /> {t('sidebar_analitica')}
+          </Link>
+
           {isAdmin && (
-            <Link to="/admin/companies" className={isActive('/admin/companies')}>{t('sidebar_empresas')}</Link>
+            <Link to="/admin/companies" className={isActive('/admin/companies')}>
+              <Settings size={18} style={{ marginRight: '8px' }} /> {t('sidebar_empresas')}
+            </Link>
           )}
-          
-          <Link to="/admin/users" className={isActive('/admin/users')}>{t('sidebar_usuarios')}</Link>
-          <Link to="/admin/templates" className={isActive('/admin/templates')}>{t('sidebar_plantillas')}</Link>
           
           <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
             <button className="nav-item" onClick={() => setShowSettings(true)} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}>
@@ -142,6 +167,8 @@ function App() {
                     <Route path="users" element={<UsersList />} />
                     <Route path="templates" element={<TemplatesList />} />
                     <Route path="templates/new" element={<TemplateForm />} />
+                    <Route path="alerts" element={<PlaceholderPage title={t('sidebar_alertas')} />} />
+                    <Route path="analytics" element={<PlaceholderPage title={t('sidebar_analitica')} />} />
                     <Route path="*" element={<Navigate to="dashboard" />} />
                   </Routes>
                 </AdminLayout>

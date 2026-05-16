@@ -1,10 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
+import { dashboardService } from '../../services/dashboardService';
 import { 
-  Users, 
-  Clock, 
-  TrendingUp, 
-  AlertCircle, 
   Search, 
   Filter, 
   Eye,
@@ -13,26 +10,28 @@ import {
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const kpis = [
-    { label: t('dashboard_kpi_active'), value: '24', delta: '+3', deltaType: 'up', icon: Clock },
-    { label: t('dashboard_kpi_employees'), value: '47', delta: '+12', deltaType: 'up', icon: Users },
-    { label: t('dashboard_kpi_overdue'), value: '8', delta: '-2', deltaType: 'down', icon: AlertCircle },
-    { label: t('dashboard_kpi_nps'), value: '4.2', delta: '+0.3', deltaType: 'up', icon: TrendingUp },
-  ];
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+      // En entorno local/desarrollo si no hay cliente asignado usamos ID 1
+      const clientId = authUser.client_id || 1; 
+      try {
+        const dashboardData = await dashboardService.getAdminDashboard(clientId);
+        setData(dashboardData);
+      } catch (err) {
+        console.error("Error fetching dashboard", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
-  const employees = [
-    { name: 'Maria Garcia', role: 'Developer', progress: 75, color: '#10b981' },
-    { name: 'Carlos López', role: 'Ventas', progress: 45, color: '#f59e0b' },
-    { name: 'Ana Martínez', role: 'Marketing', progress: 20, color: '#ef4444' },
-    { name: 'Pedro Sánchez', role: 'Developer', progress: 90, color: '#10b981' },
-  ];
-
-  const alerts = [
-    { type: 'danger', title: 'SLA vencido: Reunión con jefe', time: 'Hace 2h' },
-    { type: 'warning', title: 'Escalamiento: Sin respuesta 48h', time: 'Hace 4h' },
-    { type: 'info', title: 'Feedback negativo recibido', time: 'Hace 6h' },
-  ];
+  if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('msg_loading')}</div>;
+  if (!data) return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('msg_error_generic')}</div>;
 
   return (
     <div className="dashboard-container">
@@ -48,9 +47,9 @@ const AdminDashboard = () => {
       </div>
 
       <div className="kpi-grid">
-        {kpis.map((kpi, index) => (
+        {data.kpis.map((kpi, index) => (
           <div key={index} className="kpi-card">
-            <div className="kpi-label">{kpi.label}</div>
+            <div className="kpi-label">{t(kpi.label)}</div>
             <div className="kpi-value-container">
               <span className="kpi-value">{kpi.value}</span>
               <span className={`kpi-delta ${kpi.deltaType}`}>
@@ -82,7 +81,7 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {employees.map((emp, i) => (
+                {data.employee_status.map((emp, i) => (
                   <tr key={i}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -109,7 +108,10 @@ const AdminDashboard = () => {
                         <div className="progress-container">
                           <div 
                             className="progress-fill" 
-                            style={{ width: `${emp.progress}%`, backgroundColor: emp.color }}
+                            style={{ 
+                                width: `${emp.progress}%`, 
+                                backgroundColor: emp.progress > 70 ? '#10b981' : emp.progress > 30 ? '#f59e0b' : '#ef4444' 
+                            }}
                           />
                         </div>
                         <span style={{ fontSize: '0.75rem', fontWeight: '600', width: '30px' }}>
@@ -122,6 +124,13 @@ const AdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
+                {data.employee_status.length === 0 && (
+                    <tr>
+                        <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                            {t('msg_no_data')}
+                        </td>
+                    </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -130,12 +139,17 @@ const AdminDashboard = () => {
         <div className="dashboard-section">
           <div className="section-title">{t('dashboard_recent_alerts')}</div>
           <div className="alert-list">
-            {alerts.map((alert, i) => (
+            {data.recent_alerts.map((alert, i) => (
               <div key={i} className={`alert-card alert-${alert.type}`}>
                 <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{alert.title}</div>
                 <div style={{ opacity: 0.8, fontSize: '0.75rem' }}>{alert.time}</div>
               </div>
             ))}
+            {data.recent_alerts.length === 0 && (
+                <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    Sin alertas pendientes.
+                </div>
+            )}
           </div>
         </div>
       </div>

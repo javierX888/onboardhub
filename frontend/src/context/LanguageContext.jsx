@@ -5,8 +5,10 @@ const LanguageContext = createContext();
 const translations = {
   es: {
     sidebar_empresas: "Empresas",
-    sidebar_usuarios: "Usuarios",
-    sidebar_plantillas: "Plantillas",
+    sidebar_usuarios: "Gestión de Talento",
+    sidebar_plantillas: "Mis Procesos",
+    sidebar_alertas: "Centro de Alertas",
+    sidebar_analitica: "Analítica",
     sidebar_ajustes: "Ajustes",
     modal_ajustes_title: "Ajustes del Sistema",
     modal_ajustes_appearance: "Apariencia",
@@ -70,8 +72,10 @@ const translations = {
   },
   en: {
     sidebar_empresas: "Companies",
-    sidebar_usuarios: "Users",
-    sidebar_plantillas: "Templates",
+    sidebar_usuarios: "Talent Management",
+    sidebar_plantillas: "My Processes",
+    sidebar_alertas: "Alert Center",
+    sidebar_analitica: "Analytics",
     sidebar_ajustes: "Settings",
     modal_ajustes_title: "System Settings",
     modal_ajustes_appearance: "Appearance",

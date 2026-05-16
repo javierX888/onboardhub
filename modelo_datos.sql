@@ -117,3 +117,33 @@ CREATE INDEX ix_journey_tasks_client_id ON journey_tasks (client_id);
 
 CREATE INDEX ix_journey_tasks_id ON journey_tasks (id);
 
+
+-- ==========================================
+-- TABLAS ADICIONALES PARA DASHBOARD (HU-07)
+-- ==========================================
+
+CREATE TABLE nps_responses (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER NOT NULL,
+    employee_id INTEGER NOT NULL,
+    score INTEGER NOT NULL CHECK (score >= 0 AND score <= 10),
+    comment VARCHAR(500),
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES users (id)
+);
+
+CREATE INDEX ix_nps_responses_client_id ON nps_responses (client_id);
+
+CREATE TABLE alerts (
+    id SERIAL PRIMARY KEY,
+    client_id INTEGER NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    severity VARCHAR(20) NOT NULL, -- 'danger', 'warning', 'info'
+    journey_id INTEGER,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (journey_id) REFERENCES journeys (id)
+);
+
+CREATE INDEX ix_alerts_client_id ON alerts (client_id);
