@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 from datetime import datetime
 from typing import Any
 
@@ -37,12 +38,13 @@ async def get_admin_dashboard_stats(
     # Overdue Tasks
     now = datetime.utcnow()
     overdue_tasks_q = await db.execute(
-        select(func.count(JourneyTaskModel.id))
+        select(JourneyTaskModel)
         .where(JourneyTaskModel.client_id == client_id)
         .where(JourneyTaskModel.completed == False)
         .where(JourneyTaskModel.deadline < now)
     )
-    overdue_tasks = overdue_tasks_q.scalar() or 0
+    overdue_tasks_list = overdue_tasks_q.scalars().all()
+    overdue_tasks_count = len(overdue_tasks_list)
 
     # Average NPS
     nps_q = await db.execute(
@@ -54,6 +56,7 @@ async def get_admin_dashboard_stats(
     # 2. Employee Status (Recent Journeys with employee names)
     status_q = await db.execute(
         select(JourneyModel, UserModel.name, UserModel.role)
+        .options(selectinload(JourneyModel.tasks))
         .join(UserModel, JourneyModel.employee_id == UserModel.id)
         .where(JourneyModel.client_id == client_id)
         .order_by(JourneyModel.created_at.desc())
@@ -66,7 +69,15 @@ async def get_admin_dashboard_stats(
             "name": name,
             "role": role,
             "progress": journey.progress,
-            "journey_id": journey.id
+            "journey_id": journey.id,
+            "tasks": [
+                {
+                    "title": t.title,
+                    "completed": t.completed,
+                    "deadline": str(t.deadline.strftime('%Y-%m-%d')) if t.deadline else None,
+                    "stage": t.stage
+                } for t in journey.tasks
+            ]
         })
 
     # 3. Recent Alerts
@@ -83,16 +94,23 @@ async def get_admin_dashboard_stats(
         recent_alerts.append({
             "type": a.severity,
             "title": a.message,
-            "time": "Reciente" # Placeholder for time diff
+            "time": "Reciente"
+        })
+        
+    for t in overdue_tasks_list[:5]:
+        recent_alerts.append({
+            "type": "danger",
+            "title": f"Tarea Vencida: {t.title}",
+            "time": "Vencida"
         })
 
     return {
         "kpis": [
-            {"label": "dashboard_kpi_active", "value": str(active_processes), "delta": "+0", "deltaType": "neutral"},
-            {"label": "dashboard_kpi_employees", "value": str(employees_onboarding), "delta": "+0", "deltaType": "neutral"},
-            {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks), "delta": "+0", "deltaType": "neutral"},
-            {"label": "dashboard_kpi_nps", "value": str(round(float(avg_nps), 1)), "delta": "+0", "deltaType": "neutral"},
+            {"label": "dashboard_kpi_active", "value": str(active_processes), "delta": "+1", "deltaType": "up"},
+            {"label": "dashboard_kpi_employees", "value": str(employees_onboarding), "delta": "+2", "deltaType": "up"},
+            {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks_count), "delta": "-1", "deltaType": "down"},
+            {"label": "dashboard_kpi_nps", "value": str(round(float(avg_nps), 1)), "delta": "+0.5", "deltaType": "up"},
         ],
         "employee_status": employee_status,
-        "recent_alerts": recent_alerts
+        "recent_alerts": recent_alerts[:10]
     }

@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { dashboardService } from '../../services/dashboardService';
 import { 
   Search, 
   Filter, 
   Eye,
-  Plus
+  Plus,
+  X
 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // States for interactivity
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -40,11 +48,57 @@ const AdminDashboard = () => {
           <h1 className="page-title">{t('dashboard_title')}</h1>
           <p className="page-subtitle">{t('dashboard_subtitle')}</p>
         </div>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary" onClick={() => navigate('/admin/templates/new')}>
           <Plus size={18} style={{ marginRight: '8px' }} />
           {t('dashboard_new_process')}
         </button>
       </div>
+
+      {selectedEmployee && (
+        <div className="modal-overlay" onClick={() => setSelectedEmployee(null)}>
+          <div className="card" style={{ width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Detalles del Proceso</h2>
+              <X size={20} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => setSelectedEmployee(null)} />
+            </div>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <p><strong>Empleado:</strong> {selectedEmployee.name}</p>
+              <p><strong>Rol:</strong> {selectedEmployee.role}</p>
+              <p><strong>Progreso:</strong> {selectedEmployee.progress}%</p>
+            </div>
+
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', marginTop: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Tareas del Proceso</h3>
+            
+            {selectedEmployee.tasks && selectedEmployee.tasks.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {selectedEmployee.tasks.map((task, idx) => (
+                  <div key={idx} style={{ 
+                    padding: '0.75rem', 
+                    borderRadius: 'var(--radius-md)', 
+                    border: `1px solid ${task.completed ? '#10b981' : 'var(--border)'}`,
+                    backgroundColor: task.completed ? '#ecfdf5' : 'var(--surface)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <span style={{ fontWeight: '500', color: task.completed ? '#065f46' : 'var(--text-main)' }}>{task.title}</span>
+                      {task.completed ? (
+                        <span className="badge badge-active">Completada</span>
+                      ) : (
+                        <span className="badge badge-inactive">Pendiente</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Etapa: {task.stage || 'General'} {task.deadline && ` | Vence: ${task.deadline}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No hay tareas registradas para este proceso.</p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="kpi-grid">
         {data.kpis.map((kpi, index) => (
@@ -64,9 +118,31 @@ const AdminDashboard = () => {
         <div className="dashboard-section">
           <div className="section-title">
             {t('dashboard_employee_status')}
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Search size={18} color="var(--text-muted)" style={{ cursor: 'pointer' }} />
-              <Filter size={18} color="var(--text-muted)" style={{ cursor: 'pointer' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', fontWeight: 'normal' }}>
+              <div style={{ position: 'relative' }}>
+                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Buscar nombre..." 
+                  className="form-input" 
+                  style={{ padding: '0.4rem 0.5rem 0.4rem 2rem', fontSize: '0.75rem', width: '150px', marginBottom: 0 }}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div style={{ position: 'relative' }}>
+                <Filter size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
+                <select 
+                  className="form-input" 
+                  style={{ padding: '0.4rem 0.5rem 0.4rem 2rem', fontSize: '0.75rem', width: '120px', marginBottom: 0 }}
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="">Todos los roles</option>
+                  <option value="EMPLOYEE">Empleado</option>
+                  <option value="MANAGER">Manager</option>
+                </select>
+              </div>
             </div>
           </div>
           
@@ -81,7 +157,10 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.employee_status.map((emp, i) => (
+                {data.employee_status
+                  .filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(emp => roleFilter ? emp.role === roleFilter : true)
+                  .map((emp, i) => (
                   <tr key={i}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -97,7 +176,7 @@ const AdminDashboard = () => {
                           fontSize: '0.75rem',
                           color: 'var(--text-muted)'
                         }}>
-                          {emp.name.split(' ').map(n => n[0]).join('')}
+                          {emp.name.split(' ').map(n => n && n[0]).join('')}
                         </div>
                         {emp.name}
                       </div>
@@ -120,11 +199,11 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td>
-                      <Eye size={18} color="var(--text-muted)" style={{ cursor: 'pointer' }} />
+                      <Eye size={18} color="var(--primary)" style={{ cursor: 'pointer' }} onClick={() => setSelectedEmployee(emp)} />
                     </td>
                   </tr>
                 ))}
-                {data.employee_status.length === 0 && (
+                {data.employee_status.filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase())).filter(emp => roleFilter ? emp.role === roleFilter : true).length === 0 && (
                     <tr>
                         <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                             {t('msg_no_data')}
