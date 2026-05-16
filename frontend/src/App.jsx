@@ -13,12 +13,15 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
 import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard } from 'lucide-react';
 
-const PlaceholderPage = ({ title }) => (
-  <div style={{ padding: '2rem', textAlign: 'center' }}>
-    <h1 className="page-title">{title}</h1>
-    <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Módulo en desarrollo para el siguiente Sprint.</p>
-  </div>
-);
+const PlaceholderPage = ({ titleKey }) => {
+  const { t } = useLanguage();
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1 className="page-title">{t(titleKey)}</h1>
+      <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Módulo en desarrollo para el siguiente Sprint.</p>
+    </div>
+  );
+};
 
 function LoginPage({ onLogin }) {
   const [user, setUser] = useState('');
@@ -167,8 +170,8 @@ function App() {
                     <Route path="users" element={<UsersList />} />
                     <Route path="templates" element={<TemplatesList />} />
                     <Route path="templates/new" element={<TemplateForm />} />
-                    <Route path="alerts" element={<PlaceholderPage title={t('sidebar_alertas')} />} />
-                    <Route path="analytics" element={<PlaceholderPage title={t('sidebar_analitica')} />} />
+                    <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
+                    <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
                     <Route path="*" element={<Navigate to="dashboard" />} />
                   </Routes>
                 </AdminLayout>
