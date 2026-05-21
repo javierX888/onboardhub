@@ -7,6 +7,7 @@ class Template(MultiTenantBase):
 
     name = Column(String(255), nullable=False) # Previously 'nombre'
     description = Column(String(500), nullable=True) # Previously 'descripcion'
+    area = Column(String(100), nullable=True) # E.g., 'Planta', 'Area TI'
 
     tasks = relationship(
         "TemplateTask",
@@ -24,6 +25,7 @@ class TemplateTask(MultiTenantBase):
     description = Column(String(500), nullable=True)
     order = Column(Integer, nullable=False, default=0) # Previously 'orden'
     stage = Column(String(100), nullable=True) # E.g., 'Day 1'
+    resource_url = Column(String(500), nullable=True) # URL to video/doc provided by manager
     
     # New field: Who is responsible for this step (User ID or Role)
     responsible_role = Column(String(50), nullable=True, default="HR")

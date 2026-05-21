@@ -76,6 +76,7 @@ async def create_journey(
                     type=t_task.type,
                     description=t_task.description,
                     stage=t_task.stage if t_task.stage else f"Step {t_task.order}",
+                    resource_url=t_task.resource_url,
                     deadline=task_deadline,
                     completed=False
                 )

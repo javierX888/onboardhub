@@ -7,6 +7,7 @@ class TemplateTaskBase(BaseModel):
     description: Optional[str] = None
     order: int = 0
     stage: Optional[str] = "Day 1"
+    resource_url: Optional[str] = None
     responsible_role: Optional[str] = "HR"
 
 class TemplateTaskCreate(TemplateTaskBase):
@@ -22,6 +23,7 @@ class TemplateTask(TemplateTaskBase):
 class TemplateBase(BaseModel):
     name: str
     description: Optional[str] = None
+    area: Optional[str] = None
     client_id: int
 
 class TemplateCreate(TemplateBase):

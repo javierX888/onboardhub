@@ -10,20 +10,38 @@ export default function TemplateForm() {
     const navigate = useNavigate();
     const { t } = useLanguage();
 
+    const AREAS = ["Planta", "Área TI", "Finanzas", "Ventas", "Recursos Humanos", "Marketing", "Operaciones"];
+    const TASK_TYPES = [
+        { value: 'read_text', label: 'Leer Texto (Bienvenida)' },
+        { value: 'read_document', label: 'Ver Documento / Enlace externo' },
+        { value: 'watch_video', label: 'Ver Video' },
+        { value: 'upload_document', label: 'Subir Archivo (Empleado)' }
+    ];
+
     const [companies, setCompanies] = useState([]);
+    const [isAdminRole, setIsAdminRole] = useState(false);
     const [template, setTemplate] = useState({
         name: '',
         description: '',
+        area: '',
         client_id: '',
         tasks: [
-            { title: '', description: '', stage: 'Day 1', type: 'document' }
+            { title: '', description: '', stage: 'Day 1', type: 'read_text', resource_url: '' }
         ]
     });
 
     useEffect(() => {
         const fetchCompanies = async () => {
-            const data = await companyService.getCompanies();
-            setCompanies(data);
+            const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+            const isAdmin = authUser.role === 'SUPERADMIN';
+            setIsAdminRole(isAdmin);
+            
+            if (isAdmin) {
+                const data = await companyService.getCompanies();
+                setCompanies(data);
+            } else {
+                setTemplate(prev => ({ ...prev, client_id: authUser.client_id }));
+            }
         };
         fetchCompanies();
     }, []);
@@ -31,7 +49,7 @@ export default function TemplateForm() {
     const addTask = () => {
         setTemplate({
             ...template,
-            tasks: [...template.tasks, { title: '', description: '', stage: `Day ${template.tasks.length + 1}`, type: 'document' }]
+            tasks: [...template.tasks, { title: '', description: '', stage: `Day ${template.tasks.length + 1}`, type: 'read_text', resource_url: '' }]
         });
     };
 
@@ -107,6 +125,31 @@ export default function TemplateForm() {
                                         onChange={e => updateTask(index, 'stage', e.target.value)}
                                     />
                                 </div>
+                                <div className="grid-form" style={{ gap: '1rem', marginBottom: '1rem' }}>
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <select
+                                            className="form-input"
+                                            value={task.type}
+                                            onChange={e => updateTask(index, 'type', e.target.value)}
+                                        >
+                                            {TASK_TYPES.map(type => (
+                                                <option key={type.value} value={type.value}>{type.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    {(task.type === 'read_document' || task.type === 'watch_video') && (
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <input
+                                                className="form-input"
+                                                type="url"
+                                                placeholder="Enlace al Documento o Video (Ej. Drive, YouTube)"
+                                                value={task.resource_url}
+                                                onChange={e => updateTask(index, 'resource_url', e.target.value)}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                                 <textarea
                                     className="form-input"
                                     placeholder="Brief description of what the employee should do..."
@@ -144,17 +187,34 @@ export default function TemplateForm() {
                             />
                         </div>
 
+                        {isAdminRole && (
+                            <div className="form-group">
+                                <label className="form-label">Company</label>
+                                <select
+                                    className="form-input"
+                                    value={template.client_id}
+                                    onChange={e => setTemplate({ ...template, client_id: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Select Company...</option>
+                                    {companies.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="form-group">
-                            <label className="form-label">Company</label>
+                            <label className="form-label">Área / Sucursal</label>
                             <select
                                 className="form-input"
-                                value={template.client_id}
-                                onChange={e => setTemplate({ ...template, client_id: e.target.value })}
+                                value={template.area}
+                                onChange={e => setTemplate({ ...template, area: e.target.value })}
                                 required
                             >
-                                <option value="">Select Company...</option>
-                                {companies.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                <option value="">Seleccione Área...</option>
+                                {AREAS.map(area => (
+                                    <option key={area} value={area}>{area}</option>
                                 ))}
                             </select>
                         </div>

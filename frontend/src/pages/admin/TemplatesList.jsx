@@ -8,6 +8,7 @@ export default function TemplatesList() {
     const [templates, setTemplates] = useState([]);
     const [companies, setCompanies] = useState({});
     const [loading, setLoading] = useState(true);
+    const [isAdminRole, setIsAdminRole] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
     const navigate = useNavigate();
     const { t } = useLanguage();
@@ -22,6 +23,9 @@ export default function TemplatesList() {
             const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
             const isAdmin = authUser.role === 'SUPERADMIN';
             const clientId = authUser.client_id;
+            
+            // Set role to state so we can use it in render
+            setIsAdminRole(isAdmin);
 
             try {
                 const [temps, comps] = await Promise.all([
@@ -71,7 +75,8 @@ export default function TemplatesList() {
                             <tr>
                                 <th>{t('table_id')}</th>
                                 <th>{t('table_name')}</th>
-                                <th>{t('table_company')}</th>
+                                {isAdminRole && <th>{t('table_company')}</th>}
+                                {!isAdminRole && <th>Área / Sucursal</th>}
                                 <th>{t('table_tasks')}</th>
                                 <th>{t('table_actions')}</th>
                             </tr>
@@ -81,7 +86,8 @@ export default function TemplatesList() {
                                 <tr key={temp.id}>
                                     <td>#{temp.id}</td>
                                     <td>{temp.name}</td>
-                                    <td>{companies[temp.client_id] || temp.client_id}</td>
+                                    {isAdminRole && <td>{companies[temp.client_id] || temp.client_id}</td>}
+                                    {!isAdminRole && <td>{temp.area || 'General'}</td>}
                                     <td>{temp.tasks?.length || 0}</td>
                                     <td>
                                         <button className="btn btn-secondary" onClick={() => handleDelete(temp.id)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
