@@ -16,6 +16,8 @@ export default function UsersList() {
     // Modals
     const [selectedUser, setSelectedUser] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [hasActiveJourney, setHasActiveJourney] = useState(false);
+    const [checkingJourney, setCheckingJourney] = useState(false);
     
     // Forms
     const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123' });
@@ -24,13 +26,40 @@ export default function UsersList() {
         template_id: '', 
         start_date: '', 
         end_date: '', 
-        location: '',
+        pais: '',
+        ciudad: '',
+        comuna: '',
+        sucursal: '',
         responsible_id: '' 
     });
     const [toastMessage, setToastMessage] = useState(null);
     
     const { t } = useLanguage();
 
+    useEffect(() => {
+        const checkActiveJourney = async () => {
+            if (!selectedUser) {
+                setHasActiveJourney(false);
+                return;
+            }
+            setCheckingJourney(true);
+            try {
+                const data = await journeyService.getDashboard(selectedUser.email);
+                if (data && data.journey && data.journey.progress < 100) {
+                    setHasActiveJourney(true);
+                } else {
+                    setHasActiveJourney(false);
+                }
+            } catch (err) {
+                console.error("Error checking user onboarding status", err);
+                setHasActiveJourney(false);
+            } finally {
+                setCheckingJourney(false);
+            }
+        };
+        checkActiveJourney();
+    }, [selectedUser]);
+    
     const fetchData = async () => {
         setLoading(true);
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
@@ -88,6 +117,13 @@ export default function UsersList() {
 
     const handleAssign = async () => {
         try {
+            const combinedLocation = [
+                assignmentData.pais,
+                assignmentData.ciudad,
+                assignmentData.comuna,
+                assignmentData.sucursal
+            ].map(s => s?.trim()).filter(Boolean).join(', ');
+
             await journeyService.createJourney({
                 employee_id: selectedUser.id,
                 client_id: selectedUser.client_id,
@@ -95,12 +131,12 @@ export default function UsersList() {
                 role: selectedUser.role,
                 start_date: assignmentData.start_date || null,
                 end_date: assignmentData.end_date || null,
-                location: assignmentData.location || null,
+                location: combinedLocation || null,
                 responsible_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
             });
             showToast("✅ Success! Onboarding assigned.", "success");
             setSelectedUser(null);
-            setAssignmentData({ template_id: '', start_date: '', end_date: '', location: '', responsible_id: '' });
+            setAssignmentData({ template_id: '', start_date: '', end_date: '', pais: '', ciudad: '', comuna: '', sucursal: '', responsible_id: '' });
         } catch (err) {
             showToast("❌ Error assigning onboarding.", "error");
         }
@@ -296,6 +332,25 @@ export default function UsersList() {
                                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>To: {selectedUser.name}</p>
                             </div>
                         </div>
+
+                        {/* Onboarding status warning */}
+                        {hasActiveJourney && (
+                            <div style={{ 
+                                background: 'rgba(245, 158, 11, 0.1)', 
+                                border: '1px solid rgba(245, 158, 11, 0.2)', 
+                                color: '#d97706', 
+                                padding: '12px', 
+                                borderRadius: '8px', 
+                                fontSize: '0.85rem', 
+                                marginBottom: '1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                <span style={{ fontWeight: 'bold' }}>⚠️ Advertencia:</span>
+                                <span>Este empleado ya cuenta con un proceso de onboarding activo. Puedes asignarle un nuevo proceso de todas formas para enlazar etapas.</span>
+                            </div>
+                        )}
                         
                         <div className="form-group">
                             <label className="form-label">Template</label>
@@ -327,37 +382,80 @@ export default function UsersList() {
                             </select>
                         </div>
 
-                        <div className="grid-form" style={{ gap: '1rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">{t('table_location')}</label>
-                                <div style={{ position: 'relative' }}>
-                                    <MapPin size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
+                            <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label">País</label>
                                     <input 
                                         className="form-input" 
-                                        style={{ paddingLeft: '35px' }}
                                         type="text" 
-                                        value={assignmentData.location}
-                                        onChange={(e) => setAssignmentData({...assignmentData, location: e.target.value})}
-                                        placeholder="Location"
+                                        value={assignmentData.pais}
+                                        onChange={(e) => setAssignmentData({...assignmentData, pais: e.target.value})}
+                                        placeholder="ej: Chile"
+                                    />
+                                </div>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label">Ciudad</label>
+                                    <input 
+                                        className="form-input" 
+                                        type="text" 
+                                        value={assignmentData.ciudad}
+                                        onChange={(e) => setAssignmentData({...assignmentData, ciudad: e.target.value})}
+                                        placeholder="ej: Santiago"
                                     />
                                 </div>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Start Date</label>
-                                <input 
-                                    className="form-input" 
-                                    type="date" 
-                                    value={assignmentData.start_date}
-                                    onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
-                                />
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label">Comuna</label>
+                                    <input 
+                                        className="form-input" 
+                                        type="text" 
+                                        value={assignmentData.comuna}
+                                        onChange={(e) => setAssignmentData({...assignmentData, comuna: e.target.value})}
+                                        placeholder="ej: Providencia"
+                                    />
+                                </div>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label className="form-label">Sucursal / Oficina</label>
+                                    <input 
+                                        className="form-input" 
+                                        type="text" 
+                                        value={assignmentData.sucursal}
+                                        onChange={(e) => setAssignmentData({...assignmentData, sucursal: e.target.value})}
+                                        placeholder="ej: Central"
+                                    />
+                                </div>
                             </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: '1rem' }}>
+                            <label className="form-label">Start Date</label>
+                            <input 
+                                className="form-input" 
+                                type="date" 
+                                value={assignmentData.start_date}
+                                onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
+                            />
                         </div>
 
                         <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                             <button className="btn btn-primary" onClick={handleAssign} disabled={!assignmentData.template_id} style={{ flex: 1, padding: '12px' }}>
                                 Confirm Journey
                             </button>
-                            <button className="btn btn-secondary" onClick={() => setSelectedUser(null)} style={{ flex: 1 }}>Cancel</button>
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={() => { 
+                                    setSelectedUser(null); 
+                                    setAssignmentData({ template_id: '', start_date: '', end_date: '', pais: '', ciudad: '', comuna: '', sucursal: '', responsible_id: '' }); 
+                                }} 
+                                style={{ flex: 1 }}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>

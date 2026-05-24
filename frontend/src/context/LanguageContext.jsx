@@ -32,7 +32,7 @@ const translations = {
     table_company: "Empresa",
     table_status: "Estado",
     table_actions: "Acciones",
-    table_location: "Sede",
+    table_location: "Ubicación",
     table_tasks: "Tareas",
     status_active: "Activo",
     status_inactive: "Inactivo",

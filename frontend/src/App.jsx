@@ -170,6 +170,7 @@ function App() {
                     <Route path="users" element={<UsersList />} />
                     <Route path="templates" element={<TemplatesList />} />
                     <Route path="templates/new" element={<TemplateForm />} />
+                    <Route path="templates/:id/edit" element={<TemplateForm />} />
                     <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
                     <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
                     <Route path="*" element={<Navigate to="dashboard" />} />
