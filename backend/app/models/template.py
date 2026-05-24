@@ -8,6 +8,7 @@ class Template(MultiTenantBase):
     name = Column(String(255), nullable=False) # Previously 'nombre'
     description = Column(String(500), nullable=True) # Previously 'descripcion'
     area = Column(String(100), nullable=True) # E.g., 'Planta', 'Area TI'
+    parent_template_id = Column(Integer, ForeignKey("templates.id"), nullable=True)
 
     tasks = relationship(
         "TemplateTask",
