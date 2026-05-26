@@ -11,6 +11,7 @@ export default function UsersList() {
     const [companiesList, setCompaniesList] = useState([]);
     const [companiesMap, setCompaniesMap] = useState({});
     const [templates, setTemplates] = useState([]);
+    const [journeys, setJourneys] = useState({}); // Map of employee_id -> journey
     const [loading, setLoading] = useState(true);
     
     // Modals
@@ -51,6 +52,20 @@ export default function UsersList() {
             const compMap = {};
             companiesData.forEach(c => compMap[c.id] = c.name);
             setCompaniesMap(compMap);
+
+            // Fetch journeys for all users
+            const journeysMap = {};
+            for (const user of usersData) {
+                try {
+                    const response = await import('./api').then(m => m.default.get(`/journeys/employee/${user.id}?client_id=${user.client_id}`));
+                    if (response.data && response.data.length > 0) {
+                        journeysMap[user.id] = response.data[0]; // Get first active journey
+                    }
+                } catch (err) {
+                    console.log(`No journey for user ${user.id}`);
+                }
+            }
+            setJourneys(journeysMap);
         } catch (err) {
             console.error("Error fetching data", err);
         } finally {
@@ -70,7 +85,11 @@ export default function UsersList() {
     const handleCreateUser = async (e) => {
         e.preventDefault();
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-        const finalClientId = authUser.role === 'SUPERADMIN' ? newUser.client_id : authUser.client_id;
+        
+        // For SUPERADMIN creating ONBOARDING_MANAGER, use selected company. Otherwise use auth user's company.
+        const finalClientId = authUser.role === 'SUPERADMIN' && newUser.role === 'ONBOARDING_MANAGER' 
+            ? newUser.client_id 
+            : authUser.client_id;
 
         try {
             await userService.createUser({
@@ -130,51 +149,73 @@ export default function UsersList() {
                                 <th>{t('table_name')}</th>
                                 <th>{t('table_email')}</th>
                                 <th>{t('table_role')}</th>
-                                <th>{t('table_company')}</th>
+                                <th>Onboarding</th>
+                                <th>Template</th>
+                                <th>Progress</th>
                                 <th>{t('table_actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {users.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                                    <td colSpan="8" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                         <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
                                         {t('msg_no_data')}
                                     </td>
                                 </tr>
-                            ) : users.map(user => (
-                                <tr key={user.id}>
-                                    <td style={{ fontWeight: 600, color: 'var(--primary)' }}>#{user.id}</td>
-                                    <td style={{ fontWeight: 500 }}>{user.name}</td>
-                                    <td style={{ color: 'var(--text-muted)' }}>{user.email}</td>
-                                    <td>
-                                        <span className={`badge ${user.role.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
-                                            {t(`role_${user.role.toLowerCase()}`) || user.role}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <Briefcase size={14} style={{ color: 'var(--text-muted)' }} />
-                                            {companiesMap[user.client_id] || user.client_id}
-                                        </div>
-                                    </td>
-                                    <td style={{ display: 'flex', gap: '8px' }}>
-                                        <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                            {t('btn_assign')}
-                                        </button>
-                                        <button 
-                                            className="btn btn-primary" 
-                                            onClick={async () => {
-                                                const data = await userService.getDashboard(user.email);
-                                                setViewingJourney(data);
-                                            }}
-                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
-                                        >
-                                            {t('btn_track')}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                            ) : users.map(user => {
+                                const userJourney = journeys[user.id];
+                                const templateName = userJourney ? templates.find(t => t.id === userJourney.template_id)?.name : null;
+                                return (
+                                    <tr key={user.id}>
+                                        <td style={{ fontWeight: 600, color: 'var(--primary)' }}>#{user.id}</td>
+                                        <td style={{ fontWeight: 500 }}>{user.name}</td>
+                                        <td style={{ color: 'var(--text-muted)' }}>{user.email}</td>
+                                        <td>
+                                            <span className={`badge ${user.role.toLowerCase()}`} style={{ fontSize: '0.75rem', padding: '4px 10px' }}>
+                                                {t(`role_${user.role.toLowerCase()}`) || user.role}
+                                            </span>
+                                        </td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            {userJourney ? (
+                                                <span style={{ fontSize: '1.2rem' }}>✅</span>
+                                            ) : (
+                                                <span style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>❌</span>
+                                            )}
+                                        </td>
+                                        <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                            {templateName || '—'}
+                                        </td>
+                                        <td>
+                                            {userJourney ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <div style={{ width: '60px', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                                                        <div style={{ width: `${userJourney.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                                                    </div>
+                                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{userJourney.progress}%</span>
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>—</span>
+                                            )}
+                                        </td>
+                                        <td style={{ display: 'flex', gap: '8px' }}>
+                                            <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                                                {t('btn_assign')}
+                                            </button>
+                                            <button 
+                                                className="btn btn-primary" 
+                                                onClick={async () => {
+                                                    const data = await userService.getDashboard(user.email);
+                                                    setViewingJourney(data);
+                                                }}
+                                                style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
+                                            >
+                                                {t('btn_track')}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                         </table>
                     </div>
@@ -251,22 +292,23 @@ export default function UsersList() {
                                     />
                                 </div>
                             </div>
-                            <div className="form-group" style={{ marginBottom: '2rem' }}>
-                                <label className="form-label">{t('table_company')}</label>
-                                <select 
-                                    className="form-input" 
-                                    value={JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' ? newUser.client_id : JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').client_id}
-                                    onChange={e => setNewUser({...newUser, client_id: e.target.value})}
-                                    disabled={JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role !== 'SUPERADMIN'}
-                                    required
-                                >
-                                    <option value="">-- {t('table_company')} --</option>
-                                    {companiesList.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
+                            {JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' && newUser.role === 'ONBOARDING_MANAGER' && (
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
+                                    <label className="form-label">{t('table_company')}</label>
+                                    <select 
+                                        className="form-input" 
+                                        value={newUser.client_id}
+                                        onChange={e => setNewUser({...newUser, client_id: e.target.value})}
+                                        required
+                                    >
+                                        <option value="">-- {t('table_company')} --</option>
+                                        {companiesList.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                                 <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Create User</button>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>Cancel</button>
                             </div>
@@ -349,6 +391,15 @@ export default function UsersList() {
                                     type="date" 
                                     value={assignmentData.start_date}
                                     onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">End Date</label>
+                                <input 
+                                    className="form-input" 
+                                    type="date" 
+                                    value={assignmentData.end_date}
+                                    onChange={(e) => setAssignmentData({...assignmentData, end_date: e.target.value})}
                                 />
                             </div>
                         </div>
