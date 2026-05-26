@@ -5,6 +5,7 @@ import { journeyService } from '../../services/employeeService'; // combined
 import { templateService } from '../../services/templateService';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
+import api from '../../services/api';
 
 export default function UsersList() {
     const [users, setUsers] = useState([]);
@@ -86,7 +87,7 @@ export default function UsersList() {
             const journeysMap = {};
             for (const user of usersData) {
                 try {
-                    const response = await import('./api').then(m => m.default.get(`/journeys/employee/${user.id}?client_id=${user.client_id}`));
+                    const response = await api.get(`/journeys/employee/${user.id}?client_id=${user.client_id}`);
                     if (response.data && response.data.length > 0) {
                         journeysMap[user.id] = response.data[0]; // Get first active journey
                     }
