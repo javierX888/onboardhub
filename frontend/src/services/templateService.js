@@ -21,6 +21,17 @@ export const templateService = {
     return response.data;
   },
 
+  async getTemplate(id) {
+    const response = await api.get(`/templates/${id}`);
+    return response.data;
+  },
+
+  async updateTemplate(id, templateData) {
+    const response = await api.put(`/templates/${id}`, templateData);
+    templatesCache = null;
+    return response.data;
+  },
+
   async deleteTemplate(id) {
     const response = await api.delete(`/templates/${id}`);
     templatesCache = null;

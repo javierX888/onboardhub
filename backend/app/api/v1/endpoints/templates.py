@@ -25,6 +25,21 @@ async def read_templates(
     )
     return result.scalars().all()
 
+@router.get("/{id}", response_model=Template)
+async def read_template(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    result = await db.execute(
+        select(TemplateModel)
+        .options(selectinload(TemplateModel.tasks))
+        .where(TemplateModel.id == id)
+    )
+    template = result.scalar_one_or_none()
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return template
+
 @router.get("/company/{client_id}", response_model=List[Template])
 async def read_templates_by_company(
     client_id: int,

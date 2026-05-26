@@ -160,16 +160,43 @@ export default function MobileDashboard() {
                         background: '#f8fafc', padding: '20px', borderRadius: '15px', marginBottom: '20px',
                         border: '1px dashed #cbd5e1'
                     }}>
-                        {activeModal.type === 'video' && <div style={{fontSize: '40px'}}>▶️</div>}
-                        {activeModal.type === 'pdf' && <div style={{fontSize: '40px'}}>📄</div>}
-                        {activeModal.type === 'document' && <div style={{fontSize: '40px'}}>✍️</div>}
-                        {activeModal.type === 'link' && <div style={{fontSize: '40px'}}>🔗</div>}
+                        {activeModal.type === 'watch_video' && <div style={{fontSize: '40px'}}>▶️</div>}
+                        {activeModal.type === 'read_document' && <div style={{fontSize: '40px'}}>📄</div>}
+                        {activeModal.type === 'upload_document' && <div style={{fontSize: '40px'}}>✍️</div>}
+                        {activeModal.type === 'read_text' && <div style={{fontSize: '40px'}}>👋</div>}
                         
                         <p style={{marginTop: '10px', fontSize: '14px', color: '#64748b'}}>
                             {activeModal.description || 'Por favor completa esta etapa para continuar.'}
                         </p>
 
-                        {(activeModal.type === 'document' || activeModal.type === 'pdf') && !activeModal.completed && (
+                        {/* Resource URL button for reading/watching */}
+                        {activeModal.resource_url && (
+                            <div style={{ marginTop: '15px' }}>
+                                <a 
+                                    href={activeModal.resource_url} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        gap: '8px', 
+                                        textDecoration: 'none', 
+                                        padding: '10px 20px', 
+                                        borderRadius: '10px', 
+                                        fontSize: '13px', 
+                                        background: '#4f46e5', 
+                                        color: 'white',
+                                        fontWeight: 'bold',
+                                        boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+                                    }}
+                                >
+                                    {activeModal.type === 'watch_video' ? '📺 Ver Video' : '📖 Abrir Recurso'}
+                                </a>
+                            </div>
+                        )}
+
+                        {activeModal.type === 'upload_document' && !activeModal.completed && (
                             <div style={{ marginTop: '15px', textAlign: 'left' }}>
                                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#4f46e5', display: 'block', marginBottom: '5px' }}>
                                     Subir documento (PDF, JPG, PNG)
@@ -204,9 +231,9 @@ export default function MobileDashboard() {
                             <button 
                                 onClick={handleCompleteTask}
                                 style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#4f46e5', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-                                disabled={isUploading || ((activeModal.type === 'document' || activeModal.type === 'pdf') && !selectedFile)}
+                                disabled={isUploading || (activeModal.type === 'upload_document' && !selectedFile)}
                             >
-                                {isUploading ? 'Subiendo...' : 'Completar'}
+                                {isUploading ? (selectedFile ? 'Subiendo...' : 'Completando...') : 'Completar'}
                             </button>
                         )}
                     </div>

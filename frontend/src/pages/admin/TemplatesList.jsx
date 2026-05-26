@@ -76,7 +76,7 @@ export default function TemplatesList() {
                                 <th>{t('table_id')}</th>
                                 <th>{t('table_name')}</th>
                                 {isAdminRole && <th>{t('table_company')}</th>}
-                                {!isAdminRole && <th>Área / Sucursal</th>}
+                                {!isAdminRole && <th>Área</th>}
                                 <th>{t('table_tasks')}</th>
                                 <th>{t('table_actions')}</th>
                             </tr>
@@ -89,8 +89,19 @@ export default function TemplatesList() {
                                     {isAdminRole && <td>{companies[temp.client_id] || temp.client_id}</td>}
                                     {!isAdminRole && <td>{temp.area || 'General'}</td>}
                                     <td>{temp.tasks?.length || 0}</td>
-                                    <td>
-                                        <button className="btn btn-secondary" onClick={() => handleDelete(temp.id)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                                    <td style={{ display: 'flex', gap: '8px' }}>
+                                        <button 
+                                            className="btn btn-primary" 
+                                            onClick={() => navigate(`/admin/templates/${temp.id}/edit`)} 
+                                            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                                        >
+                                            {t('btn_edit') || 'Editar'}
+                                        </button>
+                                        <button 
+                                            className="btn btn-secondary" 
+                                            onClick={() => handleDelete(temp.id)} 
+                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: '#ef4444' }}
+                                        >
                                             {t('btn_delete')}
                                         </button>
                                     </td>
