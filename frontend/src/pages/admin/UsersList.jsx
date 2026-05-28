@@ -214,9 +214,9 @@ export default function UsersList() {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             {userJourney ? (
-                                                <span style={{ fontSize: '1.2rem' }}>✅</span>
+                                                <CheckCircle size={20} color="var(--primary)" />
                                             ) : (
-                                                <span style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>❌</span>
+                                                <X size={20} color="var(--text-muted)" />
                                             )}
                                         </td>
                                         <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -473,23 +473,23 @@ export default function UsersList() {
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">End Date</label>
+                                <label className="form-label">Start Date</label>
                                 <input 
                                     className="form-input" 
                                     type="date" 
-                                    value={assignmentData.end_date}
-                                    onChange={(e) => setAssignmentData({...assignmentData, end_date: e.target.value})}
+                                    value={assignmentData.start_date}
+                                    onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
                                 />
                             </div>
                         </div>
 
                         <div className="form-group" style={{ marginTop: '1rem' }}>
-                            <label className="form-label">Start Date</label>
+                            <label className="form-label">End Date</label>
                             <input 
                                 className="form-input" 
                                 type="date" 
-                                value={assignmentData.start_date}
-                                onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
+                                value={assignmentData.end_date}
+                                onChange={(e) => setAssignmentData({...assignmentData, end_date: e.target.value})}
                             />
                         </div>
 
