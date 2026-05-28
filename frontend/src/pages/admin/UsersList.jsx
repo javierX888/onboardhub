@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { userService } from '../../services/userService';
 import { companyService } from '../../services/companyService';
-import { journeyService } from '../../services/employeeService'; // combined
+import { journeyService, employeeService } from '../../services/employeeService';
 import { templateService } from '../../services/templateService';
+import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
 import api from '../../services/api';
@@ -46,7 +47,7 @@ export default function UsersList() {
             }
             setCheckingJourney(true);
             try {
-                const data = await journeyService.getDashboard(selectedUser.email);
+                const data = await employeeService.getDashboard(selectedUser.email);
                 if (data && data.journey && data.journey.progress < 100) {
                     setHasActiveJourney(true);
                 } else {
@@ -215,9 +216,9 @@ export default function UsersList() {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             {userJourney ? (
-                                                <span style={{ fontSize: '1.2rem' }}>✅</span>
+                                                <CheckCircle size={20} strokeWidth={2} style={{ color: 'var(--primary)' }} />
                                             ) : (
-                                                <span style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>❌</span>
+                                                <X size={20} strokeWidth={2} style={{ color: 'var(--text-muted)' }} />
                                             )}
                                         </td>
                                         <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -474,23 +475,23 @@ export default function UsersList() {
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label className="form-label">End Date</label>
+                                <label className="form-label">Start Date</label>
                                 <input 
                                     className="form-input" 
                                     type="date" 
-                                    value={assignmentData.end_date}
-                                    onChange={(e) => setAssignmentData({...assignmentData, end_date: e.target.value})}
+                                    value={assignmentData.start_date}
+                                    onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
                                 />
                             </div>
                         </div>
 
                         <div className="form-group" style={{ marginTop: '1rem' }}>
-                            <label className="form-label">Start Date</label>
+                            <label className="form-label">End Date</label>
                             <input 
                                 className="form-input" 
                                 type="date" 
-                                value={assignmentData.start_date}
-                                onChange={(e) => setAssignmentData({...assignmentData, start_date: e.target.value})}
+                                value={assignmentData.end_date}
+                                onChange={(e) => setAssignmentData({...assignmentData, end_date: e.target.value})}
                             />
                         </div>
 
