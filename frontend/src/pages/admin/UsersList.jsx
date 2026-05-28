@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { userService } from '../../services/userService';
 import { companyService } from '../../services/companyService';
-import { journeyService } from '../../services/employeeService'; // combined
+import { journeyService, employeeService } from '../../services/employeeService';
 import { templateService } from '../../services/templateService';
+import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
 
@@ -45,7 +46,7 @@ export default function UsersList() {
             }
             setCheckingJourney(true);
             try {
-                const data = await journeyService.getDashboard(selectedUser.email);
+                const data = await employeeService.getDashboard(selectedUser.email);
                 if (data && data.journey && data.journey.progress < 100) {
                     setHasActiveJourney(true);
                 } else {
@@ -86,7 +87,7 @@ export default function UsersList() {
             const journeysMap = {};
             for (const user of usersData) {
                 try {
-                    const response = await import('./api').then(m => m.default.get(`/journeys/employee/${user.id}?client_id=${user.client_id}`));
+                    const response = await api.get(`/journeys/employee/${user.id}?client_id=${user.client_id}`);
                     if (response.data && response.data.length > 0) {
                         journeysMap[user.id] = response.data[0]; // Get first active journey
                     }
@@ -214,9 +215,9 @@ export default function UsersList() {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             {userJourney ? (
-                                                <CheckCircle size={20} color="var(--primary)" />
+                                                <CheckCircle size={20} strokeWidth={2} style={{ color: 'var(--primary)' }} />
                                             ) : (
-                                                <X size={20} color="var(--text-muted)" />
+                                                <X size={20} strokeWidth={2} style={{ color: 'var(--text-muted)' }} />
                                             )}
                                         </td>
                                         <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
