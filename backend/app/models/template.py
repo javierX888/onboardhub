@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from .base import MultiTenantBase
 
@@ -30,5 +30,6 @@ class TemplateTask(MultiTenantBase):
     
     # New field: Who is responsible for this step (User ID or Role)
     responsible_role = Column(String(50), nullable=True, default="HR")
+    is_evidence_mandatory = Column(Boolean, default=False)
 
     template = relationship("Template", back_populates="tasks")

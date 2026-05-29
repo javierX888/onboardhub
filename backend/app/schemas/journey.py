@@ -11,11 +11,15 @@ class JourneyTaskBase(BaseModel):
     deadline: Optional[datetime] = None
     responsible_id: Optional[int] = None
     document_url: Optional[str] = None
+    is_evidence_mandatory: Optional[bool] = False
+    resource_url: Optional[str] = None
+    supervisor_document_url: Optional[str] = None
 
 class JourneyTaskUpdate(BaseModel):
     completed: Optional[bool] = None
     responsible_id: Optional[int] = None
     document_url: Optional[str] = None
+    supervisor_document_url: Optional[str] = None
 
 class JourneyTask(JourneyTaskBase):
     id: int

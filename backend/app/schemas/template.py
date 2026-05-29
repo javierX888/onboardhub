@@ -9,6 +9,7 @@ class TemplateTaskBase(BaseModel):
     stage: Optional[str] = "Day 1"
     resource_url: Optional[str] = None
     responsible_role: Optional[str] = "HR"
+    is_evidence_mandatory: Optional[bool] = False
 
 class TemplateTaskCreate(TemplateTaskBase):
     pass

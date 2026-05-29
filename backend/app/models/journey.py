@@ -38,4 +38,8 @@ class JourneyTask(MultiTenantBase):
     # URL provided by the manager for the employee to read/watch
     resource_url = Column(String(500), nullable=True)
 
+    # Mandatory evidence flag and supervisor document upload
+    is_evidence_mandatory = Column(Boolean, default=False)
+    supervisor_document_url = Column(String(500), nullable=True)
+ 
     journey = relationship("Journey", back_populates="tasks")

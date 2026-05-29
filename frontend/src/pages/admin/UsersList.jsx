@@ -7,6 +7,7 @@ import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
 
+
 export default function UsersList() {
     const [users, setUsers] = useState([]);
     const [companiesList, setCompaniesList] = useState([]);
@@ -314,6 +315,8 @@ export default function UsersList() {
                                         onChange={e => setNewUser({...newUser, role: e.target.value})}
                                     >
                                         <option value="EMPLOYEE">{t('role_employee')}</option>
+                                        <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
+                                        <option value="RESPONSABLE_AREA">{t('role_responsable_area')}</option>
                                         <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
                                         <option value="ADMIN">{t('role_admin')}</option>
                                     </select>

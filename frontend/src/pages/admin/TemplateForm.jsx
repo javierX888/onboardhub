@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { templateService } from '../../services/templateService';
 import { companyService } from '../../services/companyService';
+import { areaService } from '../../services/areaService';
 import { useLanguage } from '../../context/LanguageContext';
 import { Plus, Trash2, Save, ArrowLeft, Layout, ChevronUp, ChevronDown } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export default function TemplateForm() {
 
     const [companies, setCompanies] = useState([]);
     const [allTemplates, setAllTemplates] = useState([]);
+    const [areas, setAreas] = useState([]);
     const [isAdminRole, setIsAdminRole] = useState(false);
     const [template, setTemplate] = useState({
         name: '',
@@ -29,7 +31,7 @@ export default function TemplateForm() {
         client_id: '',
         parent_template_id: null,
         tasks: [
-            { title: '', description: '', stage: 'Day 1', type: 'read_text', resource_url: '' }
+            { title: '', description: '', stage: 'Day 1', type: 'read_text', resource_url: '', is_evidence_mandatory: false }
         ]
     });
 
@@ -68,6 +70,20 @@ export default function TemplateForm() {
         fetchInitialData();
     }, [id]);
 
+    useEffect(() => {
+        const fetchAreas = async () => {
+            if (template.client_id) {
+                try {
+                    const data = await areaService.getAreas(template.client_id);
+                    setAreas(data);
+                } catch (err) {
+                    console.error("Error loading areas", err);
+                }
+            }
+        };
+        fetchAreas();
+    }, [template.client_id]);
+
     const addTask = () => {
         let nextStage = 'Day 1';
         if (template.tasks.length > 0) {
@@ -77,7 +93,7 @@ export default function TemplateForm() {
         }
         setTemplate({
             ...template,
-            tasks: [...template.tasks, { title: '', description: '', stage: nextStage, type: 'read_text', resource_url: '' }]
+            tasks: [...template.tasks, { title: '', description: '', stage: nextStage, type: 'read_text', resource_url: '', is_evidence_mandatory: false }]
         });
     };
 
@@ -193,8 +209,8 @@ export default function TemplateForm() {
                                 required
                             >
                                 <option value="">Seleccione Área...</option>
-                                {AREAS.map(area => (
-                                    <option key={area} value={area}>{area}</option>
+                                {areas.map(a => (
+                                    <option key={a.id} value={a.name}>{a.name}</option>
                                 ))}
                             </select>
                         </div>
@@ -299,6 +315,19 @@ export default function TemplateForm() {
                                     value={task.description || ''}
                                     onChange={e => updateTask(index, 'description', e.target.value)}
                                 />
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', marginTop: '0.5rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        id={`evidence-mandatory-${index}`}
+                                        checked={task.is_evidence_mandatory || false}
+                                        onChange={e => updateTask(index, 'is_evidence_mandatory', e.target.checked)}
+                                        style={{ width: 'auto', margin: 0 }}
+                                    />
+                                    <label htmlFor={`evidence-mandatory-${index}`} style={{ fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none', margin: 0, color: 'var(--text-main)' }}>
+                                        ¿El empleado debe subir evidencia obligatoriamente para completar esta tarea?
+                                    </label>
+                                </div>
 
                                 {/* Card Actions (Move Up / Down & Remove) */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>

@@ -78,7 +78,8 @@ async def create_journey(
                     stage=t_task.stage if t_task.stage else f"Step {t_task.order}",
                     resource_url=t_task.resource_url,
                     deadline=task_deadline,
-                    completed=False
+                    completed=False,
+                    is_evidence_mandatory=t_task.is_evidence_mandatory
                 )
                 db.add(j_task)
             await db.commit()
@@ -116,6 +117,9 @@ async def update_task_status(
     
     if task_in.document_url is not None:
         task.document_url = task_in.document_url
+    
+    if task_in.supervisor_document_url is not None:
+        task.supervisor_document_url = task_in.supervisor_document_url
 
     await db.commit()
     return {"status": "success"}
@@ -193,4 +197,53 @@ async def complete_task(
         "status": "success",
         "progress": journey.progress if 'journey' in locals() else 0,
         "document_url": task.document_url
+    }
+
+@router.post("/task/{task_id}/supervisor-upload")
+async def supervisor_upload_task_document(
+    task_id: int,
+    client_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    # 1. Buscar la tarea
+    result = await db.execute(
+        select(JourneyTaskModel)
+        .where(JourneyTaskModel.id == task_id)
+        .where(JourneyTaskModel.client_id == client_id)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # 2. Subir archivo
+    try:
+        allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail="Only PDF, JPG, and PNG are allowed")
+        
+        contents = await file.read()
+        if len(contents) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large (Max 5MB)")
+
+        file_ext = os.path.splitext(file.filename)[1]
+        file_name = f"supervisor_task_{task_id}_{int(datetime.now().timestamp())}{file_ext}"
+
+        public_url = await storage_service.upload_file(
+            file_content=contents,
+            file_name=file_name,
+            content_type=file.content_type
+        )
+        
+        task.supervisor_document_url = public_url
+        await db.commit()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error uploading to Supabase: {e}")
+        raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
+
+    return {
+        "status": "success",
+        "supervisor_document_url": task.supervisor_document_url
     }
