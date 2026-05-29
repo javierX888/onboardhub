@@ -6,7 +6,6 @@ import { templateService } from '../../services/templateService';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
-import api from '../../services/api';
 
 export default function UsersList() {
     const [users, setUsers] = useState([]);
