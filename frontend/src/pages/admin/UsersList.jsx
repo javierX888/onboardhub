@@ -34,9 +34,33 @@ export default function UsersList() {
         sucursal: '',
         responsible_id: ''
     });
-    const [toastMessage, setToastMessage] = useState(null);
+    // Filtros y paginación
+    const [filterName, setFilterName] = useState('');
+    const [filterEmail, setFilterEmail] = useState('');
+    const [filterRole, setFilterRole] = useState('');
+    const [filterCompany, setFilterCompany] = useState('');
+    const [itemsPerPage, setItemsPerPage] = useState(20);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const { t } = useLanguage();
+    // Lógica de filtrado
+    const filteredUsers = users.filter(user => {
+        const matchName = user.name.toLowerCase().includes(filterName.toLowerCase());
+        const matchEmail = user.email.toLowerCase().includes(filterEmail.toLowerCase());
+        const matchRole = filterRole ? user.role === filterRole : true;
+        const matchCompany = filterCompany ? user.client_id === parseInt(filterCompany) : true;
+        
+        return matchName && matchEmail && matchRole && matchCompany;
+    });
+
+    // Lógica de paginación
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+    // Reset a página 1 cuando cambian filtros
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterName, filterEmail, filterRole, filterCompany]);
 
     useEffect(() => {
         const checkActiveJourney = async () => {
@@ -178,7 +202,84 @@ export default function UsersList() {
                 {loading ? (
                     <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('msg_loading')}</div>
                 ) : (
-                    <div className="table-container">
+                    <>
+                        {/* Filtros */}
+                        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-color)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                                <div>
+                                    <label className="form-label">Filtrar por Nombre</label>
+                                    <input
+                                        className="form-input"
+                                        type="text"
+                                        placeholder="Buscar nombre..."
+                                        value={filterName}
+                                        onChange={(e) => setFilterName(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label">Filtrar por Email</label>
+                                    <input
+                                        className="form-input"
+                                        type="text"
+                                        placeholder="Buscar email..."
+                                        value={filterEmail}
+                                        onChange={(e) => setFilterEmail(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label">Filtrar por Rol</label>
+                                    <select
+                                        className="form-input"
+                                        value={filterRole}
+                                        onChange={(e) => setFilterRole(e.target.value)}
+                                    >
+                                        <option value="">Todos los roles</option>
+                                        <option value="EMPLOYEE">{t('role_employee')}</option>
+                                        <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
+                                        <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                                        <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
+                                        <option value="ADMIN">{t('role_admin')}</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="form-label">Filtrar por Empresa</label>
+                                    <select
+                                        className="form-input"
+                                        value={filterCompany}
+                                        onChange={(e) => setFilterCompany(e.target.value)}
+                                    >
+                                        <option value="">Todas las empresas</option>
+                                        {companiesList.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                                    Mostrando <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)}</strong> de <strong>{filteredUsers.length}</strong> usuarios
+                                </div>
+                                <div>
+                                    <label className="form-label" style={{ marginRight: '0.5rem', display: 'inline-block', marginBottom: 0 }}>Usuarios por página:</label>
+                                    <select
+                                        className="form-input"
+                                        value={itemsPerPage}
+                                        onChange={(e) => {
+                                            setItemsPerPage(parseInt(e.target.value));
+                                            setCurrentPage(1);
+                                        }}
+                                        style={{ width: '80px', display: 'inline-block' }}
+                                    >
+                                        <option value="10">10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Tabla */}
                         <table className="data-table">
                             <thead>
                                 <tr>
@@ -193,14 +294,14 @@ export default function UsersList() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.length === 0 ? (
+                                {paginatedUsers.length === 0 ? (
                                     <tr>
                                         <td colSpan="8" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
-                                            {t('msg_no_data')}
+                                            {filteredUsers.length === 0 ? 'No se encontraron usuarios con los filtros aplicados' : t('msg_no_data')}
                                         </td>
                                     </tr>
-                                ) : users.map(user => {
+                                ) : paginatedUsers.map(user => {
                                     const userJourney = journeys[user.id];
                                     const templateName = userJourney ? templates.find(t => t.id === userJourney.template_id)?.name : null;
                                     return (
@@ -255,7 +356,51 @@ export default function UsersList() {
                                 })}
                             </tbody>
                         </table>
-                    </div>
+
+                        {/* Controles de Paginación */}
+                        {totalPages > 1 && (
+                            <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                                    Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                        style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
+                                    >
+                                        ← Anterior
+                                    </button>
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            className="btn"
+                                            onClick={() => setCurrentPage(page)}
+                                            style={{
+                                                backgroundColor: currentPage === page ? 'var(--primary)' : 'transparent',
+                                                color: currentPage === page ? 'white' : 'var(--text-main)',
+                                                border: '1px solid var(--border)',
+                                                padding: '0.5rem 0.75rem',
+                                                fontSize: '0.8rem',
+                                                borderRadius: 'var(--radius-md)',
+                                            }}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                        style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
+                                    >
+                                        Siguiente →
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
