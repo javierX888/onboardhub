@@ -144,21 +144,21 @@ export default function AjustesModal({ onClose }) {
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
               <label className="form-label" style={{ fontWeight: 600 }}>{t('modal_ajustes_appearance')}</label>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button 
+                <button
                   className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setTheme('light')}
                   style={{ flex: 1 }}
                 >
                   {t('theme_light')}
                 </button>
-                <button 
+                <button
                   className={`btn ${theme === 'dark' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setTheme('dark')}
                   style={{ flex: 1 }}
                 >
                   {t('theme_dark')}
                 </button>
-                <button 
+                <button
                   className={`btn ${theme === 'system' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setTheme('system')}
                   style={{ flex: 1 }}
@@ -171,14 +171,14 @@ export default function AjustesModal({ onClose }) {
             <div className="form-group" style={{ marginBottom: '2rem' }}>
               <label className="form-label" style={{ fontWeight: 600 }}>{t('modal_ajustes_language')}</label>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button 
+                <button
                   className={`btn ${language === 'es' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setLanguage('es')}
                   style={{ flex: 1 }}
                 >
                   Español
                 </button>
-                <button 
+                <button
                   className={`btn ${language === 'en' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setLanguage('en')}
                   style={{ flex: 1 }}
