@@ -153,7 +153,6 @@ body {
 .table-container {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   margin-bottom: 1rem;
 }
 
@@ -253,6 +252,37 @@ body {
 .badge-inactive {
   background-color: #fee2e2;
   color: #991b1b;
+}
+
+/* Role-specific Badge Styles */
+.badge-admin {
+  background-color: #dbeafe;
+  color: #0c4a6e;
+}
+
+.badge-superadmin {
+  background-color: #fce7f3;
+  color: #831843;
+}
+
+.badge-employee {
+  background-color: #f3e8ff;
+  color: #5b21b6;
+}
+
+.badge-encargado_area {
+  background-color: #fed7aa;
+  color: #92400e;
+}
+
+.badge-supervisor_onboarding {
+  background-color: #cffafe;
+  color: #164e63;
+}
+
+.badge-onboarding_manager {
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 /* Forms */
@@ -377,6 +407,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(15, 23, 42, 0.6); /* Slate-900 with opacity */
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -508,37 +539,37 @@ body {
 .theme-dark .alert-danger { background-color: #450a0a; color: #f87171; }
 .theme-dark .alert-info { background-color: #172554; color: #60a5fa; }
 
-/* Top Bar / Header Portal Switch */
+/* Top Bar / Header User Info */
 .top-bar {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  align-items: center;
   margin-bottom: 1rem;
-}
-
-.portal-switch {
-  display: flex;
-  background: var(--bg-color);
-  padding: 0.25rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
 }
 
-.portal-btn {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: calc(var(--radius-md) - 2px);
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
 }
 
-.portal-btn.active {
-  background: var(--primary);
-  color: white;
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.user-role {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 @media (max-width: 1024px) {

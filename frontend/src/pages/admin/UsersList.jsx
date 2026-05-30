@@ -315,6 +315,8 @@ export default function UsersList() {
                                     >
                                         <option value="EMPLOYEE">{t('role_employee')}</option>
                                         <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
+                                        <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                                        <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
                                         <option value="ADMIN">{t('role_admin')}</option>
                                     </select>
                                 </div>

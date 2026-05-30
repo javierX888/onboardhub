@@ -134,7 +134,7 @@ const AdminDashboard = () => {
               </div>
               <div style={{ position: 'relative' }}>
                 <Filter size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
-                <select 
+                <select
                   className="form-input" 
                   style={{ padding: '0.4rem 0.5rem 0.4rem 2rem', fontSize: '0.75rem', width: '120px', marginBottom: 0 }}
                   value={roleFilter}
@@ -143,6 +143,8 @@ const AdminDashboard = () => {
                   <option value="">Todos los roles</option>
                   <option value="EMPLOYEE">{t('role_employee')}</option>
                   <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
+                  <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                  <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
                   <option value="ADMIN">{t('role_admin')}</option>
                 </select>
               </div>
