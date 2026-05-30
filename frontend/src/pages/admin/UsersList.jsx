@@ -41,8 +41,9 @@ export default function UsersList() {
     const [filterCompany, setFilterCompany] = useState('');
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
+    const [toastMessage, setToastMessage] = useState(null);
 
-    // Lógica de filtrado
+    const { t } = useLanguage();
     const filteredUsers = users.filter(user => {
         const matchName = user.name.toLowerCase().includes(filterName.toLowerCase());
         const matchEmail = user.email.toLowerCase().includes(filterEmail.toLowerCase());
@@ -255,9 +256,13 @@ export default function UsersList() {
                                     </select>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                                    Mostrando <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)}</strong> de <strong>{filteredUsers.length}</strong> usuarios
+                                    {filteredUsers.length === 0 ? (
+                                        'No hay usuarios para mostrar'
+                                    ) : (
+                                        <>Mostrando <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)}</strong> de <strong>{filteredUsers.length}</strong> usuarios</>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="form-label" style={{ marginRight: '0.5rem', display: 'inline-block', marginBottom: 0 }}>Usuarios por página:</label>
@@ -303,7 +308,7 @@ export default function UsersList() {
                                     </tr>
                                 ) : paginatedUsers.map(user => {
                                     const userJourney = journeys[user.id];
-                                    const templateName = userJourney ? templates.find(t => t.id === userJourney.template_id)?.name : null;
+                                    const templateName = userJourney ? templates.find(template => template.id === userJourney.template_id)?.name : null;
                                     return (
                                         <tr key={user.id}>
                                             <td style={{ fontWeight: 600, color: 'var(--primary)' }}>#{user.id}</td>
