@@ -11,7 +11,8 @@ import MobileDashboard from './pages/employee/MobileDashboard';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
-import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard } from 'lucide-react';
+import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard, Zap, Briefcase } from 'lucide-react';
+import { hasAccessToSection } from './config/rolePermissions';
 
 const PlaceholderPage = ({ titleKey }) => {
   const { t } = useLanguage();
@@ -36,6 +37,10 @@ function LoginPage({ onLogin }) {
       authData = { role: 'SUPERADMIN', client_id: null, name: 'Super Admin' };
     } else if (user === 'hr' && pass === 'hr123') {
       authData = { role: 'ADMIN', client_id: 1, name: 'HR Manager' };
+    } else if (user === 'encargado' && pass === 'encargado123') {
+      authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado Area' };
+    } else if (user === 'supervisor' && pass === 'supervisor123') {
+      authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor Onboarding' };
     }
 
     if (authData) {
@@ -43,7 +48,7 @@ function LoginPage({ onLogin }) {
       sessionStorage.setItem('onboardhub_user', JSON.stringify(authData));
       onLogin();
     } else {
-      alert('Invalid credentials (Try: admin/admin123 or hr/hr123)');
+      alert('Invalid credentials (Try: admin/admin123, hr/hr123, encargado/encargado123, or supervisor/supervisor123)');
     }
   };
 
@@ -71,9 +76,12 @@ function AdminLayout({ children, onLogout }) {
   const { t } = useLanguage();
   
   const user = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-  const isAdmin = user.role === 'SUPERADMIN';
+  const isSuperAdmin = user.role === 'SUPERADMIN';
 
   const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item';
+  
+  // Helper function to check access
+  const canAccess = (section) => hasAccessToSection(user.role, section);
 
   return (
     <div className="app-container">
@@ -83,36 +91,60 @@ function AdminLayout({ children, onLogout }) {
           OnBoardHub
         </div>
         <nav className="sidebar-nav">
-          <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>
-            <LayoutDashboard size={18} style={{ marginRight: '8px' }} /> {t('sidebar_dashboard')}
-          </Link>
+          {canAccess('dashboard') && (
+            <Link to="/admin/dashboard" className={isActive('/admin/dashboard')}>
+              <LayoutDashboard size={18} style={{ marginRight: '8px' }} /> {t('sidebar_dashboard')}
+            </Link>
+          )}
           
-          <Link to="/admin/templates" className={isActive('/admin/templates')}>
-            <ClipboardList size={18} style={{ marginRight: '8px' }} /> {t('sidebar_plantillas')}
-          </Link>
+          {canAccess('processes') && (
+            <Link to="/admin/processes" className={isActive('/admin/processes')}>
+              <Briefcase size={18} style={{ marginRight: '8px' }} /> {t('sidebar_procesos')}
+            </Link>
+          )}
+
+          {canAccess('templates') && (
+            <Link to="/admin/templates" className={isActive('/admin/templates')}>
+              <ClipboardList size={18} style={{ marginRight: '8px' }} /> {t('sidebar_plantillas')}
+            </Link>
+          )}
           
-          <Link to="/admin/users" className={isActive('/admin/users')}>
-            <UsersIcon size={18} style={{ marginRight: '8px' }} /> {t('sidebar_usuarios')}
-          </Link>
+          {canAccess('talent-management') && (
+            <Link to="/admin/talent-management" className={isActive('/admin/talent-management')}>
+              <UsersIcon size={18} style={{ marginRight: '8px' }} /> {t('sidebar_talento')}
+            </Link>
+          )}
 
-          <Link to="/admin/alerts" className={isActive('/admin/alerts')}>
-            <Bell size={18} style={{ marginRight: '8px' }} /> {t('sidebar_alertas')}
-          </Link>
+          {canAccess('onboarding-team') && (
+            <Link to="/admin/onboarding-team" className={isActive('/admin/onboarding-team')}>
+              <Zap size={18} style={{ marginRight: '8px' }} /> {t('sidebar_equipo_onboarding')}
+            </Link>
+          )}
 
-          <Link to="/admin/analytics" className={isActive('/admin/analytics')}>
-            <BarChart3 size={18} style={{ marginRight: '8px' }} /> {t('sidebar_analitica')}
-          </Link>
+          {canAccess('alerts') && (
+            <Link to="/admin/alerts" className={isActive('/admin/alerts')}>
+              <Bell size={18} style={{ marginRight: '8px' }} /> {t('sidebar_alertas')}
+            </Link>
+          )}
 
-          {isAdmin && (
+          {canAccess('analytics') && (
+            <Link to="/admin/analytics" className={isActive('/admin/analytics')}>
+              <BarChart3 size={18} style={{ marginRight: '8px' }} /> {t('sidebar_analitica')}
+            </Link>
+          )}
+
+          {canAccess('companies') && (
             <Link to="/admin/companies" className={isActive('/admin/companies')}>
               <Settings size={18} style={{ marginRight: '8px' }} /> {t('sidebar_empresas')}
             </Link>
           )}
           
           <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-            <button className="nav-item" onClick={() => setShowSettings(true)} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}>
-              <Settings size={18} style={{ marginRight: '8px' }} /> {t('sidebar_ajustes')}
-            </button>
+            {canAccess('settings') && (
+              <button className="nav-item" onClick={() => setShowSettings(true)} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer' }}>
+                <Settings size={18} style={{ marginRight: '8px' }} /> {t('sidebar_ajustes')}
+              </button>
+            )}
             <button className="nav-item" onClick={onLogout} style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', color: '#ef4444' }}>
               <LogOut size={18} style={{ marginRight: '8px' }} /> {t('btn_close')}
             </button>
@@ -121,13 +153,9 @@ function AdminLayout({ children, onLogout }) {
       </aside>
       <main className="main-content">
         <div className="top-bar">
-          <div className="portal-switch">
-            <button className={`portal-btn ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>
-              {t('portal_admin')}
-            </button>
-            <Link to="/employee" className="portal-btn">
-              {t('portal_employee')}
-            </Link>
+          <div className="user-info">
+            <span className="user-name">{user.name}</span>
+            <span className="user-role">{t(`role_${user.role.toLowerCase()}`) || user.role}</span>
           </div>
         </div>
         {children}
@@ -164,15 +192,18 @@ function App() {
                 <AdminLayout onLogout={handleLogout}>
                   <Routes>
                     <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="companies" element={<CompaniesList />} />
-                    <Route path="companies/new" element={<CompanyForm />} />
-                    <Route path="companies/:id/edit" element={<CompanyForm />} />
-                    <Route path="users" element={<UsersList />} />
+                    <Route path="processes" element={<PlaceholderPage titleKey="sidebar_procesos" />} />
                     <Route path="templates" element={<TemplatesList />} />
                     <Route path="templates/new" element={<TemplateForm />} />
                     <Route path="templates/:id/edit" element={<TemplateForm />} />
+                    <Route path="talent-management" element={<UsersList />} />
+                    <Route path="onboarding-team" element={<PlaceholderPage titleKey="sidebar_equipo_onboarding" />} />
+                    <Route path="companies" element={<CompaniesList />} />
+                    <Route path="companies/new" element={<CompanyForm />} />
+                    <Route path="companies/:id/edit" element={<CompanyForm />} />
                     <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
                     <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
+                    <Route path="users" element={<Navigate to="talent-management" replace />} />
                     <Route path="*" element={<Navigate to="dashboard" />} />
                   </Routes>
                 </AdminLayout>
