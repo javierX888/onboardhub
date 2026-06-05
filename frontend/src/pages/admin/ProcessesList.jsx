@@ -83,7 +83,7 @@ export default function ProcessesList() {
             <div className="page-header" style={{ marginBottom: '2rem' }}>
                 <h1 className="page-title">{t('sidebar_procesos')}</h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    Control y seguimiento de procesos de inducción y onboarding.
+                    {t('processes_subtitle')}
                 </p>
             </div>
 
@@ -103,11 +103,11 @@ export default function ProcessesList() {
                         <Award size={20} />
                     </div>
                     <div>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Vista de Rol: {currentUserDb.role}</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{t('processes_role_view')}: {t(`role_${currentUserDb.role.toLowerCase()}`) || currentUserDb.role}</span>
                         <h4 style={{ margin: '0.2rem 0 0 0', fontSize: '1.05rem', color: 'var(--text-main)' }}>
-                            {currentUserDb.role === 'ADMIN' && 'Visualizando todos los procesos de onboarding de la empresa.'}
-                            {currentUserDb.role === 'SUPERVISOR_ONBOARDING' && `Visualizando procesos bajo tu supervisión directa.`}
-                            {currentUserDb.role === 'ENCARGADO_AREA' && `Visualizando procesos del área de: ${currentUserDb.area}`}
+                            {currentUserDb.role === 'ADMIN' && t('processes_admin_view')}
+                            {currentUserDb.role === 'SUPERVISOR_ONBOARDING' && t('processes_supervisor_view')}
+                            {currentUserDb.role === 'ENCARGADO_AREA' && `${t('processes_encargado_view')} ${currentUserDb.area}`}
                         </h4>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export default function ProcessesList() {
                         <Briefcase size={24} />
                     </div>
                     <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Procesos Totales</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('processes_kpi_total')}</div>
                         <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{totalCount}</div>
                     </div>
                 </div>
@@ -130,7 +130,7 @@ export default function ProcessesList() {
                         <Clock size={24} />
                     </div>
                     <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>En Progreso</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('processes_kpi_progress')}</div>
                         <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{activeCount}</div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@ export default function ProcessesList() {
                         <CheckCircle size={24} />
                     </div>
                     <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Completados</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>{t('processes_kpi_completed')}</div>
                         <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{completedCount}</div>
                     </div>
                 </div>
@@ -150,26 +150,26 @@ export default function ProcessesList() {
             <div className="card" style={{ padding: '0' }}>
                 {loading ? (
                     <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        Cargando procesos...
+                        {t('processes_loading')}
                     </div>
                 ) : filteredJourneys.length === 0 ? (
                     <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📂</div>
-                        <h3>No hay procesos de onboarding activos en este momento</h3>
+                        <h3>{t('processes_empty_state')}</h3>
                     </div>
                 ) : (
                     <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
                         <table className="data-table" style={{ minWidth: '900px', width: '100%' }}>
                             <thead>
                                 <tr>
-                                    <th>Colaborador</th>
-                                    <th>Área</th>
-                                    <th>Rol</th>
-                                    <th>Progreso</th>
-                                    <th>Fecha Inicio</th>
-                                    <th>Fecha Fin</th>
-                                    <th>Ubicación</th>
-                                    <th style={{ width: '100px' }}>Acciones</th>
+                                    <th>{t('processes_col_employee')}</th>
+                                    <th>{t('processes_col_area')}</th>
+                                    <th>{t('processes_col_role')}</th>
+                                    <th>{t('processes_col_progress')}</th>
+                                    <th>{t('processes_col_start')}</th>
+                                    <th>{t('processes_col_end')}</th>
+                                    <th>{t('processes_col_location')}</th>
+                                    <th style={{ width: '100px' }}>{t('processes_col_actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,7 +178,7 @@ export default function ProcessesList() {
                                     return (
                                         <tr key={journey.id}>
                                             <td>
-                                                <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{employee.name || `Usuario ID: ${journey.employee_id}`}</div>
+                                                <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{employee.name || `${t('processes_user_id')}: ${journey.employee_id}`}</div>
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{employee.email}</div>
                                             </td>
                                             <td>
@@ -186,7 +186,7 @@ export default function ProcessesList() {
                                                     {employee.area || 'N/A'}
                                                 </span>
                                             </td>
-                                            <td>{employee.role || 'EMPLOYEE'}</td>
+                                            <td>{t(`role_${(employee.role || 'EMPLOYEE').toLowerCase()}`) || employee.role}</td>
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                     <span style={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: '35px' }}>{journey.progress}%</span>
@@ -200,7 +200,7 @@ export default function ProcessesList() {
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                                                     <MapPin size={12} />
-                                                    <span>{journey.location || 'Remoto'}</span>
+                                                    <span>{journey.location || t('location_remote')}</span>
                                                 </div>
                                             </td>
                                             <td>
@@ -213,7 +213,7 @@ export default function ProcessesList() {
                                                     style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '6px 12px', background: 'var(--primary)' }}
                                                 >
                                                     <Eye size={12} />
-                                                    Ver Detalle
+                                                    {t('processes_btn_detail')}
                                                 </button>
                                             </td>
                                         </tr>
@@ -230,19 +230,19 @@ export default function ProcessesList() {
                 <div className="modal-overlay">
                     <div className="card" style={{ width: '95%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem' }}>Progreso de {viewingJourney.user.name}</h2>
+                            <h2 style={{ fontSize: '1.25rem' }}>{t('processes_modal_title')} {viewingJourney.user.name}</h2>
                             <button className="btn btn-secondary" onClick={() => setViewingJourney(null)} style={{ padding: '5px' }}><X size={18} /></button>
                         </div>
 
                         {!viewingJourney.journey ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                <p>No hay un proceso de onboarding activo asignado a este colaborador.</p>
+                                <p>{t('processes_modal_no_journey')}</p>
                             </div>
                         ) : (
                             <div>
                                 <div style={{ background: 'var(--bg-color)', padding: '1rem', borderRadius: '10px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Progreso General</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('processes_modal_progress_general')}</div>
                                         <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>{viewingJourney.journey.progress}%</div>
                                     </div>
                                     <div style={{ width: '150px', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -254,9 +254,9 @@ export default function ProcessesList() {
                                     <table className="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Tarea</th>
-                                                <th>Estado</th>
-                                                <th>Evidencia</th>
+                                                <th>{t('processes_modal_task')}</th>
+                                                <th>{t('processes_modal_status')}</th>
+                                                <th>{t('processes_modal_evidence')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -265,7 +265,7 @@ export default function ProcessesList() {
                                                     <td style={{ fontSize: '13px' }}>{task.title}</td>
                                                     <td>
                                                         <span className={`badge ${task.completed ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '10px' }}>
-                                                            {task.completed ? 'Completada' : 'Pendiente'}
+                                                            {task.completed ? t('processes_modal_completed') : t('processes_modal_pending')}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -276,10 +276,10 @@ export default function ProcessesList() {
                                                                 rel="noreferrer"
                                                                 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '12px', textDecoration: 'none' }}
                                                             >
-                                                                📥 Descargar Evidencia
+                                                                📥 {t('processes_modal_download')}
                                                             </a>
                                                         ) : (
-                                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Sin evidencia</span>
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{t('processes_modal_no_evidence')}</span>
                                                         )}
                                                     </td>
                                                 </tr>
