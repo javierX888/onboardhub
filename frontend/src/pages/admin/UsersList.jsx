@@ -3,6 +3,7 @@ import { userService } from '../../services/userService';
 import { companyService } from '../../services/companyService';
 import { journeyService, employeeService } from '../../services/employeeService';
 import { templateService } from '../../services/templateService';
+import { areaService } from '../../services/areaService';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
@@ -22,8 +23,9 @@ export default function UsersList() {
     const [checkingJourney, setCheckingJourney] = useState(false);
 
     // Forms
-    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123' });
+    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
     const [viewingJourney, setViewingJourney] = useState(null);
+    const [areas, setAreas] = useState([]);
     const [assignmentData, setAssignmentData] = useState({
         template_id: '',
         start_date: '',
@@ -38,7 +40,7 @@ export default function UsersList() {
     const [filterName, setFilterName] = useState('');
     const [filterEmail, setFilterEmail] = useState('');
     const [filterRole, setFilterRole] = useState('');
-    const [filterCompany, setFilterCompany] = useState('');
+    const [filterOnboardingStatus, setFilterOnboardingStatus] = useState('');
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
     const [toastMessage, setToastMessage] = useState(null);
@@ -48,9 +50,18 @@ export default function UsersList() {
         const matchName = user.name.toLowerCase().includes(filterName.toLowerCase());
         const matchEmail = user.email.toLowerCase().includes(filterEmail.toLowerCase());
         const matchRole = filterRole ? user.role === filterRole : true;
-        const matchCompany = filterCompany ? user.client_id === parseInt(filterCompany) : true;
         
-        return matchName && matchEmail && matchRole && matchCompany;
+        const userJourney = journeys[user.id];
+        let matchOnboarding = true;
+        if (filterOnboardingStatus === 'unassigned') {
+            matchOnboarding = !userJourney;
+        } else if (filterOnboardingStatus === 'in_progress') {
+            matchOnboarding = userJourney && userJourney.progress < 100;
+        } else if (filterOnboardingStatus === 'completed') {
+            matchOnboarding = userJourney && userJourney.progress === 100;
+        }
+        
+        return matchName && matchEmail && matchRole && matchOnboarding;
     });
 
     // Lógica de paginación
@@ -61,7 +72,7 @@ export default function UsersList() {
     // Reset a página 1 cuando cambian filtros
     useEffect(() => {
         setCurrentPage(1);
-    }, [filterName, filterEmail, filterRole, filterCompany]);
+    }, [filterName, filterEmail, filterRole, filterOnboardingStatus]);
 
     useEffect(() => {
         const checkActiveJourney = async () => {
@@ -94,15 +105,17 @@ export default function UsersList() {
         const clientId = authUser.client_id;
 
         try {
-            const [usersData, companiesData, templatesData] = await Promise.all([
+            const [usersData, companiesData, templatesData, areasData] = await Promise.all([
                 isAdmin ? userService.getUsers() : userService.getUsersByCompany(clientId),
                 isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }]),
-                isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId)
+                isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId),
+                isAdmin ? Promise.resolve([]) : areaService.getAreas(clientId)
             ]);
 
             setUsers(usersData);
             setTemplates(templatesData);
             setCompaniesList(companiesData);
+            setAreas(areasData || []);
 
             const compMap = {};
             companiesData.forEach(c => compMap[c.id] = c.name);
@@ -152,7 +165,7 @@ export default function UsersList() {
                 client_id: parseInt(finalClientId)
             });
             setShowAddModal(false);
-            setNewUser({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123' });
+            setNewUser({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
             fetchData();
         } catch (err) {
             console.error(err);
@@ -177,7 +190,8 @@ export default function UsersList() {
                 start_date: assignmentData.start_date || null,
                 end_date: assignmentData.end_date || null,
                 location: combinedLocation || null,
-                responsible_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
+                responsible_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null,
+                supervisor_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
             });
             showToast("✅ Success! Onboarding assigned.", "success");
             setSelectedUser(null);
@@ -243,16 +257,16 @@ export default function UsersList() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="form-label">Filtrar por Empresa</label>
+                                    <label className="form-label">Filtrar por Estado de Onboarding</label>
                                     <select
                                         className="form-input"
-                                        value={filterCompany}
-                                        onChange={(e) => setFilterCompany(e.target.value)}
+                                        value={filterOnboardingStatus}
+                                        onChange={(e) => setFilterOnboardingStatus(e.target.value)}
                                     >
-                                        <option value="">Todas las empresas</option>
-                                        {companiesList.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
+                                        <option value="">Todos los estados</option>
+                                        <option value="unassigned">Sin Asignar</option>
+                                        <option value="in_progress">En Proceso</option>
+                                        <option value="completed">Completado</option>
                                     </select>
                                 </div>
                             </div>
@@ -285,7 +299,8 @@ export default function UsersList() {
                         </div>
 
                         {/* Tabla */}
-                        <table className="data-table">
+                        <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', marginBottom: '1.5rem' }}>
+                            <table className="data-table" style={{ minWidth: '900px', width: '100%' }}>
                             <thead>
                                 <tr>
                                     <th>{t('table_id')}</th>
@@ -361,6 +376,7 @@ export default function UsersList() {
                                 })}
                             </tbody>
                         </table>
+                        </div>
 
                         {/* Controles de Paginación */}
                         {totalPages > 1 && (
@@ -493,6 +509,22 @@ export default function UsersList() {
                                         <option value="">-- {t('table_company')} --</option>
                                         {companiesList.map(c => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            {(newUser.role === 'EMPLOYEE' || newUser.role === 'ENCARGADO_AREA') && (
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
+                                    <label className="form-label">Área</label>
+                                    <select
+                                        className="form-input"
+                                        value={newUser.area || ''}
+                                        onChange={e => setNewUser({ ...newUser, area: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">-- Seleccionar Área --</option>
+                                        {areas.map(a => (
+                                            <option key={a.id} value={a.name}>{a.name}</option>
                                         ))}
                                     </select>
                                 </div>

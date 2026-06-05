@@ -34,5 +34,10 @@ export const journeyService = {
       }
     });
     return response.data;
+  },
+
+  async getJourneysByCompany(clientId) {
+    const response = await api.get(`/journeys/company/${clientId}`);
+    return response.data;
   }
 };

@@ -10,5 +10,6 @@ class User(MultiTenantBase):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False) # Previously 'rol'. Roles: ADMIN, HR, EMPLOYEE
     status = Column(Boolean, default=True) # Previously 'estado'
+    area = Column(String(255), nullable=True)
     
     company = relationship("Company", foreign_keys="User.client_id", primaryjoin="User.client_id == Company.id")

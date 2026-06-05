@@ -29,6 +29,18 @@ async def read_employee_journeys(
     )
     return result.unique().scalars().all()
 
+@router.get("/company/{client_id}", response_model=List[Journey])
+async def read_company_journeys(
+    client_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    result = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.client_id == client_id)
+    )
+    return result.unique().scalars().all()
+
 @router.post("/", response_model=Journey)
 async def create_journey(
     *,

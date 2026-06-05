@@ -133,10 +133,27 @@ async def delete_template(
     db: AsyncSession = Depends(get_db),
     id: int,
 ) -> Any:
+    from sqlalchemy import update
+    from app.models.journey import Journey as JourneyModel
+
     result = await db.execute(select(TemplateModel).where(TemplateModel.id == id))
     template = result.scalar_one_or_none()
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
+    
+    # 1. Nullify child templates referencing this template as parent
+    await db.execute(
+        update(TemplateModel)
+        .where(TemplateModel.parent_template_id == id)
+        .values(parent_template_id=None)
+    )
+
+    # 2. Nullify journeys referencing this template
+    await db.execute(
+        update(JourneyModel)
+        .where(JourneyModel.template_id == id)
+        .values(template_id=None)
+    )
     
     await db.delete(template)
     await db.commit()
