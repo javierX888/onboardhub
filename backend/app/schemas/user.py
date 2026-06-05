@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     role: str
     status: Optional[bool] = True
     client_id: int
+    area: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -16,6 +17,7 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[str] = None
     status: Optional[bool] = None
+    area: Optional[str] = None
 
 class User(UserBase):
     id: int

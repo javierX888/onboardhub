@@ -2,13 +2,7 @@
 export const ROLE_PERMISSIONS = {
   SUPERADMIN: {
     canAccess: [
-      'dashboard',
-      'processes',
-      'templates',
       'talent-management',
-      'onboarding-team',
-      'alerts',
-      'analytics',
       'companies',
       'settings'
     ]
@@ -30,7 +24,6 @@ export const ROLE_PERMISSIONS = {
       'dashboard',
       'processes',
       'alerts',
-      'analytics',
       'settings'
     ]
   },

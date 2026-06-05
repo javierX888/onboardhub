@@ -37,6 +37,7 @@ class JourneyBase(BaseModel):
     end_date: Optional[datetime] = None
     location: Optional[str] = None
     client_id: int
+    supervisor_id: Optional[int] = None
 
 class JourneyCreate(JourneyBase):
     pass

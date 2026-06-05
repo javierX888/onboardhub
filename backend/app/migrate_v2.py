@@ -26,7 +26,8 @@ async def run_migration():
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 client_id INTEGER NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """))
         
