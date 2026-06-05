@@ -222,33 +222,33 @@ export default function UsersList() {
                         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-color)' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                                 <div>
-                                    <label className="form-label">Filtrar por Nombre</label>
+                                    <label className="form-label">{t('filter_name')}</label>
                                     <input
                                         className="form-input"
                                         type="text"
-                                        placeholder="Buscar nombre..."
+                                        placeholder={t('filter_name_placeholder')}
                                         value={filterName}
                                         onChange={(e) => setFilterName(e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label className="form-label">Filtrar por Email</label>
+                                    <label className="form-label">{t('filter_email')}</label>
                                     <input
                                         className="form-input"
                                         type="text"
-                                        placeholder="Buscar email..."
+                                        placeholder={t('filter_email_placeholder')}
                                         value={filterEmail}
                                         onChange={(e) => setFilterEmail(e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label className="form-label">Filtrar por Rol</label>
+                                    <label className="form-label">{t('filter_role')}</label>
                                     <select
                                         className="form-input"
                                         value={filterRole}
                                         onChange={(e) => setFilterRole(e.target.value)}
                                     >
-                                        <option value="">Todos los roles</option>
+                                        <option value="">{t('filter_all_roles')}</option>
                                         <option value="EMPLOYEE">{t('role_employee')}</option>
                                         <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
                                         <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
@@ -257,29 +257,29 @@ export default function UsersList() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="form-label">Filtrar por Estado de Onboarding</label>
+                                    <label className="form-label">{t('filter_onboarding_status')}</label>
                                     <select
                                         className="form-input"
                                         value={filterOnboardingStatus}
                                         onChange={(e) => setFilterOnboardingStatus(e.target.value)}
                                     >
-                                        <option value="">Todos los estados</option>
-                                        <option value="unassigned">Sin Asignar</option>
-                                        <option value="in_progress">En Proceso</option>
-                                        <option value="completed">Completado</option>
+                                        <option value="">{t('filter_all_statuses')}</option>
+                                        <option value="unassigned">{t('filter_unassigned')}</option>
+                                        <option value="in_progress">{t('filter_in_progress')}</option>
+                                        <option value="completed">{t('filter_completed')}</option>
                                     </select>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                                     {filteredUsers.length === 0 ? (
-                                        'No hay usuarios para mostrar'
+                                        t('msg_no_data')
                                     ) : (
-                                        <>Mostrando <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)}</strong> de <strong>{filteredUsers.length}</strong> usuarios</>
+                                        <>{t('users_showing_count')} <strong>{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredUsers.length)}</strong> {t('users_showing_of')} <strong>{filteredUsers.length}</strong> {t('users_showing_users')}</>
                                     )}
                                 </div>
                                 <div>
-                                    <label className="form-label" style={{ marginRight: '0.5rem', display: 'inline-block', marginBottom: 0 }}>Usuarios por página:</label>
+                                    <label className="form-label" style={{ marginRight: '0.5rem', display: 'inline-block', marginBottom: 0 }}>{t('users_per_page')}</label>
                                     <select
                                         className="form-input"
                                         value={itemsPerPage}
@@ -382,7 +382,7 @@ export default function UsersList() {
                         {totalPages > 1 && (
                             <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                                    Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+                                    {t('users_page_indicator')} <strong>{currentPage}</strong> {t('users_page_of')} <strong>{totalPages}</strong>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
@@ -391,7 +391,7 @@ export default function UsersList() {
                                         disabled={currentPage === 1}
                                         style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
                                     >
-                                        ← Anterior
+                                        ← {t('btn_previous')}
                                     </button>
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                         <button
@@ -416,7 +416,7 @@ export default function UsersList() {
                                         disabled={currentPage === totalPages}
                                         style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
                                     >
-                                        Siguiente →
+                                        {t('btn_next')} →
                                     </button>
                                 </div>
                             </div>

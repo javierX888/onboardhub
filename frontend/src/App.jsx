@@ -26,7 +26,7 @@ export const getRoleRoutePrefix = (role) => {
 export const getRoleRedirectPath = (role) => {
   const prefix = getRoleRoutePrefix(role);
   if (role === 'ENCARGADO_AREA') return `${prefix}/processes`;
-  if (role === 'SUPERADMIN') return `${prefix}/users`;
+  if (role === 'SUPERADMIN') return `${prefix}/talent-management`;
   if (role === 'EMPLOYEE') return prefix;
   return `${prefix}/dashboard`;
 };
@@ -52,13 +52,13 @@ function LoginPage({ onLogin }) {
     let authData = null;
 
     if (user === 'admin' && pass === 'admin123') {
-      authData = { role: 'SUPERADMIN', client_id: null, name: 'Super Admin' };
+      authData = { role: 'SUPERADMIN', client_id: null, name: 'Alloxentric' };
     } else if (user === 'hr' && pass === 'hr123') {
-      authData = { role: 'ADMIN', client_id: 1, name: 'HR Manager' };
+      authData = { role: 'ADMIN', client_id: 1, name: 'Admin RRHH' };
     } else if (user === 'encargado' && pass === 'encargado123') {
-      authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado Area', area: 'TI' }; // Default area for test login
+      authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado de Área', area: 'TI' }; // Default area for test login
     } else if (user === 'supervisor' && pass === 'supervisor123') {
-      authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor Onboarding' };
+      authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor de Onboarding' };
     }
 
     if (authData) {
