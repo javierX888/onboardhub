@@ -281,7 +281,6 @@ function App() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="processes" element={<ProcessesList />} />
                     <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
-                    <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </AdminLayout>

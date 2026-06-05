@@ -24,7 +24,6 @@ export const ROLE_PERMISSIONS = {
       'dashboard',
       'processes',
       'alerts',
-      'analytics',
       'settings'
     ]
   },
