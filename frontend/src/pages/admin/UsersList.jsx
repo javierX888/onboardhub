@@ -26,6 +26,8 @@ export default function UsersList() {
     const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
     const [viewingJourney, setViewingJourney] = useState(null);
     const [areas, setAreas] = useState([]);
+    const [isCreatingArea, setIsCreatingArea] = useState(false);
+    const [newAreaName, setNewAreaName] = useState('');
     const [assignmentData, setAssignmentData] = useState({
         template_id: '',
         start_date: '',
@@ -149,6 +151,23 @@ export default function UsersList() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    const handleCreateArea = async () => {
+        if (!newAreaName.trim()) return;
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = authUser.client_id || 1;
+        try {
+            const created = await areaService.createArea(clientId, { name: newAreaName.trim() });
+            const data = await areaService.getAreas(clientId);
+            setAreas(data || []);
+            setNewUser(prev => ({ ...prev, area: created.name }));
+            setIsCreatingArea(false);
+            setNewAreaName('');
+        } catch (err) {
+            console.error("Error creating area:", err);
+            alert("Error al crear el área");
+        }
+    };
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
@@ -515,18 +534,60 @@ export default function UsersList() {
                             )}
                             {(newUser.role === 'EMPLOYEE' || newUser.role === 'ENCARGADO_AREA') && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
-                                    <label className="form-label">Área</label>
-                                    <select
-                                        className="form-input"
-                                        value={newUser.area || ''}
-                                        onChange={e => setNewUser({ ...newUser, area: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">-- Seleccionar Área --</option>
-                                        {areas.map(a => (
-                                            <option key={a.id} value={a.name}>{a.name}</option>
-                                        ))}
-                                    </select>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ margin: 0 }}>Área</label>
+                                        {!isCreatingArea && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCreatingArea(true)}
+                                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                            >
+                                                + Nueva Área
+                                            </button>
+                                        )}
+                                    </div>
+                                    
+                                    {isCreatingArea ? (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={newAreaName}
+                                                onChange={e => setNewAreaName(e.target.value)}
+                                                placeholder="Nombre del área..."
+                                                style={{ marginBottom: 0 }}
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary"
+                                                onClick={handleCreateArea}
+                                                style={{ padding: '0 12px' }}
+                                            >
+                                                OK
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                onClick={() => { setIsCreatingArea(false); setNewAreaName(''); }}
+                                                style={{ padding: '0 12px' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            className="form-input"
+                                            value={newUser.area || ''}
+                                            onChange={e => setNewUser({ ...newUser, area: e.target.value })}
+                                            required
+                                        >
+                                            <option value="">-- Seleccionar Área --</option>
+                                            {areas.map(a => (
+                                                <option key={a.id} value={a.name}>{a.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
                             )}
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
