@@ -40,6 +40,7 @@ const translations = {
     dashboard_kpi_employees: "Empleados en Onboarding",
     dashboard_kpi_overdue: "Tareas Vencidas",
     dashboard_kpi_nps: "NPS Promedio",
+    dashboard_kpi_progress_avg: "Progreso Promedio",
     dashboard_employee_status: "Estado de Empleados",
     dashboard_recent_alerts: "Alertas Recientes",
     dashboard_new_process: "Nuevo Proceso",
@@ -73,6 +74,7 @@ const translations = {
     table_actions: "Acciones",
     table_location: "Ubicación",
     table_tasks: "Tareas",
+    table_process: "Proceso",
     
     status_active: "Activo",
     status_inactive: "Inactivo",
@@ -192,6 +194,7 @@ const translations = {
     dashboard_kpi_employees: "Employees in Onboarding",
     dashboard_kpi_overdue: "Overdue Tasks",
     dashboard_kpi_nps: "Average NPS",
+    dashboard_kpi_progress_avg: "Average Progress",
     dashboard_employee_status: "Employee Status",
     dashboard_recent_alerts: "Recent Alerts",
     dashboard_new_process: "New Process",
@@ -225,6 +228,7 @@ const translations = {
     table_actions: "Actions",
     table_location: "Location",
     table_tasks: "Tasks",
+    table_process: "Process",
     
     status_active: "Active",
     status_inactive: "Inactive",

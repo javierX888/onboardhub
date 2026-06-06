@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { dashboardService } from '../../services/dashboardService';
+import { userService } from '../../services/userService';
 import { 
   Search, 
   Filter, 
@@ -16,6 +17,9 @@ const AdminDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+  const isSupervisor = authUser.role === 'SUPERVISOR_ONBOARDING';
+
   // States for interactivity
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -24,11 +28,17 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-      // En entorno local/desarrollo si no hay cliente asignado usamos ID 1
       const clientId = authUser.client_id || 1; 
       try {
-        const dashboardData = await dashboardService.getAdminDashboard(clientId);
-        setData(dashboardData);
+        if (authUser.role === 'SUPERVISOR_ONBOARDING') {
+          const users = await userService.getUsersByCompany(clientId);
+          const me = users.find(u => u.email === authUser.email || u.role === authUser.role) || { id: 4 };
+          const dashboardData = await dashboardService.getSupervisorDashboard(clientId, me.id);
+          setData(dashboardData);
+        } else {
+          const dashboardData = await dashboardService.getAdminDashboard(clientId);
+          setData(dashboardData);
+        }
       } catch (err) {
         console.error("Error fetching dashboard", err);
       } finally {
@@ -48,10 +58,12 @@ const AdminDashboard = () => {
           <h1 className="page-title">{t('dashboard_title')}</h1>
           <p className="page-subtitle">{t('dashboard_subtitle')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/admin/templates/new')}>
-          <Plus size={18} style={{ marginRight: '8px' }} />
-          {t('dashboard_new_process')}
-        </button>
+        {!isSupervisor && (
+          <button className="btn btn-primary" onClick={() => navigate('/admin/templates/new')}>
+            <Plus size={18} style={{ marginRight: '8px' }} />
+            {t('dashboard_new_process')}
+          </button>
+        )}
       </div>
 
       {selectedEmployee && (
@@ -156,7 +168,7 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th>{t('table_name')}</th>
-                  <th>{t('table_role')}</th>
+                  <th>{t('table_process')}</th>
                   <th>Progreso</th>
                   <th></th>
                 </tr>
@@ -186,7 +198,7 @@ const AdminDashboard = () => {
                         {emp.name}
                       </div>
                     </td>
-                    <td>{emp.role}</td>
+                    <td>{emp.template_name || '-'}</td>
                     <td style={{ width: '200px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div className="progress-container">
@@ -208,7 +220,7 @@ const AdminDashboard = () => {
                     </td>
                   </tr>
                 ))}
-                {data.employee_status.filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase())).filter(emp => roleFilter ? emp.role === roleFilter : true).length === 0 && (
+                {data.employee_status.filter(emp => emp.name.toLowerCase().includes(searchTerm.toLowerCase())).filter(emp => roleFilter ? emp.role.toUpperCase() === roleFilter.toUpperCase() : true).length === 0 && (
                     <tr>
                         <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                             {t('msg_no_data')}

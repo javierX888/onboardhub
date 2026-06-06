@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
 from app.models.user import User as UserModel
 from app.models.nps import NPSResponse as NPSModel
+from app.models.template import Template as TemplateModel
 from app.models.alert import Alert as AlertModel
 
 router = APIRouter()
@@ -66,20 +67,22 @@ async def get_admin_dashboard_stats(
     )
 
     status_q = await db.execute(
-        select(JourneyModel, UserModel.name, UserModel.role)
+        select(JourneyModel, UserModel.name, UserModel.role, TemplateModel.name.label("template_name"))
         .options(selectinload(JourneyModel.tasks))
         .join(UserModel, JourneyModel.employee_id == UserModel.id)
         .join(latest_journeys_subq, JourneyModel.id == latest_journeys_subq.c.latest_id)
+        .outerjoin(TemplateModel, JourneyModel.template_id == TemplateModel.id)
         .where(JourneyModel.client_id == client_id)
         .order_by(JourneyModel.created_at.desc())
         .limit(10)
     )
     
     employee_status = []
-    for journey, name, role in status_q.all():
+    for journey, name, role, template_name in status_q.all():
         employee_status.append({
             "name": name,
             "role": role,
+            "template_name": template_name or "",
             "progress": journey.progress,
             "journey_id": journey.id,
             "tasks": [
@@ -123,6 +126,115 @@ async def get_admin_dashboard_stats(
             {"label": "dashboard_kpi_employees", "value": str(employees_onboarding), "delta": "+2", "deltaType": "up"},
             {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks_count), "delta": "-1", "deltaType": "down"},
             {"label": "dashboard_kpi_nps", "value": str(round(float(avg_nps), 1)), "delta": "+0.5", "deltaType": "up"},
+        ],
+        "employee_status": employee_status,
+        "recent_alerts": recent_alerts[:10]
+    }
+
+
+@router.get("/supervisor")
+async def get_supervisor_dashboard_stats(
+    client_id: int = Query(...),
+    supervisor_id: int = Query(...),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    # 1. KPIs
+    # Active Supervised Processes (Journeys with progress < 100 and supervisor_id == supervisor_id)
+    active_journeys_q = await db.execute(
+        select(func.count(JourneyModel.id))
+        .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.progress < 100)
+    )
+    active_processes = active_journeys_q.scalar() or 0
+
+    # Employees in Onboarding (Unique employees currently in onboarding under this supervisor)
+    employees_q = await db.execute(
+        select(func.count(func.distinct(JourneyModel.employee_id)))
+        .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.supervisor_id == supervisor_id)
+    )
+    employees_onboarding = employees_q.scalar() or 0
+
+    # Overdue Tasks for my supervised employees
+    now = datetime.utcnow()
+    overdue_tasks_q = await db.execute(
+        select(JourneyTaskModel)
+        .join(JourneyModel, JourneyTaskModel.journey_id == JourneyModel.id)
+        .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyTaskModel.completed == False)
+        .where(JourneyTaskModel.deadline.isnot(None))
+        .where(JourneyTaskModel.deadline < now)
+    )
+    overdue_tasks_list = overdue_tasks_q.scalars().all()
+    overdue_tasks_count = len(overdue_tasks_list)
+
+    # Average Progress of my supervised employees
+    progress_q = await db.execute(
+        select(func.avg(JourneyModel.progress))
+        .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.supervisor_id == supervisor_id)
+    )
+    avg_progress = progress_q.scalar() or 0
+
+    # 2. Employee Status (Show only supervised employees with active/latest journey)
+    latest_journeys_subq = (
+        select(
+            JourneyModel.employee_id,
+            func.max(JourneyModel.id).label("latest_id")
+        )
+        .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.supervisor_id == supervisor_id)
+        .group_by(JourneyModel.employee_id)
+        .subquery()
+    )
+
+    status_q = await db.execute(
+        select(JourneyModel, UserModel.name, UserModel.role, TemplateModel.name.label("template_name"))
+        .options(selectinload(JourneyModel.tasks))
+        .join(UserModel, JourneyModel.employee_id == UserModel.id)
+        .join(latest_journeys_subq, JourneyModel.id == latest_journeys_subq.c.latest_id)
+        .outerjoin(TemplateModel, JourneyModel.template_id == TemplateModel.id)
+        .where(JourneyModel.client_id == client_id)
+        .order_by(JourneyModel.created_at.desc())
+        .limit(10)
+    )
+    
+    employee_status = []
+    for journey, name, role, template_name in status_q.all():
+        employee_status.append({
+            "name": name,
+            "role": role,
+            "template_name": template_name or "",
+            "progress": journey.progress,
+            "journey_id": journey.id,
+            "tasks": [
+                {
+                    "title": t.title,
+                    "completed": t.completed,
+                    "deadline": str(t.deadline.strftime('%Y-%m-%d')) if t.deadline else None,
+                    "is_overdue": not t.completed and t.deadline and t.deadline < now,
+                    "stage": t.stage
+                } for t in journey.tasks
+            ]
+        })
+
+    # 3. Recent Alerts (only for supervised journeys)
+    recent_alerts = []
+    for t in overdue_tasks_list[:10]:
+        recent_alerts.append({
+            "type": "danger",
+            "title": f"Tarea Vencida: {t.title}",
+            "time": "Vencida"
+        })
+
+    return {
+        "kpis": [
+            {"label": "dashboard_kpi_active", "value": str(active_processes), "delta": "+1" if active_processes > 0 else "0", "deltaType": "up"},
+            {"label": "dashboard_kpi_employees", "value": str(employees_onboarding), "delta": "+1" if employees_onboarding > 0 else "0", "deltaType": "up"},
+            {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks_count), "delta": "-1" if overdue_tasks_count > 0 else "0", "deltaType": "down"},
+            {"label": "dashboard_kpi_progress_avg", "value": f"{round(float(avg_progress), 1)}%", "delta": "+2%" if avg_progress > 0 else "0%", "deltaType": "up"},
         ],
         "employee_status": employee_status,
         "recent_alerts": recent_alerts[:10]
