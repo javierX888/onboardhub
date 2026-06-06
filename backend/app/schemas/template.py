@@ -6,7 +6,7 @@ class TemplateTaskBase(BaseModel):
     type: str
     description: Optional[str] = None
     order: int = 0
-    stage: Optional[str] = "Day 1"
+    stage: Optional[str] = "Stage 1"
     resource_url: Optional[str] = None
     responsible_role: Optional[str] = "HR"
     is_evidence_mandatory: Optional[bool] = False

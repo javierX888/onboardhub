@@ -9,10 +9,11 @@ import { Plus, Trash2, Save, ArrowLeft, Layout, ChevronUp, ChevronDown } from 'l
 export default function TemplateForm() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const AREAS = ["Planta", "Área TI", "Finanzas", "Ventas", "Recursos Humanos", "Marketing", "Operaciones"];
-    const STAGES = Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`);
+    const stagePrefix = language === 'es' ? 'Etapa' : 'Stage';
+    const STAGES = Array.from({ length: 31 }, (_, i) => `${stagePrefix} ${i + 1}`);
     const TASK_TYPES = [
         { value: 'read_text', label: 'Leer Texto (Bienvenida)' },
         { value: 'read_document', label: 'Ver Documento / Enlace externo' },
@@ -33,7 +34,7 @@ export default function TemplateForm() {
         client_id: '',
         parent_template_id: null,
         tasks: [
-            { title: '', description: '', stage: 'Day 1', type: 'read_text', resource_url: '', is_evidence_mandatory: false }
+            { title: '', description: '', stage: `${stagePrefix} 1`, type: 'read_text', resource_url: '', is_evidence_mandatory: false }
         ]
     });
 
@@ -125,11 +126,11 @@ export default function TemplateForm() {
     }, [template.client_id]);
 
     const addTask = () => {
-        let nextStage = 'Day 1';
+        let nextStage = `${stagePrefix} 1`;
         if (template.tasks.length > 0) {
-            const lastStage = template.tasks[template.tasks.length - 1].stage || 'Day 1';
-            const num = parseInt(lastStage.replace('Day ', '')) || 1;
-            nextStage = `Day ${Math.min(31, num + 1)}`;
+            const lastStage = template.tasks[template.tasks.length - 1].stage || `${stagePrefix} 1`;
+            const num = parseInt(lastStage.replace(`${stagePrefix} `, '')) || 1;
+            nextStage = `${stagePrefix} ${Math.min(31, num + 1)}`;
         }
         setTemplate({
             ...template,
@@ -362,7 +363,7 @@ export default function TemplateForm() {
                                         onChange={e => updateTask(index, 'title', e.target.value)}
                                         required
                                     />
-                                    {/* Day Dropdown */}
+                                    {/* Stage Dropdown */}
                                     <select
                                         className="form-input"
                                         value={task.stage}

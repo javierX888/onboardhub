@@ -7,7 +7,7 @@ import { locationsData } from '../../config/locationsData';
 export default function CompanyForm() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [formData, setFormData] = useState({
         name: '',
         tax_id: '',

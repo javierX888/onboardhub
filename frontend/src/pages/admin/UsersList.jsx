@@ -47,7 +47,7 @@ export default function UsersList() {
     const [currentPage, setCurrentPage] = useState(1);
     const [toastMessage, setToastMessage] = useState(null);
 
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const filteredUsers = users.filter(user => {
         const matchName = user.name.toLowerCase().includes(filterName.toLowerCase());
         const matchEmail = user.email.toLowerCase().includes(filterEmail.toLowerCase());
@@ -193,11 +193,7 @@ export default function UsersList() {
     const handleCreateUser = async (e) => {
         e.preventDefault();
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-
-        // For SUPERADMIN creating ONBOARDING_MANAGER, use selected company. Otherwise use auth user's company.
-        const finalClientId = authUser.role === 'SUPERADMIN' && newUser.role === 'ONBOARDING_MANAGER'
-            ? newUser.client_id
-            : authUser.client_id;
+        const finalClientId = authUser.client_id;
 
         try {
             await userService.createUser({
@@ -290,7 +286,6 @@ export default function UsersList() {
                                     >
                                         <option value="">{t('filter_all_roles')}</option>
                                         <option value="EMPLOYEE">{t('role_employee')}</option>
-                                        <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
                                         <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
                                         <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
                                         <option value="ADMIN">{t('role_admin')}</option>
@@ -520,7 +515,6 @@ export default function UsersList() {
                                         onChange={e => setNewUser({ ...newUser, role: e.target.value })}
                                     >
                                         <option value="EMPLOYEE">{t('role_employee')}</option>
-                                        <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
                                         <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
                                         <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
                                         <option value="ADMIN">{t('role_admin')}</option>
@@ -537,7 +531,7 @@ export default function UsersList() {
                                     />
                                 </div>
                             </div>
-                            {JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' && newUser.role === 'ONBOARDING_MANAGER' && (
+                            {JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <label className="form-label">{t('table_company')}</label>
                                     <select

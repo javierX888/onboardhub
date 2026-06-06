@@ -15,8 +15,7 @@ const translations = {
     users_add_subtitle: "Añade un nuevo empleado o encargado a tu plataforma.",
     companies_subtitle: "Administración SaaS Multi-tenant.",
     
-    role_admin: "Administrador",
-    role_onboarding_manager: "Encargado Onboarding",
+    role_admin: "Administrador RRHH",
     role_employee: "Empleado",
     role_superadmin: "Super Administrador",
     role_supervisor_onboarding: "Supervisor de Onboarding",
@@ -157,7 +156,8 @@ const translations = {
     filter_email_placeholder: "Buscar email...",
     filter_all_roles: "Todos los roles",
     btn_previous: "Anterior",
-    btn_next: "Siguiente"
+    btn_next: "Siguiente",
+    stage_label: "Etapa",
   },
   en: {
     login_title: "Sign In",
@@ -171,8 +171,7 @@ const translations = {
     users_add_subtitle: "Add a new employee or manager to your platform.",
     companies_subtitle: "SaaS Multi-tenant administration.",
     
-    role_admin: "Admin",
-    role_onboarding_manager: "Onboarding Manager",
+    role_admin: "Admin HR",
     role_employee: "Employee",
     role_superadmin: "Super Admin",
     role_supervisor_onboarding: "Onboarding Supervisor",
@@ -313,7 +312,8 @@ const translations = {
     filter_email_placeholder: "Search email...",
     filter_all_roles: "All roles",
     btn_previous: "Previous",
-    btn_next: "Next"
+    btn_next: "Next",
+    stage_label: "Stage",
   }
 };
 
