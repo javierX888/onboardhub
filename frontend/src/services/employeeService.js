@@ -39,5 +39,10 @@ export const journeyService = {
   async getJourneysByCompany(clientId) {
     const response = await api.get(`/journeys/company/${clientId}`);
     return response.data;
+  },
+
+  async deleteJourney(id, clientId) {
+    const response = await api.delete(`/journeys/${id}?client_id=${clientId}`);
+    return response.data;
   }
 };

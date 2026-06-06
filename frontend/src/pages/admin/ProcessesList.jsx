@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { userService } from '../../services/userService';
 import { journeyService } from '../../services/employeeService';
+import { templateService } from '../../services/templateService';
 import { useLanguage } from '../../context/LanguageContext';
-import { Briefcase, CheckCircle, Clock, MapPin, Eye, X, ShieldAlert, Award } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, MapPin, Eye, X, ShieldAlert, Award, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 
 export default function ProcessesList() {
@@ -10,8 +11,10 @@ export default function ProcessesList() {
     const [loading, setLoading] = useState(true);
     const [users, setUsers] = useState([]);
     const [journeys, setJourneys] = useState([]);
+    const [templates, setTemplates] = useState([]);
     const [viewingJourney, setViewingJourney] = useState(null);
     const [currentUserDb, setCurrentUserDb] = useState(null);
+    const [expandedTemplates, setExpandedTemplates] = useState({});
 
     const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
 
@@ -19,13 +22,15 @@ export default function ProcessesList() {
         setLoading(true);
         try {
             const clientId = authUser.client_id || 1;
-            const [usersData, journeysData] = await Promise.all([
+            const [usersData, journeysData, templatesData] = await Promise.all([
                 userService.getUsersByCompany(clientId),
-                journeyService.getJourneysByCompany(clientId)
+                journeyService.getJourneysByCompany(clientId),
+                templateService.getTemplatesByCompany(clientId)
             ]);
 
             setUsers(usersData);
             setJourneys(journeysData);
+            setTemplates(templatesData);
 
             // Find current user DB record to match area or ID
             const me = usersData.find(u => u.email === authUser.email || u.role === authUser.role) || {
@@ -51,6 +56,11 @@ export default function ProcessesList() {
         usersMap[u.id] = u;
     });
 
+    const templatesMap = {};
+    templates.forEach(t => {
+        templatesMap[t.id] = t;
+    });
+
     // Filtering logic based on Role
     const filteredJourneys = journeys.filter(journey => {
         if (!currentUserDb) return true;
@@ -73,10 +83,40 @@ export default function ProcessesList() {
         return false;
     });
 
+    // Group journeys by template_id
+    const groupedJourneys = {};
+    filteredJourneys.forEach(journey => {
+        const tId = journey.template_id || 'custom';
+        if (!groupedJourneys[tId]) {
+            groupedJourneys[tId] = [];
+        }
+        groupedJourneys[tId].push(journey);
+    });
+
     // Statistics
     const totalCount = filteredJourneys.length;
     const completedCount = filteredJourneys.filter(j => j.progress === 100).length;
     const activeCount = totalCount - completedCount;
+
+    const toggleTemplate = (templateId) => {
+        setExpandedTemplates(prev => ({
+            ...prev,
+            [templateId]: prev[templateId] === false ? true : false
+        }));
+    };
+
+    const handleDeleteJourney = async (journeyId) => {
+        if (!window.confirm(t('msg_confirm_delete') || '¿Estás seguro de eliminar este proceso?')) return;
+        try {
+            const clientId = authUser.client_id || 1;
+            await journeyService.deleteJourney(journeyId, clientId);
+            alert(t('msg_success_delete') || 'Proceso eliminado exitosamente.');
+            fetchData();
+        } catch (err) {
+            console.error("Error deleting journey:", err);
+            alert(t('msg_error_generic') || 'Ocurrió un error al eliminar.');
+        }
+    };
 
     return (
         <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
@@ -146,84 +186,164 @@ export default function ProcessesList() {
                 </div>
             </div>
 
-            {/* Main Table Card */}
-            <div className="card" style={{ padding: '0' }}>
-                {loading ? (
-                    <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {t('processes_loading')}
-                    </div>
-                ) : filteredJourneys.length === 0 ? (
-                    <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📂</div>
-                        <h3>{t('processes_empty_state')}</h3>
-                    </div>
-                ) : (
-                    <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
-                        <table className="data-table" style={{ minWidth: '900px', width: '100%' }}>
-                            <thead>
-                                <tr>
-                                    <th>{t('processes_col_employee')}</th>
-                                    <th>{t('processes_col_area')}</th>
-                                    <th>{t('processes_col_role')}</th>
-                                    <th>{t('processes_col_progress')}</th>
-                                    <th>{t('processes_col_start')}</th>
-                                    <th>{t('processes_col_end')}</th>
-                                    <th>{t('processes_col_location')}</th>
-                                    <th style={{ width: '100px' }}>{t('processes_col_actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredJourneys.map(journey => {
-                                    const employee = usersMap[journey.employee_id] || {};
-                                    return (
-                                        <tr key={journey.id}>
-                                            <td>
-                                                <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{employee.name || `${t('processes_user_id')}: ${journey.employee_id}`}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{employee.email}</div>
-                                            </td>
-                                            <td>
-                                                <span className="badge" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-main)' }}>
-                                                    {employee.area || 'N/A'}
+            {/* Main Accordion Lists */}
+            {loading ? (
+                <div className="card" style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    {t('processes_loading')}
+                </div>
+            ) : Object.keys(groupedJourneys).length === 0 ? (
+                <div className="card" style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📂</div>
+                    <h3>{t('processes_empty_state')}</h3>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {Object.keys(groupedJourneys).map(tId => {
+                        const templateJourneys = groupedJourneys[tId];
+                        const isCustom = tId === 'custom';
+                        const template = !isCustom ? templatesMap[tId] : null;
+                        const isExpanded = expandedTemplates[tId] !== false;
+
+                        // Calculate average progress for journeys in this group
+                        const groupProgressSum = templateJourneys.reduce((sum, j) => sum + (j.progress || 0), 0);
+                        const groupAvgProgress = templateJourneys.length > 0 ? Math.round(groupProgressSum / templateJourneys.length) : 0;
+
+                        return (
+                            <div key={tId} className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                                {/* Accordion Header */}
+                                <div 
+                                    onClick={() => toggleTemplate(tId)}
+                                    style={{
+                                        padding: '1.25rem 1.5rem',
+                                        background: 'var(--card-bg)',
+                                        borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        cursor: 'pointer',
+                                        userSelect: 'none',
+                                        transition: 'background 0.2s'
+                                    }}
+                                    className="accordion-header"
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{
+                                            background: isCustom ? 'rgba(239, 68, 68, 0.1)' : 'var(--primary-light)',
+                                            color: isCustom ? '#ef4444' : 'var(--primary)',
+                                            padding: '10px',
+                                            borderRadius: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            <Briefcase size={20} />
+                                        </div>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                                    {isCustom ? t('processes_group_custom') : (template?.name || `Proceso ID: ${tId}`)}
+                                                </h3>
+                                                <span className="badge badge-active" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+                                                    {templateJourneys.length} {templateJourneys.length === 1 ? 'colaborador' : 'colaboradores'}
                                                 </span>
-                                            </td>
-                                            <td>{t(`role_${(employee.role || 'EMPLOYEE').toLowerCase()}`) || employee.role}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <span style={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: '35px' }}>{journey.progress}%</span>
-                                                    <div style={{ flex: 1, minWidth: '80px', height: '6px', backgroundColor: 'var(--bg-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                                                        <div style={{ width: `${journey.progress}%`, height: '100%', backgroundColor: journey.progress === 100 ? '#22c55e' : 'var(--primary)' }}></div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{journey.start_date ? new Date(journey.start_date).toLocaleDateString() : 'N/A'}</td>
-                                            <td>{journey.end_date ? new Date(journey.end_date).toLocaleDateString() : 'N/A'}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                    <MapPin size={12} />
-                                                    <span>{journey.location || t('location_remote')}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-primary"
-                                                    onClick={async () => {
-                                                        const data = await userService.getDashboard(employee.email);
-                                                        setViewingJourney(data);
-                                                    }}
-                                                    style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '6px 12px', background: 'var(--primary)' }}
-                                                >
-                                                    <Eye size={12} />
-                                                    {t('processes_btn_detail')}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
+                                            </div>
+                                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                                {isCustom ? 'Jornadas individuales sin plantilla base o con plantilla eliminada' : (template?.description || 'Sin descripción disponible')}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Progreso Promedio</span>
+                                            <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{groupAvgProgress}%</span>
+                                        </div>
+                                        {isExpanded ? <ChevronUp size={20} color="var(--text-muted)" /> : <ChevronDown size={20} color="var(--text-muted)" />}
+                                    </div>
+                                </div>
+
+                                {/* Accordion Body */}
+                                {isExpanded && (
+                                    <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                                        <table className="data-table" style={{ minWidth: '900px', width: '100%' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th>{t('processes_col_employee')}</th>
+                                                    <th>{t('processes_col_area')}</th>
+                                                    <th>{t('processes_col_role')}</th>
+                                                    <th>{t('processes_col_progress')}</th>
+                                                    <th>{t('processes_col_start')}</th>
+                                                    <th>{t('processes_col_end')}</th>
+                                                    <th>{t('processes_col_location')}</th>
+                                                    <th style={{ width: '120px' }}>{t('processes_col_actions')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {templateJourneys.map(journey => {
+                                                    const employee = usersMap[journey.employee_id] || {};
+                                                    return (
+                                                        <tr key={journey.id}>
+                                                            <td>
+                                                                <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{employee.name || `${t('processes_user_id')}: ${journey.employee_id}`}</div>
+                                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{employee.email}</div>
+                                                            </td>
+                                                            <td>
+                                                                <span className="badge" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-main)' }}>
+                                                                    {employee.area || 'N/A'}
+                                                                </span>
+                                                            </td>
+                                                            <td>{t(`role_${(employee.role || 'EMPLOYEE').toLowerCase()}`) || employee.role}</td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span style={{ fontWeight: 'bold', fontSize: '0.8rem', minWidth: '35px' }}>{journey.progress}%</span>
+                                                                    <div style={{ flex: 1, minWidth: '80px', height: '6px', backgroundColor: 'var(--bg-color)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                        <div style={{ width: `${journey.progress}%`, height: '100%', backgroundColor: journey.progress === 100 ? '#22c55e' : 'var(--primary)' }}></div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>{journey.start_date ? new Date(journey.start_date).toLocaleDateString() : 'N/A'}</td>
+                                                            <td>{journey.end_date ? new Date(journey.end_date).toLocaleDateString() : 'N/A'}</td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                                                    <MapPin size={12} />
+                                                                    <span>{journey.location || t('location_remote')}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                    <button
+                                                                        className="btn btn-primary"
+                                                                        onClick={async () => {
+                                                                            const data = await userService.getDashboard(employee.email);
+                                                                            setViewingJourney(data);
+                                                                        }}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '6px 10px', background: 'var(--primary)' }}
+                                                                        title={t('processes_btn_detail')}
+                                                                    >
+                                                                        <Eye size={12} />
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-secondary"
+                                                                        onClick={() => handleDeleteJourney(journey.id)}
+                                                                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', padding: '6px 10px', background: 'var(--danger-light, #fee2e2)', color: '#ef4444', border: '1px solid #fca5a5' }}
+                                                                        title={t('processes_btn_delete') || 'Eliminar Proceso'}
+                                                                    >
+                                                                        <Trash2 size={12} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Modal: Track Progress */}
             {viewingJourney && (

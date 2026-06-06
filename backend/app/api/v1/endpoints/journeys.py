@@ -259,3 +259,29 @@ async def supervisor_upload_task_document(
         "status": "success",
         "supervisor_document_url": task.supervisor_document_url
     }
+
+
+@router.delete("/{id}")
+async def delete_journey(
+    id: int,
+    client_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    result = await db.execute(
+        select(JourneyModel)
+        .where(JourneyModel.id == id)
+        .where(JourneyModel.client_id == client_id)
+    )
+    journey = result.scalar_one_or_none()
+    if not journey:
+        raise HTTPException(status_code=404, detail="Journey not found")
+        
+    from sqlalchemy import delete
+    await db.execute(
+        delete(JourneyTaskModel)
+        .where(JourneyTaskModel.journey_id == id)
+    )
+    
+    await db.delete(journey)
+    await db.commit()
+    return {"status": "success", "message": "Journey and tasks deleted successfully"}
