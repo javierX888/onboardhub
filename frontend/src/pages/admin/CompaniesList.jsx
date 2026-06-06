@@ -9,7 +9,7 @@ export default function CompaniesList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const fetchCompanies = async () => {
         setLoading(true);

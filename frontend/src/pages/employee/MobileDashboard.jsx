@@ -13,7 +13,7 @@ export default function MobileDashboard() {
     const [toastMessage, setToastMessage] = useState(null); // Custom Toast state
     const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     useEffect(() => {
         if (isLoggedIn && email) {

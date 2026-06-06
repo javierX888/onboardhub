@@ -25,7 +25,7 @@ class TemplateTask(MultiTenantBase):
     type = Column(String(50), nullable=False) # document, video, link, form, etc.
     description = Column(String(500), nullable=True)
     order = Column(Integer, nullable=False, default=0) # Previously 'orden'
-    stage = Column(String(100), nullable=True) # E.g., 'Day 1'
+    stage = Column(String(100), nullable=True) # E.g., 'Stage 1'
     resource_url = Column(String(500), nullable=True) # URL to video/doc provided by manager
     
     # New field: Who is responsible for this step (User ID or Role)

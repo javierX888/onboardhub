@@ -7,7 +7,7 @@ import { Briefcase, CheckCircle, Clock, MapPin, Eye, X, ShieldAlert, Award, Chev
 import api from '../../services/api';
 
 export default function ProcessesList() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [users, setUsers] = useState([]);
     const [journeys, setJourneys] = useState([]);

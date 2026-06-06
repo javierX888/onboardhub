@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,7 +154,6 @@ const AdminDashboard = () => {
                 >
                   <option value="">Todos los roles</option>
                   <option value="EMPLOYEE">{t('role_employee')}</option>
-                  <option value="ONBOARDING_MANAGER">{t('role_onboarding_manager')}</option>
                   <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
                   <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
                   <option value="ADMIN">{t('role_admin')}</option>

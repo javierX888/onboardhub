@@ -11,7 +11,7 @@ export default function TemplatesList() {
     const [isAdminRole, setIsAdminRole] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
     const navigate = useNavigate();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const showToast = (message, type = "success") => {
         setToastMessage({ message, type });

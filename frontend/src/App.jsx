@@ -32,7 +32,7 @@ export const getRoleRedirectPath = (role) => {
 };
 
 const PlaceholderPage = ({ titleKey }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   return (
     <div style={{ padding: '2rem', textAlign: 'center' }}>
       <h1 className="page-title">{t(titleKey)}</h1>
@@ -44,7 +44,7 @@ const PlaceholderPage = ({ titleKey }) => {
 function LoginPage({ onLogin }) {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
@@ -92,7 +92,7 @@ function LoginPage({ onLogin }) {
 function AdminLayout({ children, onLogout }) {
   const [showSettings, setShowSettings] = React.useState(false);
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const user = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
   const prefix = getRoleRoutePrefix(user.role);
