@@ -24,6 +24,8 @@ export default function TemplateForm() {
     const [allTemplates, setAllTemplates] = useState([]);
     const [areas, setAreas] = useState([]);
     const [isAdminRole, setIsAdminRole] = useState(false);
+    const [isCreatingArea, setIsCreatingArea] = useState(false);
+    const [newAreaName, setNewAreaName] = useState('');
     const [template, setTemplate] = useState({
         name: '',
         description: '',
@@ -34,6 +36,23 @@ export default function TemplateForm() {
             { title: '', description: '', stage: 'Day 1', type: 'read_text', resource_url: '', is_evidence_mandatory: false }
         ]
     });
+
+    const handleCreateArea = async () => {
+        if (!newAreaName.trim()) return;
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = template.client_id || authUser.client_id || 1;
+        try {
+            const created = await areaService.createArea(clientId, { name: newAreaName.trim() });
+            const data = await areaService.getAreas(clientId);
+            setAreas(data);
+            setTemplate(prev => ({ ...prev, area: created.name }));
+            setIsCreatingArea(false);
+            setNewAreaName('');
+        } catch (err) {
+            console.error("Error creating area:", err);
+            alert("Error al crear el área");
+        }
+    };
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -201,18 +220,60 @@ export default function TemplateForm() {
                         )}
 
                         <div className="form-group">
-                            <label className="form-label">Área</label>
-                            <select
-                                className="form-input"
-                                value={template.area}
-                                onChange={e => setTemplate({ ...template, area: e.target.value })}
-                                required
-                            >
-                                <option value="">Seleccione Área...</option>
-                                {areas.map(a => (
-                                    <option key={a.id} value={a.name}>{a.name}</option>
-                                ))}
-                            </select>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                <label className="form-label" style={{ margin: 0 }}>Área</label>
+                                {!isCreatingArea && template.client_id && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCreatingArea(true)}
+                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                    >
+                                        + Nueva Área
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {isCreatingArea ? (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        className="form-input"
+                                        type="text"
+                                        value={newAreaName}
+                                        onChange={e => setNewAreaName(e.target.value)}
+                                        placeholder="Nombre del área..."
+                                        style={{ marginBottom: 0 }}
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={handleCreateArea}
+                                        style={{ padding: '0 12px' }}
+                                    >
+                                        OK
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => { setIsCreatingArea(false); setNewAreaName(''); }}
+                                        style={{ padding: '0 12px' }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            ) : (
+                                <select
+                                    className="form-input"
+                                    value={template.area}
+                                    onChange={e => setTemplate({ ...template, area: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Seleccione Área...</option>
+                                    {areas.map(a => (
+                                        <option key={a.id} value={a.name}>{a.name}</option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         {/* Link Previous Process */}
