@@ -54,6 +54,27 @@ export default function TemplateForm() {
         }
     };
 
+    const handleDeleteArea = async () => {
+        if (!template.area) return;
+        if (!window.confirm(`¿Estás seguro de eliminar el área "${template.area}"?`)) return;
+        
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = template.client_id || authUser.client_id || 1;
+        
+        const areaToDelete = areas.find(a => a.name === template.area);
+        if (!areaToDelete) return;
+        
+        try {
+            await areaService.deleteArea(areaToDelete.id, clientId);
+            const data = await areaService.getAreas(clientId);
+            setAreas(data);
+            setTemplate(prev => ({ ...prev, area: '' }));
+        } catch (err) {
+            console.error("Error deleting area:", err);
+            alert("Error al eliminar el área");
+        }
+    };
+
     useEffect(() => {
         const fetchInitialData = async () => {
             const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
@@ -222,15 +243,26 @@ export default function TemplateForm() {
                         <div className="form-group">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                 <label className="form-label" style={{ margin: 0 }}>Área</label>
-                                {!isCreatingArea && template.client_id && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCreatingArea(true)}
-                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
-                                    >
-                                        + Nueva Área
-                                    </button>
-                                )}
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    {!isCreatingArea && template.client_id && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsCreatingArea(true)}
+                                            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                        >
+                                            + Nueva Área
+                                        </button>
+                                    )}
+                                    {!isCreatingArea && template.area && (
+                                        <button
+                                            type="button"
+                                            onClick={handleDeleteArea}
+                                            style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                        >
+                                            Eliminar Área
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             
                             {isCreatingArea ? (

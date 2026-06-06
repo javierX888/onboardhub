@@ -169,6 +169,27 @@ export default function UsersList() {
         }
     };
 
+    const handleDeleteArea = async () => {
+        if (!newUser.area) return;
+        if (!window.confirm(`¿Estás seguro de eliminar el área "${newUser.area}"?`)) return;
+        
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = authUser.client_id || 1;
+        
+        const areaToDelete = areas.find(a => a.name === newUser.area);
+        if (!areaToDelete) return;
+        
+        try {
+            await areaService.deleteArea(areaToDelete.id, clientId);
+            const data = await areaService.getAreas(clientId);
+            setAreas(data || []);
+            setNewUser(prev => ({ ...prev, area: '' }));
+        } catch (err) {
+            console.error("Error deleting area:", err);
+            alert("Error al eliminar el área");
+        }
+    };
+
     const handleCreateUser = async (e) => {
         e.preventDefault();
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
@@ -536,15 +557,26 @@ export default function UsersList() {
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <label className="form-label" style={{ margin: 0 }}>Área</label>
-                                        {!isCreatingArea && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsCreatingArea(true)}
-                                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
-                                            >
-                                                + Nueva Área
-                                            </button>
-                                        )}
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                            {!isCreatingArea && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsCreatingArea(true)}
+                                                    style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                >
+                                                    + Nueva Área
+                                                </button>
+                                            )}
+                                            {!isCreatingArea && newUser.area && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDeleteArea}
+                                                    style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                >
+                                                    Eliminar Área
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     
                                     {isCreatingArea ? (
