@@ -20,6 +20,7 @@ async def read_templates(
     result = await db.execute(
         select(TemplateModel)
         .options(selectinload(TemplateModel.tasks))
+        .where(TemplateModel.status == True)
         .offset(skip)
         .limit(limit)
     )
@@ -49,6 +50,7 @@ async def read_templates_by_company(
         select(TemplateModel)
         .options(selectinload(TemplateModel.tasks))
         .where(TemplateModel.client_id == client_id)
+        .where(TemplateModel.status == True)
     )
     return result.scalars().all()
 
@@ -155,6 +157,7 @@ async def delete_template(
         .values(template_id=None)
     )
     
-    await db.delete(template)
+    template.status = False
+    db.add(template)
     await db.commit()
     return template

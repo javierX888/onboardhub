@@ -15,7 +15,7 @@ async def read_companies(
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
-    result = await db.execute(select(CompanyModel).offset(skip).limit(limit))
+    result = await db.execute(select(CompanyModel).where(CompanyModel.status == True).offset(skip).limit(limit))
     return result.scalars().all()
 
 @router.post("/", response_model=Company)
@@ -61,6 +61,7 @@ async def delete_company(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    await db.delete(company)
+    company.status = False
+    db.add(company)
     await db.commit()
     return company
