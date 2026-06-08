@@ -44,5 +44,10 @@ export const journeyService = {
   async deleteJourney(id, clientId) {
     const response = await api.delete(`/journeys/${id}?client_id=${clientId}`);
     return response.data;
+  },
+
+  async updateJourney(id, clientId, journeyData) {
+    const response = await api.put(`/journeys/${id}?client_id=${clientId}`, journeyData);
+    return response.data;
   }
 };

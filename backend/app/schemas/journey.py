@@ -42,6 +42,13 @@ class JourneyBase(BaseModel):
 class JourneyCreate(JourneyBase):
     pass
 
+class JourneyUpdate(BaseModel):
+    supervisor_id: Optional[int] = None
+    progress: Optional[int] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    location: Optional[str] = None
+
 class Journey(JourneyBase):
     id: int
     tasks: List[JourneyTask] = []

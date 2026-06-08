@@ -15,7 +15,7 @@ async def read_users(
     skip: int = 0,
     limit: int = 100,
 ) -> Any:
-    result = await db.execute(select(UserModel).offset(skip).limit(limit))
+    result = await db.execute(select(UserModel).where(UserModel.status == True).offset(skip).limit(limit))
     return result.scalars().all()
 
 @router.get("/company/{client_id}", response_model=List[User])
@@ -23,7 +23,11 @@ async def read_users_by_company(
     client_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    result = await db.execute(select(UserModel).where(UserModel.client_id == client_id))
+    result = await db.execute(
+        select(UserModel)
+        .where(UserModel.client_id == client_id)
+        .where(UserModel.status == True)
+    )
     return result.scalars().all()
 
 @router.post("/", response_model=User)
@@ -82,6 +86,7 @@ async def delete_user(
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    await db.delete(user)
+    user.status = False
+    db.add(user)
     await db.commit()
     return user

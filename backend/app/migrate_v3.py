@@ -10,14 +10,28 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 async def run_migration():
     print(f"Connecting to {DATABASE_URL}...")
-    engine = create_async_engine(DATABASE_URL, echo=True, connect_args={"statement_cache_size": 0})
+    engine = create_async_engine(DATABASE_URL, echo=True)
     
     async with engine.begin() as conn:
-        print("Adding supervisor_id column to journeys...")
-        await conn.execute(text("ALTER TABLE journeys ADD COLUMN IF NOT EXISTS supervisor_id INTEGER NULL;"))
+        print("Creating offices table...")
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS offices (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                client_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """))
         
-        print("Adding area column to users...")
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS area VARCHAR(255) NULL;"))
+        print("Adding status column to templates...")
+        await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS status BOOLEAN DEFAULT TRUE;"))
+        
+        print("Adding location columns to users...")
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS pais VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS ciudad VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS comuna VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS sucursal VARCHAR(100);"))
         
     print("Migration complete!")
     await engine.dispose()
