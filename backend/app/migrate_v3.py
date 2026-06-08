@@ -32,6 +32,7 @@ async def run_migration():
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS ciudad VARCHAR(100);"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS comuna VARCHAR(100);"))
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS sucursal VARCHAR(100);"))
+
         
     print("Migration complete!")
     await engine.dispose()
