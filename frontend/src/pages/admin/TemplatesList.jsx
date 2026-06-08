@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templateService } from '../../services/templateService';
 import { companyService } from '../../services/companyService';
+import { areaService } from '../../services/areaService';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function TemplatesList() {
     const [templates, setTemplates] = useState([]);
     const [companies, setCompanies] = useState({});
+    const [areas, setAreas] = useState([]);
+    const [selectedArea, setSelectedArea] = useState('');
     const [loading, setLoading] = useState(true);
     const [isAdminRole, setIsAdminRole] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
@@ -36,6 +39,11 @@ export default function TemplatesList() {
                 const compMap = {};
                 comps.forEach(c => compMap[c.id] = c.name);
                 setCompanies(compMap);
+
+                if (!isAdmin && clientId) {
+                    const areasList = await areaService.getAreas(clientId);
+                    setAreas(areasList || []);
+                }
             } catch (err) {
                 console.error(err);
             } finally {
@@ -58,6 +66,8 @@ export default function TemplatesList() {
         }
     };
 
+    const filteredTemplates = templates.filter(temp => !selectedArea || temp.area === selectedArea);
+
     return (
         <div>
             <div className="page-header">
@@ -68,6 +78,27 @@ export default function TemplatesList() {
             </div>
 
             <div className="card">
+                {!isAdminRole && areas.length > 0 && (
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div style={{ width: '250px' }}>
+                            <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.35rem', display: 'block' }}>
+                                Filtrar por Área
+                            </label>
+                            <select
+                                className="form-input"
+                                value={selectedArea}
+                                onChange={(e) => setSelectedArea(e.target.value)}
+                                style={{ marginBottom: 0 }}
+                            >
+                                <option value="">Todas las Áreas</option>
+                                {areas.map(a => (
+                                    <option key={a.id} value={a.name}>{a.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                )}
+
                 {loading ? <p>{t('msg_loading')}</p> : (
                     <div className="table-container">
                     <table className="data-table">
@@ -82,7 +113,7 @@ export default function TemplatesList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {templates.map(temp => (
+                            {filteredTemplates.map(temp => (
                                 <tr key={temp.id}>
                                     <td>#{temp.id}</td>
                                     <td>{temp.name}</td>
@@ -107,9 +138,9 @@ export default function TemplatesList() {
                                     </td>
                                 </tr>
                             ))}
-                            {templates.length === 0 && (
+                            {filteredTemplates.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
+                                    <td colSpan={isAdminRole ? "5" : "5"} style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
                                 </tr>
                             )}
                         </tbody>

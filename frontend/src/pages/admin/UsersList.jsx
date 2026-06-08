@@ -4,11 +4,16 @@ import { companyService } from '../../services/companyService';
 import { journeyService, employeeService } from '../../services/employeeService';
 import { templateService } from '../../services/templateService';
 import { areaService } from '../../services/areaService';
+import { officeService } from '../../services/officeService';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
 
 export default function UsersList() {
+    const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+    const isSuperAdmin = authUser.role === 'SUPERADMIN';
+    const clientId = authUser.client_id;
+
     const [users, setUsers] = useState([]);
     const [companiesList, setCompaniesList] = useState([]);
     const [companiesMap, setCompaniesMap] = useState({});
@@ -28,6 +33,12 @@ export default function UsersList() {
     const [areas, setAreas] = useState([]);
     const [isCreatingArea, setIsCreatingArea] = useState(false);
     const [newAreaName, setNewAreaName] = useState('');
+
+    // Offices State
+    const [offices, setOffices] = useState([]);
+    const [isCreatingOffice, setIsCreatingOffice] = useState(false);
+    const [newOfficeName, setNewOfficeName] = useState('');
+
     const [assignmentData, setAssignmentData] = useState({
         template_id: '',
         start_date: '',
@@ -38,6 +49,7 @@ export default function UsersList() {
         sucursal: '',
         responsible_id: ''
     });
+
     // Filtros y paginación
     const [filterName, setFilterName] = useState('');
     const [filterEmail, setFilterEmail] = useState('');
@@ -48,7 +60,11 @@ export default function UsersList() {
     const [toastMessage, setToastMessage] = useState(null);
 
     const { t, language } = useLanguage();
+
     const filteredUsers = users.filter(user => {
+        // SUPERADMIN only sees ADMINs
+        if (isSuperAdmin && user.role !== 'ADMIN') return false;
+
         const matchName = user.name.toLowerCase().includes(filterName.toLowerCase());
         const matchEmail = user.email.toLowerCase().includes(filterEmail.toLowerCase());
         const matchRole = filterRole ? user.role === filterRole : true;
@@ -100,6 +116,19 @@ export default function UsersList() {
         checkActiveJourney();
     }, [selectedUser]);
 
+    useEffect(() => {
+        if (showAddModal) {
+            setNewUser({
+                name: '',
+                email: '',
+                role: isSuperAdmin ? 'ADMIN' : 'EMPLOYEE',
+                client_id: isSuperAdmin ? '' : clientId,
+                password: 'Password123',
+                area: ''
+            });
+        }
+    }, [showAddModal]);
+
     const fetchData = async () => {
         setLoading(true);
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
@@ -107,17 +136,19 @@ export default function UsersList() {
         const clientId = authUser.client_id;
 
         try {
-            const [usersData, companiesData, templatesData, areasData] = await Promise.all([
+            const [usersData, companiesData, templatesData, areasData, officesData] = await Promise.all([
                 isAdmin ? userService.getUsers() : userService.getUsersByCompany(clientId),
                 isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }]),
                 isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId),
-                isAdmin ? Promise.resolve([]) : areaService.getAreas(clientId)
+                isAdmin ? Promise.resolve([]) : areaService.getAreas(clientId),
+                isAdmin ? Promise.resolve([]) : officeService.getOffices(clientId)
             ]);
 
             setUsers(usersData);
             setTemplates(templatesData);
             setCompaniesList(companiesData);
             setAreas(areasData || []);
+            setOffices(officesData || []);
 
             const compMap = {};
             companiesData.forEach(c => compMap[c.id] = c.name);
@@ -190,10 +221,49 @@ export default function UsersList() {
         }
     };
 
+    // Office CRUD handlers
+    const handleCreateOffice = async () => {
+        if (!newOfficeName.trim()) return;
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = authUser.client_id || 1;
+        try {
+            const created = await officeService.createOffice(clientId, { name: newOfficeName.trim() });
+            const data = await officeService.getOffices(clientId);
+            setOffices(data || []);
+            setAssignmentData(prev => ({ ...prev, sucursal: created.name }));
+            setIsCreatingOffice(false);
+            setNewOfficeName('');
+        } catch (err) {
+            console.error("Error creating office:", err);
+            alert("Error al crear la sucursal/oficina");
+        }
+    };
+
+    const handleDeleteOffice = async () => {
+        if (!assignmentData.sucursal) return;
+        if (!window.confirm(`¿Estás seguro de eliminar la sucursal/oficina "${assignmentData.sucursal}"?`)) return;
+        
+        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+        const clientId = authUser.client_id || 1;
+        
+        const officeToDelete = offices.find(o => o.name === assignmentData.sucursal);
+        if (!officeToDelete) return;
+        
+        try {
+            await officeService.deleteOffice(officeToDelete.id, clientId);
+            const data = await officeService.getOffices(clientId);
+            setOffices(data || []);
+            setAssignmentData(prev => ({ ...prev, sucursal: '' }));
+        } catch (err) {
+            console.error("Error deleting office:", err);
+            alert("Error al eliminar la sucursal/oficina");
+        }
+    };
+
     const handleCreateUser = async (e) => {
         e.preventDefault();
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-        const finalClientId = authUser.client_id;
+        const finalClientId = isSuperAdmin ? newUser.client_id : authUser.client_id;
 
         try {
             await userService.createUser({
@@ -201,7 +271,7 @@ export default function UsersList() {
                 client_id: parseInt(finalClientId)
             });
             setShowAddModal(false);
-            setNewUser({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
+            setNewUser({ name: '', email: '', role: isSuperAdmin ? 'ADMIN' : 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
             fetchData();
         } catch (err) {
             console.error(err);
@@ -277,33 +347,37 @@ export default function UsersList() {
                                         onChange={(e) => setFilterEmail(e.target.value)}
                                     />
                                 </div>
-                                <div>
-                                    <label className="form-label">{t('filter_role')}</label>
-                                    <select
-                                        className="form-input"
-                                        value={filterRole}
-                                        onChange={(e) => setFilterRole(e.target.value)}
-                                    >
-                                        <option value="">{t('filter_all_roles')}</option>
-                                        <option value="EMPLOYEE">{t('role_employee')}</option>
-                                        <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
-                                        <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
-                                        <option value="ADMIN">{t('role_admin')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="form-label">{t('filter_onboarding_status')}</label>
-                                    <select
-                                        className="form-input"
-                                        value={filterOnboardingStatus}
-                                        onChange={(e) => setFilterOnboardingStatus(e.target.value)}
-                                    >
-                                        <option value="">{t('filter_all_statuses')}</option>
-                                        <option value="unassigned">{t('filter_unassigned')}</option>
-                                        <option value="in_progress">{t('filter_in_progress')}</option>
-                                        <option value="completed">{t('filter_completed')}</option>
-                                    </select>
-                                </div>
+                                {!isSuperAdmin && (
+                                    <>
+                                        <div>
+                                            <label className="form-label">{t('filter_role')}</label>
+                                            <select
+                                                className="form-input"
+                                                value={filterRole}
+                                                onChange={(e) => setFilterRole(e.target.value)}
+                                            >
+                                                <option value="">{t('filter_all_roles')}</option>
+                                                <option value="EMPLOYEE">{t('role_employee')}</option>
+                                                <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                                                <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
+                                                <option value="ADMIN">{t('role_admin')}</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="form-label">{t('filter_onboarding_status')}</label>
+                                            <select
+                                                className="form-input"
+                                                value={filterOnboardingStatus}
+                                                onChange={(e) => setFilterOnboardingStatus(e.target.value)}
+                                            >
+                                                <option value="">{t('filter_all_statuses')}</option>
+                                                <option value="unassigned">{t('filter_unassigned')}</option>
+                                                <option value="in_progress">{t('filter_in_progress')}</option>
+                                                <option value="completed">{t('filter_completed')}</option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
@@ -342,16 +416,22 @@ export default function UsersList() {
                                     <th>{t('table_name')}</th>
                                     <th>{t('table_email')}</th>
                                     <th>{t('table_role')}</th>
-                                    <th>Onboarding</th>
-                                    <th>Template</th>
-                                    <th>Progress</th>
-                                    <th>{t('table_actions')}</th>
+                                    {isSuperAdmin ? (
+                                        <th>{t('table_company') || 'Compañía'}</th>
+                                    ) : (
+                                        <>
+                                            <th>Onboarding</th>
+                                            <th>Template</th>
+                                            <th>Progress</th>
+                                            <th>{t('table_actions')}</th>
+                                        </>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody>
                                 {paginatedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                                        <td colSpan={isSuperAdmin ? "5" : "8"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
                                             {filteredUsers.length === 0 ? 'No se encontraron usuarios con los filtros aplicados' : t('msg_no_data')}
                                         </td>
@@ -369,43 +449,49 @@ export default function UsersList() {
                                                     {t(`role_${user.role.toLowerCase()}`) || user.role}
                                                 </span>
                                             </td>
-                                            <td style={{ textAlign: 'center' }}>
-                                                {userJourney ? (
-                                                    <CheckCircle size={20} strokeWidth={2} style={{ color: 'var(--primary)' }} />
-                                                ) : (
-                                                    <X size={20} strokeWidth={2} style={{ color: 'var(--text-muted)' }} />
-                                                )}
-                                            </td>
-                                            <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                                {templateName || '—'}
-                                            </td>
-                                            <td>
-                                                {userJourney ? (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ width: '60px', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
-                                                            <div style={{ width: `${userJourney.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
-                                                        </div>
-                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{userJourney.progress}%</span>
-                                                    </div>
-                                                ) : (
-                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>—</span>
-                                                )}
-                                            </td>
-                                            <td style={{ display: 'flex', gap: '8px' }}>
-                                                <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                                    {t('btn_assign')}
-                                                </button>
-                                                <button
-                                                    className="btn btn-primary"
-                                                    onClick={async () => {
-                                                        const data = await userService.getDashboard(user.email);
-                                                        setViewingJourney(data);
-                                                    }}
-                                                    style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
-                                                >
-                                                    {t('btn_track')}
-                                                </button>
-                                            </td>
+                                            {isSuperAdmin ? (
+                                                <td>{companiesMap[user.client_id] || user.client_id}</td>
+                                            ) : (
+                                                <>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        {userJourney ? (
+                                                            <CheckCircle size={20} strokeWidth={2} style={{ color: 'var(--primary)' }} />
+                                                        ) : (
+                                                            <X size={20} strokeWidth={2} style={{ color: 'var(--text-muted)' }} />
+                                                        )}
+                                                    </td>
+                                                    <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                        {templateName || '—'}
+                                                    </td>
+                                                    <td>
+                                                        {userJourney ? (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div style={{ width: '60px', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                                                                    <div style={{ width: `${userJourney.progress}%`, height: '100%', background: 'var(--primary)' }}></div>
+                                                                </div>
+                                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{userJourney.progress}%</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>—</span>
+                                                        )}
+                                                    </td>
+                                                    <td style={{ display: 'flex', gap: '8px' }}>
+                                                        <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                                                            {t('btn_assign')}
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-primary"
+                                                            onClick={async () => {
+                                                                const data = await userService.getDashboard(user.email);
+                                                                setViewingJourney(data);
+                                                            }}
+                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
+                                                        >
+                                                            {t('btn_track')}
+                                                        </button>
+                                                    </td>
+                                                </>
+                                            )}
                                         </tr>
                                     );
                                 })}
@@ -509,16 +595,22 @@ export default function UsersList() {
                             <div className="grid-form">
                                 <div className="form-group">
                                     <label className="form-label">{t('table_role')}</label>
-                                    <select
-                                        className="form-input"
-                                        value={newUser.role}
-                                        onChange={e => setNewUser({ ...newUser, role: e.target.value })}
-                                    >
-                                        <option value="EMPLOYEE">{t('role_employee')}</option>
-                                        <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
-                                        <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
-                                        <option value="ADMIN">{t('role_admin')}</option>
-                                    </select>
+                                    {isSuperAdmin ? (
+                                        <select className="form-input" value="ADMIN" disabled>
+                                            <option value="ADMIN">{t('role_admin')}</option>
+                                        </select>
+                                    ) : (
+                                        <select
+                                            className="form-input"
+                                            value={newUser.role}
+                                            onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+                                        >
+                                            <option value="EMPLOYEE">{t('role_employee')}</option>
+                                            <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                                            <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
+                                            <option value="ADMIN">{t('role_admin')}</option>
+                                        </select>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">{t('login_pass')}</label>
@@ -531,7 +623,7 @@ export default function UsersList() {
                                     />
                                 </div>
                             </div>
-                            {JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}').role === 'SUPERADMIN' && (
+                            {isSuperAdmin && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <label className="form-label">{t('table_company')}</label>
                                     <select
@@ -547,7 +639,7 @@ export default function UsersList() {
                                     </select>
                                 </div>
                             )}
-                            {(newUser.role === 'EMPLOYEE' || newUser.role === 'ENCARGADO_AREA') && (
+                            {!isSuperAdmin && (newUser.role === 'EMPLOYEE' || newUser.role === 'ENCARGADO_AREA') && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <label className="form-label" style={{ margin: 0 }}>Área</label>
@@ -734,14 +826,71 @@ export default function UsersList() {
                                     />
                                 </div>
                                 <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">Sucursal / Oficina</label>
-                                    <input
-                                        className="form-input"
-                                        type="text"
-                                        value={assignmentData.sucursal}
-                                        onChange={(e) => setAssignmentData({ ...assignmentData, sucursal: e.target.value })}
-                                        placeholder="ej: Central"
-                                    />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                            {!isCreatingOffice && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsCreatingOffice(true)}
+                                                    style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                >
+                                                    + Nueva Sucursal
+                                                </button>
+                                            )}
+                                            {!isCreatingOffice && assignmentData.sucursal && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDeleteOffice}
+                                                    style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                >
+                                                    Eliminar Sucursal
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {isCreatingOffice ? (
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={newOfficeName}
+                                                onChange={e => setNewOfficeName(e.target.value)}
+                                                placeholder="Nombre de la sucursal..."
+                                                style={{ marginBottom: 0 }}
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary"
+                                                onClick={handleCreateOffice}
+                                                style={{ padding: '0 12px' }}
+                                            >
+                                                OK
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                onClick={() => { setIsCreatingOffice(false); setNewOfficeName(''); }}
+                                                style={{ padding: '0 12px' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <select
+                                            className="form-input"
+                                            value={assignmentData.sucursal || ''}
+                                            onChange={(e) => setAssignmentData({ ...assignmentData, sucursal: e.target.value })}
+                                            style={{ marginBottom: 0 }}
+                                        >
+                                            <option value="">-- Seleccionar Sucursal --</option>
+                                            {offices.map(o => (
+                                                <option key={o.id} value={o.name}>{o.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                 </div>
                             </div>
                             <div className="form-group">
