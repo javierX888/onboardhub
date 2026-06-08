@@ -8,6 +8,10 @@ class UserBase(BaseModel):
     status: Optional[bool] = True
     client_id: int
     area: Optional[str] = None
+    pais: Optional[str] = None
+    ciudad: Optional[str] = None
+    comuna: Optional[str] = None
+    sucursal: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -18,6 +22,10 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     status: Optional[bool] = None
     area: Optional[str] = None
+    pais: Optional[str] = None
+    ciudad: Optional[str] = None
+    comuna: Optional[str] = None
+    sucursal: Optional[str] = None
 
 class User(UserBase):
     id: int

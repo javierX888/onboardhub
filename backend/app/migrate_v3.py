@@ -27,6 +27,13 @@ async def run_migration():
         print("Adding status column to templates...")
         await conn.execute(text("ALTER TABLE templates ADD COLUMN IF NOT EXISTS status BOOLEAN DEFAULT TRUE;"))
         
+        print("Adding location columns to users...")
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS pais VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS ciudad VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS comuna VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS sucursal VARCHAR(100);"))
+
+        
     print("Migration complete!")
     await engine.dispose()
 

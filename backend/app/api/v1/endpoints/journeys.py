@@ -11,7 +11,7 @@ from app.core.database import get_db
 from app.core.storage import storage_service
 from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
 from app.models.template import Template as TemplateModel
-from app.schemas.journey import Journey, JourneyCreate, JourneyTaskUpdate
+from app.schemas.journey import Journey, JourneyCreate, JourneyTaskUpdate, JourneyUpdate
 
 router = APIRouter()
 
@@ -285,3 +285,36 @@ async def delete_journey(
     await db.delete(journey)
     await db.commit()
     return {"status": "success", "message": "Journey and tasks deleted successfully"}
+
+@router.put("/{id}", response_model=Journey)
+async def update_journey(
+    id: int,
+    client_id: int,
+    *,
+    db: AsyncSession = Depends(get_db),
+    journey_in: JourneyUpdate,
+) -> Any:
+    result = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.id == id)
+        .where(JourneyModel.client_id == client_id)
+    )
+    journey = result.scalar_one_or_none()
+    if not journey:
+        raise HTTPException(status_code=404, detail="Journey not found")
+    
+    update_data = journey_in.model_dump(exclude_unset=True)
+    
+    # Date sanitization
+    for date_field in ["start_date", "end_date"]:
+        if update_data.get(date_field):
+            if isinstance(update_data[date_field], datetime):
+                update_data[date_field] = update_data[date_field].replace(tzinfo=None)
+                
+    for field in update_data:
+        setattr(journey, field, update_data[field])
+        
+    await db.commit()
+    await db.refresh(journey)
+    return journey

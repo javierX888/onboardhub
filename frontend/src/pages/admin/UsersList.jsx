@@ -24,11 +24,24 @@ export default function UsersList() {
     // Modals
     const [selectedUser, setSelectedUser] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [hasActiveJourney, setHasActiveJourney] = useState(false);
     const [checkingJourney, setCheckingJourney] = useState(false);
 
     // Forms
-    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
+    const [newUser, setNewUser] = useState({
+        name: '',
+        email: '',
+        role: 'EMPLOYEE',
+        client_id: '',
+        password: 'Password123',
+        area: '',
+        pais: '',
+        ciudad: '',
+        comuna: '',
+        sucursal: ''
+    });
+    const [editingUser, setEditingUser] = useState(null);
     const [viewingJourney, setViewingJourney] = useState(null);
     const [areas, setAreas] = useState([]);
     const [isCreatingArea, setIsCreatingArea] = useState(false);
@@ -43,11 +56,8 @@ export default function UsersList() {
         template_id: '',
         start_date: '',
         end_date: '',
-        pais: '',
-        ciudad: '',
-        comuna: '',
-        sucursal: '',
-        responsible_id: ''
+        responsible_id: '',
+        employee_id: '' // For supervisor assignment
     });
 
     // Filtros y paginación
@@ -94,7 +104,7 @@ export default function UsersList() {
 
     useEffect(() => {
         const checkActiveJourney = async () => {
-            if (!selectedUser) {
+            if (!selectedUser || selectedUser.role !== 'EMPLOYEE') {
                 setHasActiveJourney(false);
                 return;
             }
@@ -124,7 +134,11 @@ export default function UsersList() {
                 role: isSuperAdmin ? 'ADMIN' : 'EMPLOYEE',
                 client_id: isSuperAdmin ? '' : clientId,
                 password: 'Password123',
-                area: ''
+                area: '',
+                pais: '',
+                ciudad: '',
+                comuna: '',
+                sucursal: ''
             });
         }
     }, [showAddModal]);
@@ -191,7 +205,11 @@ export default function UsersList() {
             const created = await areaService.createArea(clientId, { name: newAreaName.trim() });
             const data = await areaService.getAreas(clientId);
             setAreas(data || []);
-            setNewUser(prev => ({ ...prev, area: created.name }));
+            if (showEditModal) {
+                setEditingUser(prev => ({ ...prev, area: created.name }));
+            } else {
+                setNewUser(prev => ({ ...prev, area: created.name }));
+            }
             setIsCreatingArea(false);
             setNewAreaName('');
         } catch (err) {
@@ -201,62 +219,28 @@ export default function UsersList() {
     };
 
     const handleDeleteArea = async () => {
-        if (!newUser.area) return;
-        if (!window.confirm(`¿Estás seguro de eliminar el área "${newUser.area}"?`)) return;
+        const areaName = showEditModal ? editingUser.area : newUser.area;
+        if (!areaName) return;
+        if (!window.confirm(`¿Estás seguro de eliminar el área "${areaName}"?`)) return;
         
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
         const clientId = authUser.client_id || 1;
         
-        const areaToDelete = areas.find(a => a.name === newUser.area);
+        const areaToDelete = areas.find(a => a.name === areaName);
         if (!areaToDelete) return;
         
         try {
             await areaService.deleteArea(areaToDelete.id, clientId);
             const data = await areaService.getAreas(clientId);
             setAreas(data || []);
-            setNewUser(prev => ({ ...prev, area: '' }));
+            if (showEditModal) {
+                setEditingUser(prev => ({ ...prev, area: '' }));
+            } else {
+                setNewUser(prev => ({ ...prev, area: '' }));
+            }
         } catch (err) {
             console.error("Error deleting area:", err);
             alert("Error al eliminar el área");
-        }
-    };
-
-    // Office CRUD handlers
-    const handleCreateOffice = async () => {
-        if (!newOfficeName.trim()) return;
-        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-        const clientId = authUser.client_id || 1;
-        try {
-            const created = await officeService.createOffice(clientId, { name: newOfficeName.trim() });
-            const data = await officeService.getOffices(clientId);
-            setOffices(data || []);
-            setAssignmentData(prev => ({ ...prev, sucursal: created.name }));
-            setIsCreatingOffice(false);
-            setNewOfficeName('');
-        } catch (err) {
-            console.error("Error creating office:", err);
-            alert("Error al crear la sucursal/oficina");
-        }
-    };
-
-    const handleDeleteOffice = async () => {
-        if (!assignmentData.sucursal) return;
-        if (!window.confirm(`¿Estás seguro de eliminar la sucursal/oficina "${assignmentData.sucursal}"?`)) return;
-        
-        const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-        const clientId = authUser.client_id || 1;
-        
-        const officeToDelete = offices.find(o => o.name === assignmentData.sucursal);
-        if (!officeToDelete) return;
-        
-        try {
-            await officeService.deleteOffice(officeToDelete.id, clientId);
-            const data = await officeService.getOffices(clientId);
-            setOffices(data || []);
-            setAssignmentData(prev => ({ ...prev, sucursal: '' }));
-        } catch (err) {
-            console.error("Error deleting office:", err);
-            alert("Error al eliminar la sucursal/oficina");
         }
     };
 
@@ -271,21 +255,63 @@ export default function UsersList() {
                 client_id: parseInt(finalClientId)
             });
             setShowAddModal(false);
-            setNewUser({ name: '', email: '', role: isSuperAdmin ? 'ADMIN' : 'EMPLOYEE', client_id: '', password: 'Password123', area: '' });
+            setNewUser({
+                name: '',
+                email: '',
+                role: isSuperAdmin ? 'ADMIN' : 'EMPLOYEE',
+                client_id: '',
+                password: 'Password123',
+                area: '',
+                pais: '',
+                ciudad: '',
+                comuna: '',
+                sucursal: ''
+            });
+            showToast("✅ Usuario creado con éxito.", "success");
             fetchData();
         } catch (err) {
             console.error(err);
-            alert("Error creating user. Check console for details.");
+            showToast("❌ Error al crear el usuario.", "error");
+        }
+    };
+
+    const handleEditUser = async (e) => {
+        e.preventDefault();
+        try {
+            const payload = { ...editingUser };
+            if (!payload.password) {
+                delete payload.password;
+            }
+            await userService.updateUser(editingUser.id, payload);
+            setShowEditModal(false);
+            setEditingUser(null);
+            showToast("✅ Usuario actualizado con éxito.", "success");
+            fetchData();
+        } catch (err) {
+            console.error(err);
+            showToast("❌ Error al actualizar el usuario.", "error");
+        }
+    };
+
+    const handleDeleteUser = async (id, name) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${name}"?`)) return;
+        try {
+            await userService.deleteUser(id);
+            showToast("✅ Usuario eliminado con éxito.", "success");
+            fetchData();
+        } catch (err) {
+            console.error(err);
+            showToast("❌ Error al eliminar el usuario.", "error");
         }
     };
 
     const handleAssign = async () => {
         try {
             const combinedLocation = [
-                assignmentData.pais,
-                assignmentData.ciudad,
-                assignmentData.comuna,
-                assignmentData.sucursal
+                selectedUser.pais,
+                selectedUser.ciudad,
+                selectedUser.comuna,
+                selectedUser.sucursal
             ].map(s => s?.trim()).filter(Boolean).join(', ');
 
             await journeyService.createJourney({
@@ -300,10 +326,33 @@ export default function UsersList() {
                 supervisor_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
             });
             showToast("✅ Success! Onboarding assigned.", "success");
+            fetchData();
             setSelectedUser(null);
-            setAssignmentData({ template_id: '', start_date: '', end_date: '', pais: '', ciudad: '', comuna: '', sucursal: '', responsible_id: '' });
+            setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
         } catch (err) {
             showToast("❌ Error assigning onboarding.", "error");
+        }
+    };
+
+    const handleAssignSupervisor = async () => {
+        try {
+            if (!assignmentData.employee_id) return;
+            const employeeJourney = journeys[assignmentData.employee_id];
+            if (!employeeJourney) {
+                showToast("❌ El empleado seleccionado no tiene un proceso activo.", "error");
+                return;
+            }
+
+            await journeyService.updateJourney(employeeJourney.id, selectedUser.client_id, {
+                supervisor_id: selectedUser.id
+            });
+            showToast("✅ Supervisor asignado con éxito.", "success");
+            fetchData();
+            setSelectedUser(null);
+            setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
+        } catch (err) {
+            console.error(err);
+            showToast("❌ Error al asignar supervisor.", "error");
         }
     };
 
@@ -409,7 +458,7 @@ export default function UsersList() {
 
                         {/* Tabla */}
                         <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%', marginBottom: '1.5rem' }}>
-                            <table className="data-table" style={{ minWidth: '900px', width: '100%' }}>
+                            <table className="data-table" style={{ minWidth: '950px', width: '100%' }}>
                             <thead>
                                 <tr>
                                     <th>{t('table_id')}</th>
@@ -417,9 +466,13 @@ export default function UsersList() {
                                     <th>{t('table_email')}</th>
                                     <th>{t('table_role')}</th>
                                     {isSuperAdmin ? (
-                                        <th>{t('table_company') || 'Compañía'}</th>
+                                        <>
+                                            <th>{t('table_company') || 'Compañía'}</th>
+                                            <th>{t('table_actions')}</th>
+                                        </>
                                     ) : (
                                         <>
+                                            <th>Sucursal</th>
                                             <th>Onboarding</th>
                                             <th>Template</th>
                                             <th>Progress</th>
@@ -431,7 +484,7 @@ export default function UsersList() {
                             <tbody>
                                 {paginatedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={isSuperAdmin ? "5" : "8"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                                        <td colSpan={isSuperAdmin ? "6" : "9"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
                                             {filteredUsers.length === 0 ? 'No se encontraron usuarios con los filtros aplicados' : t('msg_no_data')}
                                         </td>
@@ -450,9 +503,33 @@ export default function UsersList() {
                                                 </span>
                                             </td>
                                             {isSuperAdmin ? (
-                                                <td>{companiesMap[user.client_id] || user.client_id}</td>
+                                                <>
+                                                    <td>{companiesMap[user.client_id] || user.client_id}</td>
+                                                    <td style={{ display: 'flex', gap: '8px' }}>
+                                                        <button 
+                                                            className="btn btn-secondary" 
+                                                            onClick={() => {
+                                                                setEditingUser({ ...user, password: '' });
+                                                                setShowEditModal(true);
+                                                            }} 
+                                                            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-secondary" 
+                                                            onClick={() => handleDeleteUser(user.id, user.name)} 
+                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    </td>
+                                                </>
                                             ) : (
                                                 <>
+                                                    <td style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                        {user.sucursal || '—'}
+                                                    </td>
                                                     <td style={{ textAlign: 'center' }}>
                                                         {userJourney ? (
                                                             <CheckCircle size={20} strokeWidth={2} style={{ color: 'var(--primary)' }} />
@@ -475,19 +552,41 @@ export default function UsersList() {
                                                             <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>—</span>
                                                         )}
                                                     </td>
-                                                    <td style={{ display: 'flex', gap: '8px' }}>
-                                                        <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                                            {t('btn_assign')}
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-primary"
-                                                            onClick={async () => {
-                                                                const data = await userService.getDashboard(user.email);
-                                                                setViewingJourney(data);
-                                                            }}
-                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
+                                                    <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                        {/* Asignación condicional: Empleado o Supervisor */}
+                                                        {(user.role === 'EMPLOYEE' || user.role === 'SUPERVISOR_ONBOARDING' || user.role === 'ENCARGADO_AREA') && (
+                                                            <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                                                                {user.role === 'EMPLOYEE' ? t('btn_assign') : 'Asignar Empleado'}
+                                                            </button>
+                                                        )}
+                                                        {user.role === 'EMPLOYEE' && (
+                                                            <button
+                                                                className="btn btn-primary"
+                                                                onClick={async () => {
+                                                                    const data = await userService.getDashboard(user.email);
+                                                                    setViewingJourney(data);
+                                                                }}
+                                                                style={{ fontSize: '0.8rem', padding: '6px 12px', background: 'var(--secondary)' }}
+                                                            >
+                                                                {t('btn_track')}
+                                                            </button>
+                                                        )}
+                                                        <button 
+                                                            className="btn btn-secondary" 
+                                                            onClick={() => {
+                                                                setEditingUser({ ...user, password: '' });
+                                                                setShowEditModal(true);
+                                                            }} 
+                                                            style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                                                         >
-                                                            {t('btn_track')}
+                                                            Editar
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-secondary" 
+                                                            onClick={() => handleDeleteUser(user.id, user.name)} 
+                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
+                                                        >
+                                                            Eliminar
                                                         </button>
                                                     </td>
                                                 </>
@@ -551,7 +650,7 @@ export default function UsersList() {
                 <div className="modal-overlay">
                     <div className="card" style={{
                         width: '95%',
-                        maxWidth: '450px',
+                        maxWidth: '480px',
                         maxHeight: '90vh',
                         overflowY: 'auto',
                         padding: '2rem',
@@ -639,7 +738,7 @@ export default function UsersList() {
                                     </select>
                                 </div>
                             )}
-                            {!isSuperAdmin && (newUser.role === 'EMPLOYEE' || newUser.role === 'ENCARGADO_AREA') && (
+                            {!isSuperAdmin && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <label className="form-label" style={{ margin: 0 }}>Área</label>
@@ -708,6 +807,122 @@ export default function UsersList() {
                                     )}
                                 </div>
                             )}
+
+                            {/* Ubicación del Usuario (País, Ciudad, Comuna, Sucursal) */}
+                            {!isSuperAdmin && (
+                                <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
+                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">País</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={newUser.pais || ''}
+                                                onChange={(e) => setNewUser({ ...newUser, pais: e.target.value })}
+                                                placeholder="ej: Chile"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">Ciudad</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={newUser.ciudad || ''}
+                                                onChange={(e) => setNewUser({ ...newUser, ciudad: e.target.value })}
+                                                placeholder="ej: Santiago"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">Comuna</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={newUser.comuna || ''}
+                                                onChange={(e) => setNewUser({ ...newUser, comuna: e.target.value })}
+                                                placeholder="ej: Providencia"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                    {!isCreatingOffice && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsCreatingOffice(true)}
+                                                            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                        >
+                                                            + Nueva
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {isCreatingOffice ? (
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <input
+                                                        className="form-input"
+                                                        type="text"
+                                                        value={newOfficeName}
+                                                        onChange={e => setNewOfficeName(e.target.value)}
+                                                        placeholder="Sucursal..."
+                                                        style={{ marginBottom: 0 }}
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-primary"
+                                                        onClick={async () => {
+                                                            if (!newOfficeName.trim()) return;
+                                                            const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+                                                            const clientId = authUser.client_id || 1;
+                                                            try {
+                                                                const created = await officeService.createOffice(clientId, { name: newOfficeName.trim() });
+                                                                const data = await officeService.getOffices(clientId);
+                                                                setOffices(data || []);
+                                                                setNewUser(prev => ({ ...prev, sucursal: created.name }));
+                                                                setIsCreatingOffice(false);
+                                                                setNewOfficeName('');
+                                                            } catch (err) {
+                                                                alert("Error al crear sucursal");
+                                                            }
+                                                        }}
+                                                        style={{ padding: '0 8px' }}
+                                                    >
+                                                        OK
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-secondary"
+                                                        onClick={() => { setIsCreatingOffice(false); setNewOfficeName(''); }}
+                                                        style={{ padding: '0 8px' }}
+                                                    >
+                                                        X
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <select
+                                                    className="form-input"
+                                                    value={newUser.sucursal || ''}
+                                                    onChange={(e) => setNewUser({ ...newUser, sucursal: e.target.value })}
+                                                    style={{ marginBottom: 0 }}
+                                                >
+                                                    <option value="">-- Seleccionar --</option>
+                                                    {offices.map(o => (
+                                                        <option key={o.id} value={o.name}>{o.name}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                                 <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Create User</button>
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>Cancel</button>
@@ -717,8 +932,8 @@ export default function UsersList() {
                 </div>
             )}
 
-            {/* Modal: Assign Onboarding (Premium Glassmorphism) */}
-            {selectedUser && (
+            {/* Modal: Edit User (Premium Glassmorphism) */}
+            {showEditModal && editingUser && (
                 <div className="modal-overlay">
                     <div className="card" style={{
                         width: '95%',
@@ -726,145 +941,133 @@ export default function UsersList() {
                         maxHeight: '90vh',
                         overflowY: 'auto',
                         padding: '2rem',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+                        position: 'relative',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                         border: '1px solid rgba(255,255,255,0.1)'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                            <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
-                                <Calendar size={24} />
+                        <button
+                            onClick={() => { setShowEditModal(false); setEditingUser(null); }}
+                            style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Editar Usuario</h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Actualiza los detalles del perfil del usuario.</p>
+
+                        <form onSubmit={handleEditUser}>
+                            <div className="form-group">
+                                <label className="form-label">{t('table_name')}</label>
+                                <input
+                                    className="form-input"
+                                    type="text"
+                                    value={editingUser.name || ''}
+                                    onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
+                                    placeholder="e.g. John Doe"
+                                    required
+                                />
                             </div>
-                            <div>
-                                <h3 style={{ fontSize: '1.25rem' }}>Assign Onboarding</h3>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>To: {selectedUser.name}</p>
+                            <div className="form-group">
+                                <label className="form-label">{t('table_email')}</label>
+                                <input
+                                    className="form-input"
+                                    type="email"
+                                    value={editingUser.email || ''}
+                                    onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
+                                    placeholder="john@company.com"
+                                    required
+                                />
                             </div>
-                        </div>
-
-                        {/* Onboarding status warning */}
-                        {hasActiveJourney && (
-                            <div style={{
-                                background: 'rgba(245, 158, 11, 0.1)',
-                                border: '1px solid rgba(245, 158, 11, 0.2)',
-                                color: '#d97706',
-                                padding: '12px',
-                                borderRadius: '8px',
-                                fontSize: '0.85rem',
-                                marginBottom: '1.5rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px'
-                            }}>
-                                <span style={{ fontWeight: 'bold' }}>⚠️ Advertencia:</span>
-                                <span>Este empleado ya cuenta con un proceso de onboarding activo. Puedes asignarle un nuevo proceso de todas formas para enlazar etapas.</span>
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label className="form-label">Template</label>
-                            <select
-                                className="form-input"
-                                value={assignmentData.template_id}
-                                onChange={(e) => setAssignmentData({ ...assignmentData, template_id: e.target.value })}
-                            >
-                                <option value="">Select template...</option>
-                                {templates.filter(t => t.client_id === selectedUser.client_id).map(temp => (
-                                    <option key={temp.id} value={temp.id}>{temp.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Mentor / Supervisor</label>
-                            <select
-                                className="form-input"
-                                value={assignmentData.responsible_id}
-                                onChange={(e) => setAssignmentData({ ...assignmentData, responsible_id: e.target.value })}
-                            >
-                                <option value="">Select supervisor...</option>
-                                {users.filter(u => u.client_id === selectedUser.client_id && u.id !== selectedUser.id).map(u => (
-                                    <option key={u.id} value={u.id}>
-                                        {u.name} ({u.role})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
-                            <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">País</label>
-                                    <input
-                                        className="form-input"
-                                        type="text"
-                                        value={assignmentData.pais}
-                                        onChange={(e) => setAssignmentData({ ...assignmentData, pais: e.target.value })}
-                                        placeholder="ej: Chile"
-                                    />
+                            <div className="grid-form">
+                                <div className="form-group">
+                                    <label className="form-label">{t('table_role')}</label>
+                                    {isSuperAdmin ? (
+                                        <select className="form-input" value="ADMIN" disabled>
+                                            <option value="ADMIN">{t('role_admin')}</option>
+                                        </select>
+                                    ) : (
+                                        <select
+                                            className="form-input"
+                                            value={editingUser.role || 'EMPLOYEE'}
+                                            onChange={e => setEditingUser({ ...editingUser, role: e.target.value })}
+                                        >
+                                            <option value="EMPLOYEE">{t('role_employee')}</option>
+                                            <option value="ENCARGADO_AREA">{t('role_encargado_area')}</option>
+                                            <option value="SUPERVISOR_ONBOARDING">{t('role_supervisor_onboarding')}</option>
+                                            <option value="ADMIN">{t('role_admin')}</option>
+                                        </select>
+                                    )}
                                 </div>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">Ciudad</label>
+                                <div className="form-group">
+                                    <label className="form-label">{t('login_pass')} (Opcional)</label>
                                     <input
                                         className="form-input"
-                                        type="text"
-                                        value={assignmentData.ciudad}
-                                        onChange={(e) => setAssignmentData({ ...assignmentData, ciudad: e.target.value })}
-                                        placeholder="ej: Santiago"
+                                        type="password"
+                                        value={editingUser.password || ''}
+                                        onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
+                                        placeholder="Dejar vacío para no cambiar"
                                     />
                                 </div>
                             </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label">Comuna</label>
-                                    <input
+                            
+                            {isSuperAdmin && (
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
+                                    <label className="form-label">{t('table_company')}</label>
+                                    <select
                                         className="form-input"
-                                        type="text"
-                                        value={assignmentData.comuna}
-                                        onChange={(e) => setAssignmentData({ ...assignmentData, comuna: e.target.value })}
-                                        placeholder="ej: Providencia"
-                                    />
+                                        value={editingUser.client_id || ''}
+                                        onChange={e => setEditingUser({ ...editingUser, client_id: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">-- {t('table_company')} --</option>
+                                        {companiesList.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <div className="form-group" style={{ marginBottom: 0 }}>
+                            )}
+
+                            {!isSuperAdmin && (
+                                <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                        <label className="form-label" style={{ margin: 0 }}>Área</label>
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                            {!isCreatingOffice && (
+                                            {!isCreatingArea && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setIsCreatingOffice(true)}
+                                                    onClick={() => setIsCreatingArea(true)}
                                                     style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    + Nueva Sucursal
+                                                    + Nueva Área
                                                 </button>
                                             )}
-                                            {!isCreatingOffice && assignmentData.sucursal && (
+                                            {!isCreatingArea && editingUser.area && (
                                                 <button
                                                     type="button"
-                                                    onClick={handleDeleteOffice}
+                                                    onClick={handleDeleteArea}
                                                     style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    Eliminar Sucursal
+                                                    Eliminar Área
                                                 </button>
                                             )}
                                         </div>
                                     </div>
-
-                                    {isCreatingOffice ? (
+                                    
+                                    {isCreatingArea ? (
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <input
                                                 className="form-input"
                                                 type="text"
-                                                value={newOfficeName}
-                                                onChange={e => setNewOfficeName(e.target.value)}
-                                                placeholder="Nombre de la sucursal..."
+                                                value={newAreaName}
+                                                onChange={e => setNewAreaName(e.target.value)}
+                                                placeholder="Nombre del área..."
                                                 style={{ marginBottom: 0 }}
                                                 autoFocus
                                             />
                                             <button
                                                 type="button"
                                                 className="btn btn-primary"
-                                                onClick={handleCreateOffice}
+                                                onClick={handleCreateArea}
                                                 style={{ padding: '0 12px' }}
                                             >
                                                 OK
@@ -872,7 +1075,7 @@ export default function UsersList() {
                                             <button
                                                 type="button"
                                                 className="btn btn-secondary"
-                                                onClick={() => { setIsCreatingOffice(false); setNewOfficeName(''); }}
+                                                onClick={() => { setIsCreatingArea(false); setNewAreaName(''); }}
                                                 style={{ padding: '0 12px' }}
                                             >
                                                 Cancel
@@ -881,18 +1084,219 @@ export default function UsersList() {
                                     ) : (
                                         <select
                                             className="form-input"
-                                            value={assignmentData.sucursal || ''}
-                                            onChange={(e) => setAssignmentData({ ...assignmentData, sucursal: e.target.value })}
-                                            style={{ marginBottom: 0 }}
+                                            value={editingUser.area || ''}
+                                            onChange={e => setEditingUser({ ...editingUser, area: e.target.value })}
                                         >
-                                            <option value="">-- Seleccionar Sucursal --</option>
-                                            {offices.map(o => (
-                                                <option key={o.id} value={o.name}>{o.name}</option>
+                                            <option value="">-- Seleccionar Área --</option>
+                                            {areas.map(a => (
+                                                <option key={a.id} value={a.name}>{a.name}</option>
                                             ))}
                                         </select>
                                     )}
                                 </div>
+                            )}
+
+                            {!isSuperAdmin && (
+                                <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
+                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">País</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={editingUser.pais || ''}
+                                                onChange={(e) => setEditingUser({ ...editingUser, pais: e.target.value })}
+                                                placeholder="ej: Chile"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">Ciudad</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={editingUser.ciudad || ''}
+                                                onChange={(e) => setEditingUser({ ...editingUser, ciudad: e.target.value })}
+                                                placeholder="ej: Santiago"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <label className="form-label">Comuna</label>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                value={editingUser.comuna || ''}
+                                                onChange={(e) => setEditingUser({ ...editingUser, comuna: e.target.value })}
+                                                placeholder="ej: Providencia"
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ marginBottom: 0 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                    {!isCreatingOffice && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsCreatingOffice(true)}
+                                                            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
+                                                        >
+                                                            + Nueva
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {isCreatingOffice ? (
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <input
+                                                        className="form-input"
+                                                        type="text"
+                                                        value={newOfficeName}
+                                                        onChange={e => setNewOfficeName(e.target.value)}
+                                                        placeholder="Sucursal..."
+                                                        style={{ marginBottom: 0 }}
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-primary"
+                                                        onClick={async () => {
+                                                            if (!newOfficeName.trim()) return;
+                                                            const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+                                                            const clientId = authUser.client_id || 1;
+                                                            try {
+                                                                const created = await officeService.createOffice(clientId, { name: newOfficeName.trim() });
+                                                                const data = await officeService.getOffices(clientId);
+                                                                setOffices(data || []);
+                                                                setEditingUser(prev => ({ ...prev, sucursal: created.name }));
+                                                                setIsCreatingOffice(false);
+                                                                setNewOfficeName('');
+                                                            } catch (err) {
+                                                                alert("Error al crear sucursal");
+                                                            }
+                                                        }}
+                                                        style={{ padding: '0 8px' }}
+                                                    >
+                                                        OK
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-secondary"
+                                                        onClick={() => { setIsCreatingOffice(false); setNewOfficeName(''); }}
+                                                        style={{ padding: '0 8px' }}
+                                                    >
+                                                        X
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <select
+                                                    className="form-input"
+                                                    value={editingUser.sucursal || ''}
+                                                    onChange={(e) => setEditingUser({ ...editingUser, sucursal: e.target.value })}
+                                                    style={{ marginBottom: 0 }}
+                                                >
+                                                    <option value="">-- Seleccionar --</option>
+                                                    {offices.map(o => (
+                                                        <option key={o.id} value={o.name}>{o.name}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Guardar Cambios</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => { setShowEditModal(false); setEditingUser(null); }} style={{ flex: 1 }}>Cancelar</button>
                             </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Assign Onboarding / Assign Supervisor */}
+            {selectedUser && (
+                selectedUser.role === 'EMPLOYEE' ? (
+                    /* CASE A: Assigning Onboarding to Employee */
+                    <div className="modal-overlay">
+                        <div className="card" style={{
+                            width: '95%',
+                            maxWidth: '480px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            padding: '2rem',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                                <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
+                                    <Calendar size={24} />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '1.25rem' }}>Assign Onboarding</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>To: {selectedUser.name}</p>
+                                </div>
+                            </div>
+
+                            {/* Onboarding status warning */}
+                            {hasActiveJourney && (
+                                <div style={{
+                                    background: 'rgba(245, 158, 11, 0.1)',
+                                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                                    color: '#d97706',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.85rem',
+                                    marginBottom: '1.5rem',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '4px'
+                                }}>
+                                    <span style={{ fontWeight: 'bold' }}>⚠️ Advertencia:</span>
+                                    <span>Este empleado ya cuenta con un proceso de onboarding activo. Puedes asignarle un nuevo proceso de todas formas para enlazar etapas.</span>
+                                </div>
+                            )}
+
+                            {/* Template selector filtered by Employee Area */}
+                            <div className="form-group">
+                                <label className="form-label">Template</label>
+                                <select
+                                    className="form-input"
+                                    value={assignmentData.template_id}
+                                    onChange={(e) => setAssignmentData({ ...assignmentData, template_id: e.target.value })}
+                                >
+                                    <option value="">Select template...</option>
+                                    {templates
+                                        .filter(t => t.client_id === selectedUser.client_id)
+                                        .filter(t => !selectedUser.area || t.area === selectedUser.area)
+                                        .map(temp => (
+                                            <option key={temp.id} value={temp.id}>{temp.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Mentor / Supervisor</label>
+                                <select
+                                    className="form-input"
+                                    value={assignmentData.responsible_id}
+                                    onChange={(e) => setAssignmentData({ ...assignmentData, responsible_id: e.target.value })}
+                                >
+                                    <option value="">Select supervisor...</option>
+                                    {users.filter(u => u.client_id === selectedUser.client_id && u.id !== selectedUser.id).map(u => (
+                                        <option key={u.id} value={u.id}>
+                                            {u.name} ({u.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className="form-group">
                                 <label className="form-label">Start Date</label>
                                 <input
@@ -902,36 +1306,111 @@ export default function UsersList() {
                                     onChange={(e) => setAssignmentData({ ...assignmentData, start_date: e.target.value })}
                                 />
                             </div>
-                        </div>
 
-                        <div className="form-group" style={{ marginTop: '1rem' }}>
-                            <label className="form-label">End Date</label>
-                            <input
-                                className="form-input"
-                                type="date"
-                                value={assignmentData.end_date}
-                                onChange={(e) => setAssignmentData({ ...assignmentData, end_date: e.target.value })}
-                            />
-                        </div>
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label className="form-label">End Date</label>
+                                <input
+                                    className="form-input"
+                                    type="date"
+                                    value={assignmentData.end_date}
+                                    onChange={(e) => setAssignmentData({ ...assignmentData, end_date: e.target.value })}
+                                />
+                            </div>
 
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                            <button className="btn btn-primary" onClick={handleAssign} disabled={!assignmentData.template_id} style={{ flex: 1, padding: '12px' }}>
-                                Confirm Journey
-                            </button>
-                            <button
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    setSelectedUser(null);
-                                    setAssignmentData({ template_id: '', start_date: '', end_date: '', pais: '', ciudad: '', comuna: '', sucursal: '', responsible_id: '' });
-                                }}
-                                style={{ flex: 1 }}
-                            >
-                                Cancel
-                            </button>
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                                <button className="btn btn-primary" onClick={handleAssign} disabled={!assignmentData.template_id} style={{ flex: 1, padding: '12px' }}>
+                                    Confirm Journey
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setSelectedUser(null);
+                                        setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
+                                    }}
+                                    style={{ flex: 1 }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : (selectedUser.role === 'SUPERVISOR_ONBOARDING' || selectedUser.role === 'ENCARGADO_AREA') ? (
+                    /* CASE B: Assigning Employee to Supervisor */
+                    <div className="modal-overlay">
+                        <div className="card" style={{
+                            width: '95%',
+                            maxWidth: '480px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                            padding: '2rem',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                                <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
+                                    <Briefcase size={24} />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '1.25rem' }}>Asignar Empleado a Supervisar</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Supervisor: {selectedUser.name}</p>
+                                </div>
+                            </div>
+
+                            <div style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                                <strong>Área del Supervisor: </strong>
+                                <span className="badge" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
+                                    {selectedUser.area || 'Sin Área'}
+                                </span>
+                            </div>
+
+                            {/* Dropdown: Employee to supervise (same area and has active journey) */}
+                            <div className="form-group">
+                                <label className="form-label">Empleado</label>
+                                <select
+                                    className="form-input"
+                                    value={assignmentData.employee_id}
+                                    onChange={(e) => setAssignmentData({ ...assignmentData, employee_id: e.target.value })}
+                                >
+                                    <option value="">Selecciona un empleado de tu área...</option>
+                                    {users
+                                        .filter(u => 
+                                            u.client_id === selectedUser.client_id &&
+                                            u.role === 'EMPLOYEE' &&
+                                            u.area === selectedUser.area &&
+                                            journeys[u.id]
+                                        )
+                                        .map(u => (
+                                            <option key={u.id} value={u.id}>
+                                                {u.name} ({u.email})
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                                    Solo aparecen empleados activos de la misma área que cuentan con un proceso de onboarding.
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                                <button className="btn btn-primary" onClick={handleAssignSupervisor} disabled={!assignmentData.employee_id} style={{ flex: 1, padding: '12px' }}>
+                                    Asignar Empleado
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setSelectedUser(null);
+                                        setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
+                                    }}
+                                    style={{ flex: 1 }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : null
             )}
+
             {/* Modal: Track Progress */}
             {viewingJourney && (
                 <div className="modal-overlay">

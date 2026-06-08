@@ -21,6 +21,11 @@ export const userService = {
     return response.data;
   },
 
+  async updateUser(id, userData) {
+    const response = await api.put(`/users/${id}`, userData);
+    return response.data;
+  },
+
   async getDashboard(email) {
     const response = await api.get(`/employee/${email}`);
     return response.data;
