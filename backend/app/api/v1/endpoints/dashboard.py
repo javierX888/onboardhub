@@ -239,3 +239,116 @@ async def get_supervisor_dashboard_stats(
         "employee_status": employee_status,
         "recent_alerts": recent_alerts[:10]
     }
+
+
+@router.get("/employee/{employee_id}")
+async def get_employee_dashboard_stats(
+    employee_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """
+    Dashboard personalizado para empleados.
+    Muestra solo su progreso, tareas y alertas personales.
+    """
+    
+    # 1. Traer usuario y su journey activo
+    user_q = await db.execute(
+        select(UserModel).where(UserModel.id == employee_id)
+    )
+    user = user_q.scalar_one_or_none()
+    
+    if not user:
+        return {
+            "kpis": [],
+            "employee_status": [],
+            "recent_alerts": []
+        }
+
+    # 2. Obtener el journey más reciente del empleado
+    journey_q = await db.execute(
+        select(JourneyModel)
+        .options(selectinload(JourneyModel.tasks))
+        .where(JourneyModel.employee_id == employee_id)
+        .order_by(JourneyModel.created_at.desc())
+        .limit(1)
+    )
+    journey = journey_q.scalar_one_or_none()
+    
+    now = datetime.utcnow()
+    
+    # 3. KPIs personales
+    total_tasks = 0
+    completed_tasks = 0
+    overdue_tasks_count = 0
+    
+    if journey:
+        total_tasks = len(journey.tasks)
+        completed_tasks = len([t for t in journey.tasks if t.completed])
+        overdue_tasks_count = len([t for t in journey.tasks if not t.completed and t.deadline and t.deadline < now])
+    
+    # 4. Construir datos del proceso del empleado
+    employee_status = []
+    if journey:
+        template_q = await db.execute(
+            select(TemplateModel).where(TemplateModel.id == journey.template_id)
+        )
+        template = template_q.scalar_one_or_none()
+        
+        employee_status.append({
+            "id": journey.id,
+            "name": user.name,
+            "role": journey.role,
+            "template_name": template.name if template else "Proceso de Onboarding",
+            "progress": journey.progress,
+            "journey_id": journey.id,
+            "tasks": [
+                {
+                    "id": t.id,
+                    "title": t.title,
+                    "completed": t.completed,
+                    "deadline": str(t.deadline.strftime('%Y-%m-%d')) if t.deadline else None,
+                    "is_overdue": not t.completed and t.deadline and t.deadline < now,
+                    "stage": t.stage
+                } for t in journey.tasks
+            ]
+        })
+    
+    # 5. Alertas personales
+    recent_alerts = []
+    
+    # Alertas del sistema
+    alerts_q = await db.execute(
+        select(AlertModel)
+        .where(AlertModel.client_id == user.client_id)
+        .order_by(AlertModel.created_at.desc())
+        .limit(3)
+    )
+    recent_alerts_data = alerts_q.scalars().all()
+    
+    for a in recent_alerts_data:
+        recent_alerts.append({
+            "type": a.severity,
+            "title": a.message,
+            "time": "Reciente"
+        })
+    
+    # Tareas vencidas personales
+    if journey:
+        for t in journey.tasks:
+            if not t.completed and t.deadline and t.deadline < now:
+                recent_alerts.append({
+                    "type": "danger",
+                    "title": f"Tarea vencida: {t.title}",
+                    "time": "Vencida"
+                })
+    
+    return {
+        "kpis": [
+            {"label": "dashboard_kpi_progress", "value": f"{journey.progress if journey else 0}%", "delta": "+5%", "deltaType": "up"},
+            {"label": "dashboard_kpi_completed", "value": str(completed_tasks), "delta": f"+{completed_tasks}", "deltaType": "up"},
+            {"label": "dashboard_kpi_pending", "value": str(total_tasks - completed_tasks), "delta": f"-{total_tasks - completed_tasks}", "deltaType": "neutral"},
+            {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks_count), "delta": "-1" if overdue_tasks_count > 0 else "0", "deltaType": "down"},
+        ],
+        "employee_status": employee_status,
+        "recent_alerts": recent_alerts[:10]
+    }
