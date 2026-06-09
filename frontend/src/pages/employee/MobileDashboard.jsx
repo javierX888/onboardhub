@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './MobileDashboard.css';
 import { employeeService, journeyService } from '../../services/employeeService';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function MobileDashboard() {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [userData, setUserData] = useState(null);
     const [journey, setJourney] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,6 +17,9 @@ export default function MobileDashboard() {
     const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
     const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
     const { t, language } = useLanguage();
+    
+    // Detectar si es usuario autenticado del sistema (no solo acceso móvil)
+    const isFromWeb = location.pathname === '/employee/mobile';
 
     useEffect(() => {
         if (isLoggedIn && email) {
@@ -258,6 +264,28 @@ export default function MobileDashboard() {
 
                 <div className="app-content">
                     <div className="screen journey-screen">
+                        
+                        {/* Botón para volver a vista web */}
+                        {isFromWeb && (
+                            <button
+                                onClick={() => navigate('/employee/dashboard')}
+                                style={{ 
+                                    marginBottom: '1rem', 
+                                    padding: '0.5rem 1rem',
+                                    background: '#4f46e5',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    width: '100%'
+                                }}
+                                className="btn btn-secondary"
+                            >
+                                ← Volver a vista web
+                            </button>
+                        )}
                         
                         <div className="journey-header">
                             <h1 className="journey-greeting">Hi, {userData.name} 👋</h1>

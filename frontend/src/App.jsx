@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
-import { Rocket, Settings, LogOut } from 'lucide-react';
+import { Rocket, Settings, LogOut, Smartphone } from 'lucide-react';
 import CompaniesList from './pages/admin/CompaniesList';
 import CompanyForm from './pages/admin/CompanyForm';
 import UsersList from './pages/admin/UsersList';
@@ -27,7 +27,7 @@ export const getRoleRedirectPath = (role) => {
   const prefix = getRoleRoutePrefix(role);
   if (role === 'ENCARGADO_AREA') return `${prefix}/processes`;
   if (role === 'SUPERADMIN') return `${prefix}/talent-management`;
-  if (role === 'EMPLOYEE') return prefix;
+  if (role === 'EMPLOYEE') return `${prefix}/dashboard`;
   return `${prefix}/dashboard`;
 };
 
@@ -59,6 +59,8 @@ function LoginPage({ onLogin }) {
       authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado de Área', area: 'TI' }; // Default area for test login
     } else if (user === 'supervisor' && pass === 'supervisor123') {
       authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor de Onboarding' };
+    } else if (user === 'employee' && pass === 'employee123') {
+      authData = { role: 'EMPLOYEE', client_id: 1, name: 'Juan Pérez', email: 'juan.perez@company.com', id: 1 };
     }
 
     if (authData) {
@@ -67,7 +69,7 @@ function LoginPage({ onLogin }) {
       onLogin();
       navigate(getRoleRedirectPath(authData.role), { replace: true });
     } else {
-      alert('Invalid credentials (Try: admin/admin123, hr/hr123, encargado/encargado123, or supervisor/supervisor123)');
+      alert('Invalid credentials (Try: admin/admin123, hr/hr123, encargado/encargado123, supervisor/supervisor123, or employee/employee123)');
     }
   };
 
@@ -92,6 +94,7 @@ function LoginPage({ onLogin }) {
 function AdminLayout({ children, onLogout }) {
   const [showSettings, setShowSettings] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, language } = useLanguage();
   
   const user = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
@@ -174,6 +177,16 @@ function AdminLayout({ children, onLogout }) {
             <span className="user-name">{user.name}</span>
             <span className="user-role">{t(`role_${user.role.toLowerCase()}`) || user.role}</span>
           </div>
+          {user.role === 'EMPLOYEE' && (
+            <button 
+              onClick={() => navigate('/employee/mobile')}
+              className="nav-item"
+              style={{ marginRight: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', border: 'none', background: 'transparent', color: 'var(--primary)' }}
+              title="Ver vista móvil"
+            >
+              <Smartphone size={18} />
+            </button>
+          )}
         </div>
         {children}
       </main>
@@ -232,8 +245,22 @@ function App() {
 
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
             
-            <Route path="/employee" element={
-              <RoleRoute allowedRoles={['EMPLOYEE', 'SUPERADMIN', 'ADMIN', 'SUPERVISOR_ONBOARDING', 'ENCARGADO_AREA']}>
+            {/* Employee Web Routes */}
+            <Route path="/employee/*" element={
+              <RoleRoute allowedRoles={['EMPLOYEE']}>
+                <AdminLayout onLogout={handleLogout}>
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="journeys" element={<ProcessesList />} />
+                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                  </Routes>
+                </AdminLayout>
+              </RoleRoute>
+            } />
+
+            {/* Employee Mobile Route */}
+            <Route path="/employee/mobile" element={
+              <RoleRoute allowedRoles={['EMPLOYEE']}>
                 <MobileDashboard />
               </RoleRoute>
             } />

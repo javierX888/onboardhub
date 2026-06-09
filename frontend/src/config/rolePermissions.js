@@ -33,6 +33,13 @@ export const ROLE_PERMISSIONS = {
       'alerts',
       'settings'
     ]
+  },
+  EMPLOYEE: {
+    canAccess: [
+      'dashboard',
+      'journeys',
+      'settings'
+    ]
   }
 };
 

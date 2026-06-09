@@ -8,5 +8,9 @@ export const dashboardService = {
   async getSupervisorDashboard(clientId, supervisorId) {
     const response = await api.get(`/dashboard/supervisor?client_id=${clientId}&supervisor_id=${supervisorId}`);
     return response.data;
+  },
+  async getEmployeeDashboard(employeeId) {
+    const response = await api.get(`/dashboard/employee/${employeeId}`);
+    return response.data;
   }
 };
