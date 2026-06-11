@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 
 export default function CompaniesList() {
     const [companies, setCompanies] = useState([]);
+    const [statusFilter, setStatusFilter] = useState('active');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function CompaniesList() {
     const fetchCompanies = async () => {
         setLoading(true);
         try {
-            const data = await companyService.getCompanies();
+            const data = await companyService.getCompanies(statusFilter);
             setCompanies(data);
         } catch (err) {
             console.error("Error fetching companies", err);
@@ -26,7 +27,7 @@ export default function CompaniesList() {
 
     useEffect(() => {
         fetchCompanies();
-    }, []);
+    }, [statusFilter]);
 
     const handleDelete = async (id) => {
         if (window.confirm(t('company_delete_confirm'))) {
@@ -47,9 +48,22 @@ export default function CompaniesList() {
                     <h1 className="page-title">{t('sidebar_empresas')}</h1>
                     <p className="page-subtitle">{t('companies_subtitle')}</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => navigate('/superadmin/companies/new')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Plus size={16} /> {t('btn_add')}
-                </button>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <select
+                        className="form-input"
+                        value={statusFilter}
+                        onChange={(event) => setStatusFilter(event.target.value)}
+                        style={{ width: '180px', marginBottom: 0 }}
+                        aria-label={t('filter_record_status')}
+                    >
+                        <option value="active">{t('status_active')}</option>
+                        <option value="inactive">{t('status_inactive')}</option>
+                        <option value="all">{t('status_all_records')}</option>
+                    </select>
+                    <button className="btn btn-primary" onClick={() => navigate('/superadmin/companies/new')} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={16} /> {t('btn_add')}
+                    </button>
+                </div>
             </div>
 
             <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
@@ -91,10 +105,12 @@ export default function CompaniesList() {
                                                 onClick={() => navigate(`/superadmin/companies/${company.id}/edit`)}>
                                                 <Edit size={12} /> {t('btn_edit')}
                                             </button>
-                                            <button className="btn" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
-                                                onClick={() => handleDelete(company.id)}>
-                                                <Trash2 size={12} />
-                                            </button>
+                                            {company.status && (
+                                                <button className="btn" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
+                                                    onClick={() => handleDelete(company.id)}>
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

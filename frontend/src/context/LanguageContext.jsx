@@ -77,6 +77,8 @@ const translations = {
     
     status_active: "Activo",
     status_inactive: "Inactivo",
+    status_all_records: "Todos",
+    filter_record_status: "Filtrar por estado",
     
     msg_confirm_delete: "¿Estás seguro de que quieres eliminar este elemento?",
     msg_success_delete: "Eliminado con éxito",
@@ -86,6 +88,17 @@ const translations = {
     msg_success_assign: "✅ ¡Onboarding asignado exitosamente!",
     msg_error_assign: "❌ Error al asignar onboarding.",
     msg_success_complete: "✅ Tarea completada con éxito",
+    employee_portal_title: "Mi Onboarding",
+    employee_portal_welcome: "Bienvenido/a",
+    employee_portal_process: "Proceso de onboarding",
+    employee_portal_no_journey: "No tienes un proceso de onboarding asignado en este momento.",
+    employee_portal_missing_email: "No encontramos un email asociado a tu sesión.",
+    employee_portal_error: "No pudimos cargar tu portal de onboarding.",
+    employee_portal_task_error: "Error al completar la tarea.",
+    employee_portal_open_resource: "Abrir recurso",
+    employee_portal_deadline: "Vence",
+    employee_portal_overdue: "Atrasada",
+    employee_portal_completing: "Completando...",
     
     // Procesos
     processes_kpi_total: "Procesos Totales",
@@ -233,6 +246,8 @@ const translations = {
     
     status_active: "Active",
     status_inactive: "Inactive",
+    status_all_records: "All",
+    filter_record_status: "Filter by status",
     
     msg_confirm_delete: "Are you sure you want to delete this item?",
     msg_success_delete: "Successfully deleted",
@@ -242,6 +257,17 @@ const translations = {
     msg_success_assign: "✅ Onboarding assigned successfully!",
     msg_error_assign: "❌ Error assigning onboarding.",
     msg_success_complete: "✅ Task completed successfully",
+    employee_portal_title: "My Onboarding",
+    employee_portal_welcome: "Welcome",
+    employee_portal_process: "Onboarding process",
+    employee_portal_no_journey: "You do not have an onboarding process assigned at this moment.",
+    employee_portal_missing_email: "We could not find an email associated with your session.",
+    employee_portal_error: "We could not load your onboarding portal.",
+    employee_portal_task_error: "Error completing the task.",
+    employee_portal_open_resource: "Open resource",
+    employee_portal_deadline: "Due",
+    employee_portal_overdue: "Overdue",
+    employee_portal_completing: "Completing...",
     
     // Processes
     processes_kpi_total: "Total Processes",

@@ -1,13 +1,18 @@
 import api from './api';
 
 export const userService = {
-  async getUsers() {
-    const response = await api.get('/users/');
+  async getUsers(status = 'active') {
+    const response = await api.get('/users/', { params: { status } });
     return response.data;
   },
 
-  async getUsersByCompany(clientId) {
-    const response = await api.get(`/users/company/${clientId}`);
+  async getUser(id) {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  },
+
+  async getUsersByCompany(clientId, status = 'active') {
+    const response = await api.get(`/users/company/${clientId}`, { params: { status } });
     return response.data;
   },
 

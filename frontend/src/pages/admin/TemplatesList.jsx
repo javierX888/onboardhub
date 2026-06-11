@@ -10,6 +10,7 @@ export default function TemplatesList() {
     const [companies, setCompanies] = useState({});
     const [areas, setAreas] = useState([]);
     const [selectedArea, setSelectedArea] = useState('');
+    const [statusFilter, setStatusFilter] = useState('active');
     const [loading, setLoading] = useState(true);
     const [isAdminRole, setIsAdminRole] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
@@ -23,6 +24,7 @@ export default function TemplatesList() {
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
             const isAdmin = authUser.role === 'SUPERADMIN';
             const clientId = authUser.client_id;
@@ -32,7 +34,7 @@ export default function TemplatesList() {
 
             try {
                 const [temps, comps] = await Promise.all([
-                    isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId),
+                    isAdmin ? templateService.getTemplates(statusFilter) : templateService.getTemplatesByCompany(clientId, statusFilter),
                     isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }])
                 ]);
                 setTemplates(temps);
@@ -51,7 +53,7 @@ export default function TemplatesList() {
             }
         };
         fetchData();
-    }, []);
+    }, [statusFilter]);
 
     const handleDelete = async (id) => {
         if (window.confirm(t('msg_confirm_delete'))) {
@@ -78,8 +80,23 @@ export default function TemplatesList() {
             </div>
 
             <div className="card">
-                {!isAdminRole && areas.length > 0 && (
-                    <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ width: '250px' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.35rem', display: 'block' }}>
+                            {t('filter_record_status')}
+                        </label>
+                        <select
+                            className="form-input"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            style={{ marginBottom: 0 }}
+                        >
+                            <option value="active">{t('status_active')}</option>
+                            <option value="inactive">{t('status_inactive')}</option>
+                            <option value="all">{t('status_all_records')}</option>
+                        </select>
+                    </div>
+                    {!isAdminRole && areas.length > 0 && (
                         <div style={{ width: '250px' }}>
                             <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.35rem', display: 'block' }}>
                                 Filtrar por Área
@@ -96,8 +113,8 @@ export default function TemplatesList() {
                                 ))}
                             </select>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {loading ? <p>{t('msg_loading')}</p> : (
                     <div className="table-container">
@@ -108,6 +125,7 @@ export default function TemplatesList() {
                                 <th>{t('table_name')}</th>
                                 {isAdminRole && <th>{t('table_company')}</th>}
                                 {!isAdminRole && <th>Área</th>}
+                                <th>{t('table_status')}</th>
                                 <th>{t('table_tasks')}</th>
                                 <th>{t('table_actions')}</th>
                             </tr>
@@ -119,6 +137,11 @@ export default function TemplatesList() {
                                     <td>{temp.name}</td>
                                     {isAdminRole && <td>{companies[temp.client_id] || temp.client_id}</td>}
                                     {!isAdminRole && <td>{temp.area || 'General'}</td>}
+                                    <td>
+                                        <span className={`badge ${temp.status ? 'badge-active' : 'badge-inactive'}`}>
+                                            {temp.status ? t('status_active') : t('status_inactive')}
+                                        </span>
+                                    </td>
                                     <td>{temp.tasks?.length || 0}</td>
                                     <td style={{ display: 'flex', gap: '8px' }}>
                                         <button 
@@ -128,19 +151,21 @@ export default function TemplatesList() {
                                         >
                                             {t('btn_edit') || 'Editar'}
                                         </button>
-                                        <button 
-                                            className="btn btn-secondary" 
-                                            onClick={() => handleDelete(temp.id)} 
-                                            style={{ fontSize: '0.8rem', padding: '6px 12px', background: '#ef4444' }}
-                                        >
-                                            {t('btn_delete')}
-                                        </button>
+                                        {temp.status && (
+                                            <button 
+                                                className="btn btn-secondary" 
+                                                onClick={() => handleDelete(temp.id)} 
+                                                style={{ fontSize: '0.8rem', padding: '6px 12px', background: '#ef4444' }}
+                                            >
+                                                {t('btn_delete')}
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
                             {filteredTemplates.length === 0 && (
                                 <tr>
-                                    <td colSpan={isAdminRole ? "5" : "5"} style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
+                                    <td colSpan="6" style={{ textAlign: 'center' }}>{t('msg_no_data')}</td>
                                 </tr>
                             )}
                         </tbody>

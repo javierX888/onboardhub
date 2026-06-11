@@ -26,6 +26,7 @@ class TemplateBase(BaseModel):
     description: Optional[str] = None
     area: Optional[str] = None
     parent_template_id: Optional[int] = None
+    status: Optional[bool] = True
     client_id: int
 
 class TemplateCreate(TemplateBase):
@@ -36,6 +37,7 @@ class TemplateUpdate(BaseModel):
     description: Optional[str] = None
     area: Optional[str] = None
     parent_template_id: Optional[int] = None
+    status: Optional[bool] = None
     tasks: Optional[List[TemplateTaskCreate]] = None
 
 class Template(TemplateBase):
