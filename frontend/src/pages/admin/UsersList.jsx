@@ -64,6 +64,7 @@ export default function UsersList() {
     const [filterName, setFilterName] = useState('');
     const [filterEmail, setFilterEmail] = useState('');
     const [filterRole, setFilterRole] = useState('');
+    const [statusFilter, setStatusFilter] = useState('active');
     const [filterOnboardingStatus, setFilterOnboardingStatus] = useState('');
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [currentPage, setCurrentPage] = useState(1);
@@ -100,7 +101,7 @@ export default function UsersList() {
     // Reset a página 1 cuando cambian filtros
     useEffect(() => {
         setCurrentPage(1);
-    }, [filterName, filterEmail, filterRole, filterOnboardingStatus]);
+    }, [filterName, filterEmail, filterRole, statusFilter, filterOnboardingStatus]);
 
     useEffect(() => {
         const checkActiveJourney = async () => {
@@ -151,7 +152,7 @@ export default function UsersList() {
 
         try {
             const [usersData, companiesData, templatesData, areasData, officesData] = await Promise.all([
-                isAdmin ? userService.getUsers() : userService.getUsersByCompany(clientId),
+                isAdmin ? userService.getUsers(statusFilter) : userService.getUsersByCompany(clientId, statusFilter),
                 isAdmin ? companyService.getCompanies() : Promise.resolve([{ id: clientId, name: 'Mi Empresa' }]),
                 isAdmin ? templateService.getTemplates() : templateService.getTemplatesByCompany(clientId),
                 isAdmin ? Promise.resolve([]) : areaService.getAreas(clientId),
@@ -195,7 +196,7 @@ export default function UsersList() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [statusFilter]);
 
     const handleCreateArea = async () => {
         if (!newAreaName.trim()) return;
@@ -396,6 +397,18 @@ export default function UsersList() {
                                         onChange={(e) => setFilterEmail(e.target.value)}
                                     />
                                 </div>
+                                <div>
+                                    <label className="form-label">{t('filter_record_status')}</label>
+                                    <select
+                                        className="form-input"
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                    >
+                                        <option value="active">{t('status_active')}</option>
+                                        <option value="inactive">{t('status_inactive')}</option>
+                                        <option value="all">{t('status_all_records')}</option>
+                                    </select>
+                                </div>
                                 {!isSuperAdmin && (
                                     <>
                                         <div>
@@ -465,6 +478,7 @@ export default function UsersList() {
                                     <th>{t('table_name')}</th>
                                     <th>{t('table_email')}</th>
                                     <th>{t('table_role')}</th>
+                                    <th>{t('table_status')}</th>
                                     {isSuperAdmin ? (
                                         <>
                                             <th>{t('table_company') || 'Compañía'}</th>
@@ -484,7 +498,7 @@ export default function UsersList() {
                             <tbody>
                                 {paginatedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={isSuperAdmin ? "6" : "9"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                                        <td colSpan={isSuperAdmin ? "7" : "10"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
                                             {filteredUsers.length === 0 ? 'No se encontraron usuarios con los filtros aplicados' : t('msg_no_data')}
                                         </td>
@@ -502,6 +516,11 @@ export default function UsersList() {
                                                     {t(`role_${user.role.toLowerCase()}`) || user.role}
                                                 </span>
                                             </td>
+                                            <td>
+                                                <span className={`badge ${user.status ? 'badge-active' : 'badge-inactive'}`}>
+                                                    {user.status ? t('status_active') : t('status_inactive')}
+                                                </span>
+                                            </td>
                                             {isSuperAdmin ? (
                                                 <>
                                                     <td>{companiesMap[user.client_id] || user.client_id}</td>
@@ -516,13 +535,15 @@ export default function UsersList() {
                                                         >
                                                             Editar
                                                         </button>
-                                                        <button 
-                                                            className="btn btn-secondary" 
-                                                            onClick={() => handleDeleteUser(user.id, user.name)} 
-                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
-                                                        >
-                                                            Eliminar
-                                                        </button>
+                                                        {user.status && (
+                                                            <button 
+                                                                className="btn btn-secondary" 
+                                                                onClick={() => handleDeleteUser(user.id, user.name)} 
+                                                                style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </>
                                             ) : (
@@ -581,13 +602,15 @@ export default function UsersList() {
                                                         >
                                                             Editar
                                                         </button>
-                                                        <button 
-                                                            className="btn btn-secondary" 
-                                                            onClick={() => handleDeleteUser(user.id, user.name)} 
-                                                            style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
-                                                        >
-                                                            Eliminar
-                                                        </button>
+                                                        {user.status && (
+                                                            <button 
+                                                                className="btn btn-secondary" 
+                                                                onClick={() => handleDeleteUser(user.id, user.name)} 
+                                                                style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </>
                                             )}

@@ -59,6 +59,9 @@ async def get_employee_dashboard(
                     "deadline": t.deadline.isoformat() if t.deadline else None,
                     "responsible_id": t.responsible_id,
                     "document_url": t.document_url,
+                    "resource_url": t.resource_url,
+                    "is_evidence_mandatory": t.is_evidence_mandatory,
+                    "supervisor_document_url": t.supervisor_document_url,
                     "journey_id": t.journey_id,
                 }
                 for t in journey.tasks

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-from .api.v1.endpoints import companies, employee, users, templates, journeys, dashboard, areas, offices
+from .api.v1.endpoints import companies, employee, users, templates, journeys, dashboard, areas, offices, auth
 
 app = FastAPI(
     title="OnBoardHub API",
@@ -28,6 +28,7 @@ app.include_router(journeys.router, prefix="/api/v1/journeys", tags=["journeys"]
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(areas.router, prefix="/api/v1/areas", tags=["areas"])
 app.include_router(offices.router, prefix="/api/v1/offices", tags=["offices"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 
 
 # Serve Static Files (Uploaded documents)

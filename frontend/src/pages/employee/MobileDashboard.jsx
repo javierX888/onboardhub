@@ -7,6 +7,8 @@ import { useLanguage } from '../../context/LanguageContext';
 export default function MobileDashboard() {
     const navigate = useNavigate();
     const location = useLocation();
+    const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
+    const initialEmail = sessionStorage.getItem('onboardhub_employee_email') || authUser.email || '';
     const [userData, setUserData] = useState(null);
     const [journey, setJourney] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,8 +16,8 @@ export default function MobileDashboard() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [toastMessage, setToastMessage] = useState(null); // Custom Toast state
-    const [email, setEmail] = useState(sessionStorage.getItem('onboardhub_employee_email') || '');
-    const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('onboardhub_employee_email'));
+    const [email, setEmail] = useState(initialEmail);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!initialEmail);
     const { t, language } = useLanguage();
     
     // Detectar si es usuario autenticado del sistema (no solo acceso móvil)

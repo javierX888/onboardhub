@@ -10,20 +10,30 @@ from app.schemas.template import Template, TemplateCreate, TemplateUpdate
 
 router = APIRouter()
 
+def apply_status_filter(query, model, status: str):
+    if status == "active":
+        return query.where(model.status == True)
+    if status == "inactive":
+        return query.where(model.status == False)
+    if status == "all":
+        return query
+    raise HTTPException(status_code=400, detail="Invalid status filter. Use active, inactive or all")
+
 @router.get("/", response_model=List[Template])
 async def read_templates(
     db: AsyncSession = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
+    status: str = "active",
 ) -> Any:
     # Use selectinload for tasks to avoid MissingGreenlet error
-    result = await db.execute(
+    query = apply_status_filter(
         select(TemplateModel)
-        .options(selectinload(TemplateModel.tasks))
-        .where(TemplateModel.status == True)
-        .offset(skip)
-        .limit(limit)
+        .options(selectinload(TemplateModel.tasks)),
+        TemplateModel,
+        status,
     )
+    result = await db.execute(query.offset(skip).limit(limit))
     return result.scalars().all()
 
 @router.get("/{id}", response_model=Template)
@@ -45,13 +55,16 @@ async def read_template(
 async def read_templates_by_company(
     client_id: int,
     db: AsyncSession = Depends(get_db),
+    status: str = "active",
 ) -> Any:
-    result = await db.execute(
+    query = apply_status_filter(
         select(TemplateModel)
         .options(selectinload(TemplateModel.tasks))
-        .where(TemplateModel.client_id == client_id)
-        .where(TemplateModel.status == True)
+        .where(TemplateModel.client_id == client_id),
+        TemplateModel,
+        status,
     )
+    result = await db.execute(query)
     return result.scalars().all()
 
 @router.post("/", response_model=Template)

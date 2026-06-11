@@ -27,8 +27,7 @@ export default function CompanyForm() {
 
     useEffect(() => {
         if (id) {
-            companyService.getCompanies().then(companies => {
-                const company = companies.find(c => c.id === parseInt(id));
+            companyService.getCompany(id).then(company => {
                 if (company) {
                     setFormData(company);
                     if (company.location) {

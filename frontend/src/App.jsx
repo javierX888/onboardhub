@@ -8,6 +8,7 @@ import TemplatesList from './pages/admin/TemplatesList';
 import TemplateForm from './pages/admin/TemplateForm';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import MobileDashboard from './pages/employee/MobileDashboard';
+import EmployeePortal from './pages/employee/EmployeePortal';
 import ProcessesList from './pages/admin/ProcessesList';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
@@ -47,30 +48,39 @@ function LoginPage({ onLogin }) {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let authData = null;
-
-    if (user === 'admin' && pass === 'admin123') {
-      authData = { role: 'SUPERADMIN', client_id: null, name: 'Alloxentric' };
-    } else if (user === 'hr' && pass === 'hr123') {
-      authData = { role: 'ADMIN', client_id: 1, name: 'Admin RRHH' };
-    } else if (user === 'encargado' && pass === 'encargado123') {
-      authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado de Área', area: 'TI' }; // Default area for test login
-    } else if (user === 'supervisor' && pass === 'supervisor123') {
-      authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor de Onboarding' };
-    } else if (user === 'employee' && pass === 'employee123') {
-      authData = { role: 'EMPLOYEE', client_id: 1, name: 'Juan Pérez', email: 'juan.perez@company.com', id: 1 };
+    try {
+      // Try real backend login first (treat input as email)
+      const { authService } = await import('./services/authService');
+      const res = await authService.login(user.trim(), pass);
+      const u = res.user;
+      authData = { role: u.role, client_id: u.client_id, name: u.name, email: u.email, id: u.id };
+    } catch (err) {
+      // Fallback to demo accounts for development/testing
+      if (user === 'admin' && pass === 'admin123') {
+        authData = { role: 'SUPERADMIN', client_id: null, name: 'Alloxentric' };
+      } else if (user === 'hr' && pass === 'hr123') {
+        authData = { role: 'ADMIN', client_id: 1, name: 'Admin RRHH' };
+      } else if (user === 'encargado' && pass === 'encargado123') {
+        authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado de Área', area: 'TI' };
+      } else if (user === 'supervisor' && pass === 'supervisor123') {
+        authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor de Onboarding' };
+      } else if (user === 'employee' && pass === 'employee123') {
+        authData = { role: 'EMPLOYEE', client_id: 1, name: 'Juan Pérez', email: 'juan.perez@company.com', id: 1 };
+      }
     }
 
-    if (authData) {
-      sessionStorage.setItem('onboardhub_auth', 'true');
-      sessionStorage.setItem('onboardhub_user', JSON.stringify(authData));
-      onLogin();
-      navigate(getRoleRedirectPath(authData.role), { replace: true });
-    } else {
-      alert('Invalid credentials (Try: admin/admin123, hr/hr123, encargado/encargado123, supervisor/supervisor123, or employee/employee123)');
+    if (!authData) {
+      alert('Invalid credentials');
+      return;
     }
+
+    sessionStorage.setItem('onboardhub_auth', 'true');
+    sessionStorage.setItem('onboardhub_user', JSON.stringify(authData));
+    onLogin();
+    navigate(getRoleRedirectPath(authData.role), { replace: true });
   };
 
   return (
@@ -250,8 +260,8 @@ function App() {
               <RoleRoute allowedRoles={['EMPLOYEE']}>
                 <AdminLayout onLogout={handleLogout}>
                   <Routes>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="journeys" element={<ProcessesList />} />
+                    <Route path="dashboard" element={<EmployeePortal />} />
+                    <Route path="journeys" element={<EmployeePortal />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </AdminLayout>
