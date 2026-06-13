@@ -486,10 +486,10 @@ export default function UsersList() {
                                         </>
                                     ) : (
                                         <>
-                                            <th>Sucursal</th>
-                                            <th>Onboarding</th>
-                                            <th>Template</th>
-                                            <th>Progress</th>
+                                            <th>{t('label_office_branch')}</th>
+                                            <th>{t('table_process')}</th>
+                                            <th>{t('table_template')}</th>
+                                            <th>{t('processes_col_progress')}</th>
                                             <th>{t('table_actions')}</th>
                                         </>
                                     )}
@@ -500,7 +500,7 @@ export default function UsersList() {
                                     <tr>
                                         <td colSpan={isSuperAdmin ? "7" : "10"} style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
                                             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>👥</div>
-                                            {filteredUsers.length === 0 ? 'No se encontraron usuarios con los filtros aplicados' : t('msg_no_data')}
+                                            {filteredUsers.length === 0 ? t('msg_no_users_filters') : t('msg_no_data')}
                                         </td>
                                     </tr>
                                 ) : paginatedUsers.map(user => {
@@ -533,7 +533,7 @@ export default function UsersList() {
                                                             }} 
                                                             style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                                                         >
-                                                            Editar
+                                                            {t('btn_edit')}
                                                         </button>
                                                         {user.status && (
                                                             <button 
@@ -541,7 +541,7 @@ export default function UsersList() {
                                                                 onClick={() => handleDeleteUser(user.id, user.name)} 
                                                                 style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
                                                             >
-                                                                Eliminar
+                                                                {t('btn_delete')}
                                                             </button>
                                                         )}
                                                     </td>
@@ -577,7 +577,7 @@ export default function UsersList() {
                                                         {/* Asignación condicional: Empleado o Supervisor */}
                                                         {(user.role === 'EMPLOYEE' || user.role === 'SUPERVISOR_ONBOARDING' || user.role === 'ENCARGADO_AREA') && (
                                                             <button className="btn btn-secondary" onClick={() => setSelectedUser(user)} style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
-                                                                {user.role === 'EMPLOYEE' ? t('btn_assign') : 'Asignar Empleado'}
+                                                                {user.role === 'EMPLOYEE' ? t('btn_assign') : t('btn_assign_employee')}
                                                             </button>
                                                         )}
                                                         {user.role === 'EMPLOYEE' && (
@@ -600,7 +600,7 @@ export default function UsersList() {
                                                             }} 
                                                             style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                                                         >
-                                                            Editar
+                                                            {t('btn_edit')}
                                                         </button>
                                                         {user.status && (
                                                             <button 
@@ -608,7 +608,7 @@ export default function UsersList() {
                                                                 onClick={() => handleDeleteUser(user.id, user.name)} 
                                                                 style={{ fontSize: '0.8rem', padding: '6px 12px', color: '#f87171', borderColor: '#f87171' }}
                                                             >
-                                                                Eliminar
+                                                                {t('btn_delete')}
                                                             </button>
                                                         )}
                                                     </td>
@@ -764,7 +764,7 @@ export default function UsersList() {
                             {!isSuperAdmin && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ margin: 0 }}>Área</label>
+                                        <label className="form-label" style={{ margin: 0 }}>{t('label_area')}</label>
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                             {!isCreatingArea && (
                                                 <button
@@ -772,7 +772,7 @@ export default function UsersList() {
                                                     onClick={() => setIsCreatingArea(true)}
                                                     style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    + Nueva Área
+                                                    {t('btn_new_area')}
                                                 </button>
                                             )}
                                             {!isCreatingArea && newUser.area && (
@@ -781,7 +781,7 @@ export default function UsersList() {
                                                     onClick={handleDeleteArea}
                                                     style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    Eliminar Área
+                                                    {t('btn_delete_area')}
                                                 </button>
                                             )}
                                         </div>
@@ -794,7 +794,7 @@ export default function UsersList() {
                                                 type="text"
                                                 value={newAreaName}
                                                 onChange={e => setNewAreaName(e.target.value)}
-                                                placeholder="Nombre del área..."
+                                                placeholder={t('placeholder_area_name')}
                                                 style={{ marginBottom: 0 }}
                                                 autoFocus
                                             />
@@ -812,7 +812,7 @@ export default function UsersList() {
                                                 onClick={() => { setIsCreatingArea(false); setNewAreaName(''); }}
                                                 style={{ padding: '0 12px' }}
                                             >
-                                                Cancel
+                                                {t('btn_cancel')}
                                             </button>
                                         </div>
                                     ) : (
@@ -822,7 +822,7 @@ export default function UsersList() {
                                             onChange={e => setNewUser({ ...newUser, area: e.target.value })}
                                             required
                                         >
-                                            <option value="">-- Seleccionar Área --</option>
+                                            <option value="">{t('select_area_placeholder')}</option>
                                             {areas.map(a => (
                                                 <option key={a.id} value={a.name}>{a.name}</option>
                                             ))}
@@ -834,45 +834,45 @@ export default function UsersList() {
                             {/* Ubicación del Usuario (País, Ciudad, Comuna, Sucursal) */}
                             {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
-                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
+                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">País</label>
+                                            <label className="form-label">{t('label_country')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={newUser.pais || ''}
                                                 onChange={(e) => setNewUser({ ...newUser, pais: e.target.value })}
-                                                placeholder="ej: Chile"
+                                                placeholder={t('placeholder_country')}
                                             />
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">Ciudad</label>
+                                            <label className="form-label">{t('label_city')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={newUser.ciudad || ''}
                                                 onChange={(e) => setNewUser({ ...newUser, ciudad: e.target.value })}
-                                                placeholder="ej: Santiago"
+                                                placeholder={t('placeholder_city')}
                                             />
                                         </div>
                                     </div>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">Comuna</label>
+                                            <label className="form-label">{t('label_commune')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={newUser.comuna || ''}
                                                 onChange={(e) => setNewUser({ ...newUser, comuna: e.target.value })}
-                                                placeholder="ej: Providencia"
+                                                placeholder={t('placeholder_commune')}
                                             />
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                                <label className="form-label" style={{ margin: 0 }}>{t('label_office_branch')}</label>
                                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                                     {!isCreatingOffice && (
                                                         <button
@@ -880,7 +880,7 @@ export default function UsersList() {
                                                             onClick={() => setIsCreatingOffice(true)}
                                                             style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                         >
-                                                            + Nueva
+                                                            {t('btn_new_office')}
                                                         </button>
                                                     )}
                                                 </div>
@@ -893,7 +893,7 @@ export default function UsersList() {
                                                         type="text"
                                                         value={newOfficeName}
                                                         onChange={e => setNewOfficeName(e.target.value)}
-                                                        placeholder="Sucursal..."
+                                                        placeholder={t('placeholder_office_name')}
                                                         style={{ marginBottom: 0 }}
                                                         autoFocus
                                                     />
@@ -912,7 +912,7 @@ export default function UsersList() {
                                                                 setIsCreatingOffice(false);
                                                                 setNewOfficeName('');
                                                             } catch (err) {
-                                                                alert("Error al crear sucursal");
+                                                                alert(t('error_create_office'));
                                                             }
                                                         }}
                                                         style={{ padding: '0 8px' }}
@@ -935,7 +935,7 @@ export default function UsersList() {
                                                     onChange={(e) => setNewUser({ ...newUser, sucursal: e.target.value })}
                                                     style={{ marginBottom: 0 }}
                                                 >
-                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="">{t('select_office_placeholder')}</option>
                                                     {offices.map(o => (
                                                         <option key={o.id} value={o.name}>{o.name}</option>
                                                     ))}
@@ -947,8 +947,8 @@ export default function UsersList() {
                             )}
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Create User</button>
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>Cancel</button>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>{t('users_add_title')}</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>{t('btn_cancel')}</button>
                             </div>
                         </form>
                     </div>
@@ -975,8 +975,8 @@ export default function UsersList() {
                             <X size={20} />
                         </button>
 
-                        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>Editar Usuario</h2>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Actualiza los detalles del perfil del usuario.</p>
+                        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>{t('users_edit_title')}</h2>
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>{t('users_edit_subtitle')}</p>
 
                         <form onSubmit={handleEditUser}>
                             <div className="form-group">
@@ -1022,13 +1022,13 @@ export default function UsersList() {
                                     )}
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">{t('login_pass')} (Opcional)</label>
+                                    <label className="form-label">{t('label_password_optional')}</label>
                                     <input
                                         className="form-input"
                                         type="password"
                                         value={editingUser.password || ''}
                                         onChange={e => setEditingUser({ ...editingUser, password: e.target.value })}
-                                        placeholder="Dejar vacío para no cambiar"
+                                        placeholder={t('placeholder_password_optional')}
                                     />
                                 </div>
                             </div>
@@ -1053,7 +1053,7 @@ export default function UsersList() {
                             {!isSuperAdmin && (
                                 <div className="form-group" style={{ marginTop: '1rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ margin: 0 }}>Área</label>
+                                        <label className="form-label" style={{ margin: 0 }}>{t('label_area')}</label>
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                             {!isCreatingArea && (
                                                 <button
@@ -1061,7 +1061,7 @@ export default function UsersList() {
                                                     onClick={() => setIsCreatingArea(true)}
                                                     style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    + Nueva Área
+                                                    {t('btn_new_area')}
                                                 </button>
                                             )}
                                             {!isCreatingArea && editingUser.area && (
@@ -1070,7 +1070,7 @@ export default function UsersList() {
                                                     onClick={handleDeleteArea}
                                                     style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                 >
-                                                    Eliminar Área
+                                                    {t('btn_delete_area')}
                                                 </button>
                                             )}
                                         </div>
@@ -1083,7 +1083,7 @@ export default function UsersList() {
                                                 type="text"
                                                 value={newAreaName}
                                                 onChange={e => setNewAreaName(e.target.value)}
-                                                placeholder="Nombre del área..."
+                                                placeholder={t('placeholder_area_name')}
                                                 style={{ marginBottom: 0 }}
                                                 autoFocus
                                             />
@@ -1101,7 +1101,7 @@ export default function UsersList() {
                                                 onClick={() => { setIsCreatingArea(false); setNewAreaName(''); }}
                                                 style={{ padding: '0 12px' }}
                                             >
-                                                Cancel
+                                                {t('btn_cancel')}
                                             </button>
                                         </div>
                                     ) : (
@@ -1110,7 +1110,7 @@ export default function UsersList() {
                                             value={editingUser.area || ''}
                                             onChange={e => setEditingUser({ ...editingUser, area: e.target.value })}
                                         >
-                                            <option value="">-- Seleccionar Área --</option>
+                                            <option value="">{t('select_area_placeholder')}</option>
                                             {areas.map(a => (
                                                 <option key={a.id} value={a.name}>{a.name}</option>
                                             ))}
@@ -1121,45 +1121,45 @@ export default function UsersList() {
 
                             {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
-                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>Ubicación</h4>
+                                    <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">País</label>
+                                            <label className="form-label">{t('label_country')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={editingUser.pais || ''}
                                                 onChange={(e) => setEditingUser({ ...editingUser, pais: e.target.value })}
-                                                placeholder="ej: Chile"
+                                                placeholder={t('placeholder_country')}
                                             />
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">Ciudad</label>
+                                            <label className="form-label">{t('label_city')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={editingUser.ciudad || ''}
                                                 onChange={(e) => setEditingUser({ ...editingUser, ciudad: e.target.value })}
-                                                placeholder="ej: Santiago"
+                                                placeholder={t('placeholder_city')}
                                             />
                                         </div>
                                     </div>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">Comuna</label>
+                                            <label className="form-label">{t('label_commune')}</label>
                                             <input
                                                 className="form-input"
                                                 type="text"
                                                 value={editingUser.comuna || ''}
                                                 onChange={(e) => setEditingUser({ ...editingUser, comuna: e.target.value })}
-                                                placeholder="ej: Providencia"
+                                                placeholder={t('placeholder_commune')}
                                             />
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                                <label className="form-label" style={{ margin: 0 }}>Sucursal / Oficina</label>
+                                                <label className="form-label" style={{ margin: 0 }}>{t('label_office_branch')}</label>
                                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                                     {!isCreatingOffice && (
                                                         <button
@@ -1167,7 +1167,7 @@ export default function UsersList() {
                                                             onClick={() => setIsCreatingOffice(true)}
                                                             style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                                         >
-                                                            + Nueva
+                                                            {t('btn_new_office')}
                                                         </button>
                                                     )}
                                                 </div>
@@ -1180,7 +1180,7 @@ export default function UsersList() {
                                                         type="text"
                                                         value={newOfficeName}
                                                         onChange={e => setNewOfficeName(e.target.value)}
-                                                        placeholder="Sucursal..."
+                                                        placeholder={t('placeholder_office_name')}
                                                         style={{ marginBottom: 0 }}
                                                         autoFocus
                                                     />
@@ -1199,7 +1199,7 @@ export default function UsersList() {
                                                                 setIsCreatingOffice(false);
                                                                 setNewOfficeName('');
                                                             } catch (err) {
-                                                                alert("Error al crear sucursal");
+                                                                alert(t('error_create_office'));
                                                             }
                                                         }}
                                                         style={{ padding: '0 8px' }}
@@ -1222,7 +1222,7 @@ export default function UsersList() {
                                                     onChange={(e) => setEditingUser({ ...editingUser, sucursal: e.target.value })}
                                                     style={{ marginBottom: 0 }}
                                                 >
-                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="">{t('select_office_placeholder')}</option>
                                                     {offices.map(o => (
                                                         <option key={o.id} value={o.name}>{o.name}</option>
                                                     ))}
@@ -1234,8 +1234,8 @@ export default function UsersList() {
                             )}
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>Guardar Cambios</button>
-                                <button type="button" className="btn btn-secondary" onClick={() => { setShowEditModal(false); setEditingUser(null); }} style={{ flex: 1 }}>Cancelar</button>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, padding: '12px' }}>{t('btn_save')}</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => { setShowEditModal(false); setEditingUser(null); }} style={{ flex: 1 }}>{t('btn_cancel')}</button>
                             </div>
                         </form>
                     </div>
@@ -1261,8 +1261,8 @@ export default function UsersList() {
                                     <Calendar size={24} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.25rem' }}>Assign Onboarding</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>To: {selectedUser.name}</p>
+                                    <h3 style={{ fontSize: '1.25rem' }}>{t('assign_onboarding_title')}</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('assign_onboarding_to')}: {selectedUser.name}</p>
                                 </div>
                             </div>
 
@@ -1280,20 +1280,20 @@ export default function UsersList() {
                                     flexDirection: 'column',
                                     gap: '4px'
                                 }}>
-                                    <span style={{ fontWeight: 'bold' }}>⚠️ Advertencia:</span>
-                                    <span>Este empleado ya cuenta con un proceso de onboarding activo. Puedes asignarle un nuevo proceso de todas formas para enlazar etapas.</span>
+                                    <span style={{ fontWeight: 'bold' }}>⚠️ {t('warning_label')}:</span>
+                                    <span>{t('warning_active_journey')}</span>
                                 </div>
                             )}
 
                             {/* Template selector filtered by Employee Area */}
                             <div className="form-group">
-                                <label className="form-label">Template</label>
+                                <label className="form-label">{t('table_template')}</label>
                                 <select
                                     className="form-input"
                                     value={assignmentData.template_id}
                                     onChange={(e) => setAssignmentData({ ...assignmentData, template_id: e.target.value })}
                                 >
-                                    <option value="">Select template...</option>
+                                    <option value="">{t('select_template_placeholder')}</option>
                                     {templates
                                         .filter(t => t.client_id === selectedUser.client_id)
                                         .filter(t => !selectedUser.area || t.area === selectedUser.area)
@@ -1305,13 +1305,13 @@ export default function UsersList() {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Mentor / Supervisor</label>
+                                <label className="form-label">{t('label_mentor_supervisor')}</label>
                                 <select
                                     className="form-input"
                                     value={assignmentData.responsible_id}
                                     onChange={(e) => setAssignmentData({ ...assignmentData, responsible_id: e.target.value })}
                                 >
-                                    <option value="">Select supervisor...</option>
+                                    <option value="">{t('select_supervisor_placeholder')}</option>
                                     {users.filter(u => u.client_id === selectedUser.client_id && u.id !== selectedUser.id).map(u => (
                                         <option key={u.id} value={u.id}>
                                             {u.name} ({u.role})
@@ -1321,7 +1321,7 @@ export default function UsersList() {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Start Date</label>
+                                <label className="form-label">{t('processes_col_start')}</label>
                                 <input
                                     className="form-input"
                                     type="date"
@@ -1331,7 +1331,7 @@ export default function UsersList() {
                             </div>
 
                             <div className="form-group" style={{ marginTop: '1rem' }}>
-                                <label className="form-label">End Date</label>
+                                <label className="form-label">{t('processes_col_end')}</label>
                                 <input
                                     className="form-input"
                                     type="date"
@@ -1342,7 +1342,7 @@ export default function UsersList() {
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                                 <button className="btn btn-primary" onClick={handleAssign} disabled={!assignmentData.template_id} style={{ flex: 1, padding: '12px' }}>
-                                    Confirm Journey
+                                    {t('btn_confirm_journey')}
                                 </button>
                                 <button
                                     className="btn btn-secondary"
@@ -1352,7 +1352,7 @@ export default function UsersList() {
                                     }}
                                     style={{ flex: 1 }}
                                 >
-                                    Cancel
+                                    {t('btn_cancel')}
                                 </button>
                             </div>
                         </div>
@@ -1374,27 +1374,27 @@ export default function UsersList() {
                                     <Briefcase size={24} />
                                 </div>
                                 <div>
-                                    <h3 style={{ fontSize: '1.25rem' }}>Asignar Empleado a Supervisar</h3>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Supervisor: {selectedUser.name}</p>
+                                    <h3 style={{ fontSize: '1.25rem' }}>{t('assign_employee_supervise_title')}</h3>
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t('role_supervisor_onboarding')}: {selectedUser.name}</p>
                                 </div>
                             </div>
 
                             <div style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                                <strong>Área del Supervisor: </strong>
+                                <strong>{t('supervisor_area_label')}: </strong>
                                 <span className="badge" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                    {selectedUser.area || 'Sin Área'}
+                                    {selectedUser.area || t('no_area_label')}
                                 </span>
                             </div>
 
                             {/* Dropdown: Employee to supervise (same area and has active journey) */}
                             <div className="form-group">
-                                <label className="form-label">Empleado</label>
+                                <label className="form-label">{t('role_employee')}</label>
                                 <select
                                     className="form-input"
                                     value={assignmentData.employee_id}
                                     onChange={(e) => setAssignmentData({ ...assignmentData, employee_id: e.target.value })}
                                 >
-                                    <option value="">Selecciona un empleado de tu área...</option>
+                                    <option value="">{t('select_employee_area_placeholder')}</option>
                                     {users
                                         .filter(u => 
                                             u.client_id === selectedUser.client_id &&
@@ -1410,13 +1410,13 @@ export default function UsersList() {
                                     }
                                 </select>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                                    Solo aparecen empleados activos de la misma área que cuentan con un proceso de onboarding.
+                                    {t('assign_supervisor_help_text')}
                                 </span>
                             </div>
 
                             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                                 <button className="btn btn-primary" onClick={handleAssignSupervisor} disabled={!assignmentData.employee_id} style={{ flex: 1, padding: '12px' }}>
-                                    Asignar Empleado
+                                    {t('btn_assign_employee')}
                                 </button>
                                 <button
                                     className="btn btn-secondary"
@@ -1426,7 +1426,7 @@ export default function UsersList() {
                                     }}
                                     style={{ flex: 1 }}
                                 >
-                                    Cancel
+                                    {t('btn_cancel')}
                                 </button>
                             </div>
                         </div>
@@ -1439,19 +1439,19 @@ export default function UsersList() {
                 <div className="modal-overlay">
                     <div className="card" style={{ width: '95%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h2 style={{ fontSize: '1.25rem' }}>Progress: {viewingJourney.user.name}</h2>
+                            <h2 style={{ fontSize: '1.25rem' }}>{t('processes_modal_title')} {viewingJourney.user.name}</h2>
                             <button className="btn btn-secondary" onClick={() => setViewingJourney(null)} style={{ padding: '5px' }}><X size={18} /></button>
                         </div>
 
                         {!viewingJourney.journey ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                <p>No active journey for this user.</p>
+                                <p>{t('processes_modal_no_journey')}</p>
                             </div>
                         ) : (
                             <div>
                                 <div style={{ background: 'var(--bg-color)', padding: '1rem', borderRadius: '10px', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Overall Progress</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('processes_modal_progress_general')}</div>
                                         <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>{viewingJourney.journey.progress}%</div>
                                     </div>
                                     <div style={{ width: '100px', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
@@ -1463,9 +1463,9 @@ export default function UsersList() {
                                     <table className="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Task</th>
-                                                <th>Status</th>
-                                                <th>Document</th>
+                                                <th>{t('processes_modal_task')}</th>
+                                                <th>{t('table_status')}</th>
+                                                <th>{t('table_document')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1474,7 +1474,7 @@ export default function UsersList() {
                                                     <td style={{ fontSize: '13px' }}>{task.title}</td>
                                                     <td>
                                                         <span className={`badge ${task.completed ? 'badge-active' : 'badge-inactive'}`} style={{ fontSize: '10px' }}>
-                                                            {task.completed ? 'Completed' : 'Pending'}
+                                                            {task.completed ? t('processes_modal_completed') : t('processes_modal_pending')}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -1485,10 +1485,10 @@ export default function UsersList() {
                                                                 rel="noreferrer"
                                                                 style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '12px', textDecoration: 'none' }}
                                                             >
-                                                                📥 Download
+                                                                📥 {t('btn_download')}
                                                             </a>
                                                         ) : (
-                                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>No file</span>
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{t('msg_no_file')}</span>
                                                         )}
                                                     </td>
                                                 </tr>

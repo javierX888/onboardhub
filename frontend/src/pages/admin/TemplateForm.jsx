@@ -15,10 +15,10 @@ export default function TemplateForm() {
     const stagePrefix = language === 'es' ? 'Etapa' : 'Stage';
     const STAGES = Array.from({ length: 31 }, (_, i) => `${stagePrefix} ${i + 1}`);
     const TASK_TYPES = [
-        { value: 'read_text', label: 'Leer Texto (Bienvenida)' },
-        { value: 'read_document', label: 'Ver Documento / Enlace externo' },
-        { value: 'watch_video', label: 'Ver Video' },
-        { value: 'upload_document', label: 'Subir Archivo (Empleado)' }
+        { value: 'read_text', label: t('task_type_read_text') },
+        { value: 'read_document', label: t('task_type_read_document') },
+        { value: 'watch_video', label: t('task_type_watch_video') },
+        { value: 'upload_document', label: t('task_type_upload_document') }
     ];
 
     const [companies, setCompanies] = useState([]);
@@ -185,7 +185,7 @@ export default function TemplateForm() {
             navigate('/admin/templates');
         } catch (err) {
             console.error(err);
-            alert("Error saving template");
+            alert(t('error_save_template'));
         }
     };
 
@@ -201,7 +201,7 @@ export default function TemplateForm() {
                 <button className="btn btn-secondary" type="button" onClick={() => navigate('/admin/templates')} style={{ padding: '8px' }}>
                     <ArrowLeft size={20} />
                 </button>
-                <h1 className="page-title">{id ? 'Edit Onboarding Template' : 'New Onboarding Template'}</h1>
+                <h1 className="page-title">{id ? t('template_edit_title') : t('template_new_title')}</h1>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -210,10 +210,10 @@ export default function TemplateForm() {
 
                     {/* Left: Template Settings */}
                     <div className="card" style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
-                        <h3 style={{ marginBottom: '1.5rem' }}>Template Settings</h3>
+                        <h3 style={{ marginBottom: '1.5rem' }}>{t('template_settings_title')}</h3>
 
                         <div className="form-group">
-                            <label className="form-label">Template Name</label>
+                            <label className="form-label">{t('template_name_label')}</label>
                             <input
                                 className="form-input"
                                 type="text"
@@ -233,7 +233,7 @@ export default function TemplateForm() {
                                     onChange={e => setTemplate({ ...template, client_id: e.target.value })}
                                     required
                                 >
-                                    <option value="">Select Company...</option>
+                                    <option value="">{t('select_company_placeholder')}</option>
                                     {companies.map(c => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
@@ -243,7 +243,7 @@ export default function TemplateForm() {
 
                         <div className="form-group">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                <label className="form-label" style={{ margin: 0 }}>Área</label>
+                                <label className="form-label" style={{ margin: 0 }}>{t('label_area')}</label>
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                     {!isCreatingArea && template.client_id && (
                                         <button
@@ -251,7 +251,7 @@ export default function TemplateForm() {
                                             onClick={() => setIsCreatingArea(true)}
                                             style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                         >
-                                            + Nueva Área
+                                            {t('btn_new_area')}
                                         </button>
                                     )}
                                     {!isCreatingArea && template.area && (
@@ -260,7 +260,7 @@ export default function TemplateForm() {
                                             onClick={handleDeleteArea}
                                             style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, padding: 0 }}
                                         >
-                                            Eliminar Área
+                                            {t('btn_delete_area')}
                                         </button>
                                     )}
                                 </div>
@@ -273,7 +273,7 @@ export default function TemplateForm() {
                                         type="text"
                                         value={newAreaName}
                                         onChange={e => setNewAreaName(e.target.value)}
-                                        placeholder="Nombre del área..."
+                                        placeholder={t('placeholder_area_name')}
                                         style={{ marginBottom: 0 }}
                                         autoFocus
                                     />
@@ -301,7 +301,7 @@ export default function TemplateForm() {
                                     onChange={e => setTemplate({ ...template, area: e.target.value })}
                                     required
                                 >
-                                    <option value="">Seleccione Área...</option>
+                                    <option value="">{t('select_area_placeholder')}</option>
                                     {areas.map(a => (
                                         <option key={a.id} value={a.name}>{a.name}</option>
                                     ))}
@@ -311,25 +311,25 @@ export default function TemplateForm() {
 
                         {/* Link Previous Process */}
                         <div className="form-group">
-                            <label className="form-label">Proceso anterior vinculante</label>
+                            <label className="form-label">{t('label_parent_template')}</label>
                             <select
                                 className="form-input"
                                 value={template.parent_template_id || ''}
                                 onChange={e => setTemplate({ ...template, parent_template_id: e.target.value ? parseInt(e.target.value) : null })}
                             >
-                                <option value="">Ninguno (Proceso Inicial)</option>
+                                <option value="">{t('option_none_parent_template')}</option>
                                 {filteredTemplates.map(t => (
                                     <option key={t.id} value={t.id}>{t.name} ({t.area || 'General'})</option>
                                 ))}
                             </select>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                                Permite encadenar onboardings mayores a 31 días.
+                                {t('help_parent_template')}
                             </span>
                         </div>
 
                         <div style={{ marginTop: '2rem' }}>
                             <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                <Save size={18} /> Save Template
+                                <Save size={18} /> {t('btn_save_template')}
                             </button>
                         </div>
                     </div>
@@ -339,10 +339,10 @@ export default function TemplateForm() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                                 <Layout size={20} color="var(--primary)" />
-                                Onboarding Steps
+                                {t('onboarding_steps_title')}
                             </h3>
                             <button type="button" className="btn btn-secondary" onClick={addTask} style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Plus size={16} /> Add Step
+                                <Plus size={16} /> {t('btn_add_step')}
                             </button>
                         </div>
 
@@ -358,7 +358,7 @@ export default function TemplateForm() {
                                 <div className="grid-form" style={{ gap: '1rem', marginBottom: '1rem', gridTemplateColumns: '3fr 1fr' }}>
                                     <input
                                         className="form-input"
-                                        placeholder="Task Title (e.g. Welcome Meeting)"
+                                        placeholder={t('placeholder_task_title')}
                                         value={task.title}
                                         onChange={e => updateTask(index, 'title', e.target.value)}
                                         required
@@ -394,7 +394,7 @@ export default function TemplateForm() {
                                             <input
                                                 className="form-input"
                                                 type="url"
-                                                placeholder="Enlace al Documento o Video (Ej. Drive, YouTube)"
+                                                placeholder={t('placeholder_resource_url')}
                                                 value={task.resource_url || ''}
                                                 onChange={e => updateTask(index, 'resource_url', e.target.value)}
                                             />
@@ -404,7 +404,7 @@ export default function TemplateForm() {
 
                                 <textarea
                                     className="form-input"
-                                    placeholder="Brief description of what the employee should do..."
+                                    placeholder={t('placeholder_task_description')}
                                     style={{ height: '80px', resize: 'none', marginBottom: '0.5rem' }}
                                     value={task.description || ''}
                                     onChange={e => updateTask(index, 'description', e.target.value)}
@@ -419,7 +419,7 @@ export default function TemplateForm() {
                                         style={{ width: 'auto', margin: 0 }}
                                     />
                                     <label htmlFor={`evidence-mandatory-${index}`} style={{ fontSize: '0.85rem', cursor: 'pointer', userSelect: 'none', margin: 0, color: 'var(--text-main)' }}>
-                                        ¿El empleado debe subir evidencia obligatoriamente para completar esta tarea?
+                                        {t('label_evidence_mandatory')}
                                     </label>
                                 </div>
 
@@ -433,7 +433,7 @@ export default function TemplateForm() {
                                             disabled={index === 0}
                                             style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '2px' }}
                                         >
-                                            <ChevronUp size={14} /> Subir
+                                            <ChevronUp size={14} /> {t('btn_move_up')}
                                         </button>
                                         <button 
                                             type="button" 
@@ -442,7 +442,7 @@ export default function TemplateForm() {
                                             disabled={index === template.tasks.length - 1}
                                             style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '2px' }}
                                         >
-                                            <ChevronDown size={14} /> Bajar
+                                            <ChevronDown size={14} /> {t('btn_move_down')}
                                         </button>
                                     </div>
 
