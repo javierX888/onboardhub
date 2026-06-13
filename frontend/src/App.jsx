@@ -73,7 +73,7 @@ function LoginPage({ onLogin }) {
     }
 
     if (!authData) {
-      alert('Invalid credentials');
+      alert(t('error_invalid_credentials'));
       return;
     }
 

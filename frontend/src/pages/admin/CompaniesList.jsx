@@ -36,7 +36,7 @@ export default function CompaniesList() {
                 setCompanies(prev => prev.filter(c => c.id !== id));
             } catch (err) {
                 console.error("Error deleting company", err);
-                alert("Error deleting company. Make sure there are no remaining users or processes associated with this company.");
+                alert(t('error_delete_company'));
             }
         }
     };

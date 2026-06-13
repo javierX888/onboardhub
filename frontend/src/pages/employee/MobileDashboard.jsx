@@ -39,7 +39,7 @@ export default function MobileDashboard() {
             setJourney(data.journey);
         } catch (error) {
             console.error("Error fetching dashboard data", error);
-            alert("Usuario no encontrado o error de conexión");
+            alert(t('mobile_user_not_found'));
             handleLogout();
         } finally {
             setLoading(false);
@@ -65,9 +65,9 @@ export default function MobileDashboard() {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)', padding: '20px' }}>
                 <form onSubmit={handleLogin} className="card" style={{ width: '100%', maxWidth: '350px', padding: '2rem' }}>
-                    <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Acceso Empleado</h2>
+                    <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>{t('mobile_access_title')}</h2>
                     <div className="form-group">
-                        <label className="form-label">Email de la Empresa</label>
+                        <label className="form-label">{t('mobile_email_label')}</label>
                         <input 
                             className="form-input" 
                             type="email" 
@@ -77,7 +77,7 @@ export default function MobileDashboard() {
                             required 
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Entrar al Onboarding</button>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>{t('mobile_btn_enter')}</button>
                 </form>
             </div>
         );
@@ -111,10 +111,10 @@ export default function MobileDashboard() {
             
             setActiveModal(null);
             setSelectedFile(null);
-            showToast("✅ Tarea completada con éxito", "success");
+            showToast(t('mobile_task_completed_success'), "success");
         } catch (error) {
             console.error("Error completing task", error);
-            let errorMsg = "Error al completar la tarea";
+            let errorMsg = t('mobile_task_completed_error');
             
             // Extract detailed error from FastAPI
             if (error.response?.data?.detail) {
@@ -174,7 +174,7 @@ export default function MobileDashboard() {
                         {activeModal.type === 'read_text' && <div style={{fontSize: '40px'}}>👋</div>}
                         
                         <p style={{marginTop: '10px', fontSize: '14px', color: '#64748b'}}>
-                            {activeModal.description || 'Por favor completa esta etapa para continuar.'}
+                            {activeModal.description || t('mobile_default_description')}
                         </p>
 
                         {/* Resource URL button for reading/watching */}
@@ -199,7 +199,7 @@ export default function MobileDashboard() {
                                         boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
                                     }}
                                 >
-                                    {activeModal.type === 'watch_video' ? '📺 Ver Video' : '📖 Abrir Recurso'}
+                                    {activeModal.type === 'watch_video' ? t('mobile_btn_watch_video') : t('mobile_btn_open_resource')}
                                 </a>
                             </div>
                         )}
@@ -207,7 +207,7 @@ export default function MobileDashboard() {
                         {activeModal.type === 'upload_document' && !activeModal.completed && (
                             <div style={{ marginTop: '15px', textAlign: 'left' }}>
                                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#4f46e5', display: 'block', marginBottom: '5px' }}>
-                                    Subir documento (PDF, JPG, PNG)
+                                    {t('mobile_upload_evidence_label')}
                                 </label>
                                 <input 
                                     type="file" 
@@ -220,7 +220,7 @@ export default function MobileDashboard() {
 
                         {activeModal.completed && (
                             <div style={{ marginTop: '15px', color: '#10b981', fontWeight: 'bold' }}>
-                                ✅ Tarea completada
+                                {t('mobile_task_completed_badge')}
                             </div>
                         )}
                     </div>
@@ -241,7 +241,7 @@ export default function MobileDashboard() {
                                 style={{ flex: 1, padding: '12px', borderRadius: '10px', background: '#4f46e5', color: 'white', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
                                 disabled={isUploading || (activeModal.type === 'upload_document' && !selectedFile)}
                             >
-                                {isUploading ? (selectedFile ? 'Subiendo...' : 'Completando...') : 'Completar'}
+                                {isUploading ? (selectedFile ? t('mobile_status_uploading') : t('mobile_status_completing')) : t('mobile_btn_complete')}
                             </button>
                         )}
                     </div>
@@ -285,13 +285,13 @@ export default function MobileDashboard() {
                                 }}
                                 className="btn btn-secondary"
                             >
-                                ← Volver a vista web
+                                {t('mobile_btn_back_web')}
                             </button>
                         )}
                         
                         <div className="journey-header">
-                            <h1 className="journey-greeting">Hi, {userData.name} 👋</h1>
-                            <p style={{ color: 'rgba(255,255,255,0.8)' }}>Onboarding at {journey?.location || 'Alloxentric'}</p>
+                            <h1 className="journey-greeting">{t('mobile_greeting')}, {userData.name} 👋</h1>
+                            <p style={{ color: 'rgba(255,255,255,0.8)' }}>{t('mobile_onboarding_at')} {journey?.location || 'Alloxentric'}</p>
                         </div>
 
                         <div className="journey-progress-card">
@@ -304,9 +304,9 @@ export default function MobileDashboard() {
                         </div>
 
                         <div className="journey-content">
-                            <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Timeline</h3>
+                            <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>{t('mobile_timeline')}</h3>
                             
-                            {!journey ? <p>No active journey.</p> : (
+                            {!journey ? <p>{t('employee_portal_no_journey')}</p> : (
                                 <div className="timeline">
                                     {journey.tasks.map((task, idx) => {
                                         const isCompleted = task.completed;
@@ -331,14 +331,14 @@ export default function MobileDashboard() {
                                                             color: isCompleted ? '#166534' : isOverdue ? '#991b1b' : '#3730a3',
                                                             fontWeight: 'bold'
                                                         }}>
-                                                            {isCompleted ? 'Completada' : isOverdue ? 'Atrasada' : 'Pendiente'}
+                                                            {isCompleted ? t('mobile_status_completed') : isOverdue ? t('mobile_status_overdue') : t('mobile_status_pending')}
                                                         </div>
                                                     </div>
                                                     <div className="timeline-card-title">{task.title}</div>
                                                     
                                                     {task.deadline && (
                                                         <div style={{ fontSize: '11px', color: isOverdue ? '#ef4444' : '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                            <span>📅</span> Vence: {new Date(task.deadline).toLocaleDateString()}
+                                                            <span>📅</span> {t('mobile_label_due')} {new Date(task.deadline).toLocaleDateString()}
                                                         </div>
                                                     )}
                                                     
@@ -366,7 +366,7 @@ export default function MobileDashboard() {
                                                                 gap: '8px'
                                                             }}
                                                         >
-                                                            <span>👉</span> Open Task
+                                                            <span>👉</span> {t('mobile_btn_open_task')}
                                                         </button>
                                                     )}
                                                 </div>
@@ -382,19 +382,19 @@ export default function MobileDashboard() {
                 <div className="bottom-nav">
                     <button className="nav-item active">
                         <span style={{ fontSize: '20px' }}>🏠</span>
-                        <span>Home</span>
+                        <span>{t('mobile_nav_home')}</span>
                     </button>
                     <button className="nav-item">
                         <span style={{ fontSize: '20px' }}>✔️</span>
-                        <span>Tasks</span>
+                        <span>{t('mobile_nav_tasks')}</span>
                     </button>
                     <button className="nav-item">
                         <span style={{ fontSize: '20px' }}>📁</span>
-                        <span>Files</span>
+                        <span>{t('mobile_nav_files')}</span>
                     </button>
                     <button className="nav-item">
                         <span style={{ fontSize: '20px' }}>👤</span>
-                        <span>Profile</span>
+                        <span>{t('mobile_nav_profile')}</span>
                     </button>
                 </div>
             </div>
