@@ -51,13 +51,13 @@ export default function TemplateForm() {
             setNewAreaName('');
         } catch (err) {
             console.error("Error creating area:", err);
-            alert("Error al crear el área");
+            alert(t('error_create_area'));
         }
     };
 
     const handleDeleteArea = async () => {
         if (!template.area) return;
-        if (!window.confirm(`¿Estás seguro de eliminar el área "${template.area}"?`)) return;
+        if (!window.confirm(t('confirm_delete_area'))) return;
         
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
         const clientId = template.client_id || authUser.client_id || 1;
@@ -72,7 +72,7 @@ export default function TemplateForm() {
             setTemplate(prev => ({ ...prev, area: '' }));
         } catch (err) {
             console.error("Error deleting area:", err);
-            alert("Error al eliminar el área");
+            alert(t('error_delete_area'));
         }
     };
 
@@ -226,7 +226,7 @@ export default function TemplateForm() {
 
                         {isAdminRole && (
                             <div className="form-group">
-                                <label className="form-label">Company</label>
+                                <label className="form-label">{t('table_company')}</label>
                                 <select
                                     className="form-input"
                                     value={template.client_id}

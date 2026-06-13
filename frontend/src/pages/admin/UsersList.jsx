@@ -215,14 +215,14 @@ export default function UsersList() {
             setNewAreaName('');
         } catch (err) {
             console.error("Error creating area:", err);
-            alert("Error al crear el área");
+            alert(t('error_create_area'));
         }
     };
 
     const handleDeleteArea = async () => {
         const areaName = showEditModal ? editingUser.area : newUser.area;
         if (!areaName) return;
-        if (!window.confirm(`¿Estás seguro de eliminar el área "${areaName}"?`)) return;
+        if (!window.confirm(t('confirm_delete_area'))) return;
         
         const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
         const clientId = authUser.client_id || 1;
@@ -241,7 +241,7 @@ export default function UsersList() {
             }
         } catch (err) {
             console.error("Error deleting area:", err);
-            alert("Error al eliminar el área");
+            alert(t('error_delete_area'));
         }
     };
 
@@ -268,11 +268,11 @@ export default function UsersList() {
                 comuna: '',
                 sucursal: ''
             });
-            showToast("✅ Usuario creado con éxito.", "success");
+            showToast("✅ " + t('msg_user_create_success'), "success");
             fetchData();
         } catch (err) {
             console.error(err);
-            showToast("❌ Error al crear el usuario.", "error");
+            showToast("❌ " + t('error_create_user'), "error");
         }
     };
 
@@ -286,23 +286,23 @@ export default function UsersList() {
             await userService.updateUser(editingUser.id, payload);
             setShowEditModal(false);
             setEditingUser(null);
-            showToast("✅ Usuario actualizado con éxito.", "success");
+            showToast("✅ " + t('msg_user_update_success'), "success");
             fetchData();
         } catch (err) {
             console.error(err);
-            showToast("❌ Error al actualizar el usuario.", "error");
+            showToast("❌ " + t('error_update_user'), "error");
         }
     };
 
     const handleDeleteUser = async (id, name) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${name}"?`)) return;
+        if (!window.confirm(t('confirm_delete_user'))) return;
         try {
             await userService.deleteUser(id);
-            showToast("✅ Usuario eliminado con éxito.", "success");
+            showToast("✅ " + t('msg_user_delete_success'), "success");
             fetchData();
         } catch (err) {
             console.error(err);
-            showToast("❌ Error al eliminar el usuario.", "error");
+            showToast("❌ " + t('error_delete_user'), "error");
         }
     };
 
@@ -326,12 +326,12 @@ export default function UsersList() {
                 responsible_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null,
                 supervisor_id: assignmentData.responsible_id ? parseInt(assignmentData.responsible_id) : null
             });
-            showToast("✅ Success! Onboarding assigned.", "success");
+            showToast(t('msg_success_assign'), "success");
             fetchData();
             setSelectedUser(null);
             setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
         } catch (err) {
-            showToast("❌ Error assigning onboarding.", "error");
+            showToast(t('msg_error_assign'), "error");
         }
     };
 
@@ -340,20 +340,20 @@ export default function UsersList() {
             if (!assignmentData.employee_id) return;
             const employeeJourney = journeys[assignmentData.employee_id];
             if (!employeeJourney) {
-                showToast("❌ El empleado seleccionado no tiene un proceso activo.", "error");
+                showToast("❌ " + t('msg_error_no_active_journey'), "error");
                 return;
             }
 
             await journeyService.updateJourney(employeeJourney.id, selectedUser.client_id, {
                 supervisor_id: selectedUser.id
             });
-            showToast("✅ Supervisor asignado con éxito.", "success");
+            showToast("✅ " + t('msg_success_assign_supervisor'), "success");
             fetchData();
             setSelectedUser(null);
             setAssignmentData({ template_id: '', start_date: '', end_date: '', responsible_id: '', employee_id: '' });
         } catch (err) {
             console.error(err);
-            showToast("❌ Error al asignar supervisor.", "error");
+            showToast("❌ " + t('msg_error_assign_supervisor'), "error");
         }
     };
 
