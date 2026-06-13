@@ -16,6 +16,7 @@ class Journey(MultiTenantBase):
     # New field: site/location for this specific onboarding
     location = Column(String(255), nullable=True) 
     supervisor_id = Column(Integer, nullable=True)
+    status = Column(Boolean, default=True)
     
     tasks = relationship("JourneyTask", back_populates="journey")
 

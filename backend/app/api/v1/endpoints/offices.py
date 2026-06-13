@@ -14,7 +14,11 @@ async def read_offices(
     client_id: int,
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    result = await db.execute(select(OfficeModel).where(OfficeModel.client_id == client_id))
+    result = await db.execute(
+        select(OfficeModel)
+        .where(OfficeModel.client_id == client_id)
+        .where(OfficeModel.status == True)
+    )
     return result.scalars().all()
 
 @router.post("/", response_model=Office)
@@ -68,6 +72,7 @@ async def delete_office(
     if not office:
         raise HTTPException(status_code=404, detail="Office not found")
     
-    await db.delete(office)
+    office.status = False
+    db.add(office)
     await db.commit()
     return office

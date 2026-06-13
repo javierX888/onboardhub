@@ -32,6 +32,7 @@ async def get_employee_dashboard(
         select(JourneyModel)
         .options(selectinload(JourneyModel.tasks))
         .where(JourneyModel.employee_id == user.id)
+        .where(JourneyModel.status == True)
         .order_by(JourneyModel.id.desc())
     )
     journey = result.unique().scalars().first()

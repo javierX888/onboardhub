@@ -24,6 +24,7 @@ async def get_admin_dashboard_stats(
     active_journeys_q = await db.execute(
         select(func.count(JourneyModel.id))
         .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.status == True)
         .where(JourneyModel.progress < 100)
     )
     active_processes = active_journeys_q.scalar() or 0
@@ -62,6 +63,7 @@ async def get_admin_dashboard_stats(
             func.max(JourneyModel.id).label("latest_id")
         )
         .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.status == True)
         .group_by(JourneyModel.employee_id)
         .subquery()
     )
@@ -144,6 +146,7 @@ async def get_supervisor_dashboard_stats(
         select(func.count(JourneyModel.id))
         .where(JourneyModel.client_id == client_id)
         .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.status == True)
         .where(JourneyModel.progress < 100)
     )
     active_processes = active_journeys_q.scalar() or 0
@@ -153,6 +156,7 @@ async def get_supervisor_dashboard_stats(
         select(func.count(func.distinct(JourneyModel.employee_id)))
         .where(JourneyModel.client_id == client_id)
         .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.status == True)
     )
     employees_onboarding = employees_q.scalar() or 0
 
@@ -163,6 +167,7 @@ async def get_supervisor_dashboard_stats(
         .join(JourneyModel, JourneyTaskModel.journey_id == JourneyModel.id)
         .where(JourneyModel.client_id == client_id)
         .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.status == True)
         .where(JourneyTaskModel.completed == False)
         .where(JourneyTaskModel.deadline.isnot(None))
         .where(JourneyTaskModel.deadline < now)
@@ -175,6 +180,7 @@ async def get_supervisor_dashboard_stats(
         select(func.avg(JourneyModel.progress))
         .where(JourneyModel.client_id == client_id)
         .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.status == True)
     )
     avg_progress = progress_q.scalar() or 0
 
@@ -186,6 +192,7 @@ async def get_supervisor_dashboard_stats(
         )
         .where(JourneyModel.client_id == client_id)
         .where(JourneyModel.supervisor_id == supervisor_id)
+        .where(JourneyModel.status == True)
         .group_by(JourneyModel.employee_id)
         .subquery()
     )
@@ -269,6 +276,7 @@ async def get_employee_dashboard_stats(
         select(JourneyModel)
         .options(selectinload(JourneyModel.tasks))
         .where(JourneyModel.employee_id == employee_id)
+        .where(JourneyModel.status == True)
         .order_by(JourneyModel.created_at.desc())
         .limit(1)
     )
