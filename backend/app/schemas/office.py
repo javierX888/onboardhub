@@ -4,6 +4,7 @@ from typing import Optional
 class OfficeBase(BaseModel):
     name: str
     client_id: int
+    status: Optional[bool] = True
 
 class OfficeCreate(BaseModel):
     name: str

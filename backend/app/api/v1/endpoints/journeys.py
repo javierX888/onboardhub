@@ -26,6 +26,7 @@ async def read_employee_journeys(
         .options(selectinload(JourneyModel.tasks))
         .where(JourneyModel.employee_id == employee_id)
         .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.status == True)
     )
     return result.unique().scalars().all()
 
@@ -38,6 +39,7 @@ async def read_company_journeys(
         select(JourneyModel)
         .options(selectinload(JourneyModel.tasks))
         .where(JourneyModel.client_id == client_id)
+        .where(JourneyModel.status == True)
     )
     return result.unique().scalars().all()
 
@@ -276,15 +278,10 @@ async def delete_journey(
     if not journey:
         raise HTTPException(status_code=404, detail="Journey not found")
         
-    from sqlalchemy import delete
-    await db.execute(
-        delete(JourneyTaskModel)
-        .where(JourneyTaskModel.journey_id == id)
-    )
-    
-    await db.delete(journey)
+    journey.status = False
+    db.add(journey)
     await db.commit()
-    return {"status": "success", "message": "Journey and tasks deleted successfully"}
+    return {"status": "success", "message": "Journey deleted successfully"}
 
 @router.put("/{id}", response_model=Journey)
 async def update_journey(
