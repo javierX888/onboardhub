@@ -43,7 +43,7 @@ export default function AjustesModal({ onClose }) {
       const data = await areaService.getAreas(clientId);
       setAreas(data);
     } catch (err) {
-      setError('Error al cargar las áreas de la empresa.');
+      setError(t('error_load_areas'));
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export default function AjustesModal({ onClose }) {
       setAreas([...areas, newArea]);
       setNewAreaName('');
     } catch (err) {
-      setError('Error al crear el área.');
+      setError(t('error_create_area'));
     }
   };
 
@@ -81,18 +81,18 @@ export default function AjustesModal({ onClose }) {
       setEditingAreaId(null);
       setEditingName('');
     } catch (err) {
-      setError('Error al actualizar el área.');
+      setError(t('error_update_area'));
     }
   };
 
   const handleDeleteArea = async (id) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta área?')) return;
+    if (!window.confirm(t('confirm_delete_area'))) return;
     setError('');
     try {
       await areaService.deleteArea(id, clientId);
       setAreas(areas.filter(a => a.id !== id));
     } catch (err) {
-      setError('Error al eliminar el área.');
+      setError(t('error_delete_area'));
     }
   };
 
@@ -104,7 +104,7 @@ export default function AjustesModal({ onClose }) {
       const data = await officeService.getOffices(clientId);
       setOffices(data);
     } catch (err) {
-      setError('Error al cargar las sucursales/oficinas de la empresa.');
+      setError(t('error_load_offices'));
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export default function AjustesModal({ onClose }) {
       setOffices([...offices, newOffice]);
       setNewOfficeName('');
     } catch (err) {
-      setError('Error al crear la sucursal/oficina.');
+      setError(t('error_create_office'));
     }
   };
 
@@ -142,18 +142,18 @@ export default function AjustesModal({ onClose }) {
       setEditingOfficeId(null);
       setEditingOfficeName('');
     } catch (err) {
-      setError('Error al actualizar la sucursal/oficina.');
+      setError(t('error_update_office'));
     }
   };
 
   const handleDeleteOffice = async (id) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar esta sucursal/oficina?')) return;
+    if (!window.confirm(t('confirm_delete_office'))) return;
     setError('');
     try {
       await officeService.deleteOffice(id, clientId);
       setOffices(offices.filter(o => o.id !== id));
     } catch (err) {
-      setError('Error al eliminar la sucursal/oficina.');
+      setError(t('error_delete_office'));
     }
   };
 
@@ -192,7 +192,7 @@ export default function AjustesModal({ onClose }) {
               cursor: 'pointer', transition: 'all 0.2s'
             }}
           >
-            Preferencias
+            {t('modal_ajustes_tab_preferences')}
           </button>
           {isAdmin && clientId && (
             <>
@@ -206,7 +206,7 @@ export default function AjustesModal({ onClose }) {
                   cursor: 'pointer', transition: 'all 0.2s'
                 }}
               >
-                Áreas de la Empresa
+                {t('modal_ajustes_tab_areas')}
               </button>
               <button
                 onClick={() => setActiveTab('offices')}
@@ -218,7 +218,7 @@ export default function AjustesModal({ onClose }) {
                   cursor: 'pointer', transition: 'all 0.2s'
                 }}
               >
-                Sucursales / Oficinas
+                {t('modal_ajustes_tab_offices')}
               </button>
             </>
           )}
@@ -290,7 +290,7 @@ export default function AjustesModal({ onClose }) {
               <input
                 type="text"
                 className="form-input"
-                placeholder="Nombre del área (ej. Finanzas)"
+                placeholder={t('placeholder_area_name')}
                 value={newAreaName}
                 onChange={e => setNewAreaName(e.target.value)}
                 style={{ flex: 1, margin: 0 }}
@@ -303,11 +303,11 @@ export default function AjustesModal({ onClose }) {
             {/* Areas List */}
             <div style={{ maxHeight: '220px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '10px', padding: '4px' }}>
               {loading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Cargando áreas...</div>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('loading_areas')}</div>
               ) : areas.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   <Building size={28} />
-                  <span>No hay áreas configuradas para tu empresa.</span>
+                  <span>{t('no_areas_configured')}</span>
                 </div>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -369,7 +369,7 @@ export default function AjustesModal({ onClose }) {
               <input
                 type="text"
                 className="form-input"
-                placeholder="Nombre de sucursal/oficina (ej. Central)"
+                placeholder={t('placeholder_office_name')}
                 value={newOfficeName}
                 onChange={e => setNewOfficeName(e.target.value)}
                 style={{ flex: 1, margin: 0 }}
@@ -382,11 +382,11 @@ export default function AjustesModal({ onClose }) {
             {/* Offices List */}
             <div style={{ maxHeight: '220px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '10px', padding: '4px' }}>
               {loading ? (
-                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Cargando sucursales/oficinas...</div>
+                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('loading_offices')}</div>
               ) : offices.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   <MapPin size={28} />
-                  <span>No hay sucursales/oficinas configuradas.</span>
+                  <span>{t('no_offices_configured')}</span>
                 </div>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

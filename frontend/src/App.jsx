@@ -62,11 +62,11 @@ function LoginPage({ onLogin }) {
       if (user === 'admin' && pass === 'admin123') {
         authData = { role: 'SUPERADMIN', client_id: null, name: 'Alloxentric' };
       } else if (user === 'hr' && pass === 'hr123') {
-        authData = { role: 'ADMIN', client_id: 1, name: 'Admin RRHH' };
+        authData = { role: 'ADMIN', client_id: 1, name: 'Ana Gómez' };
       } else if (user === 'encargado' && pass === 'encargado123') {
-        authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Encargado de Área', area: 'TI' };
+        authData = { role: 'ENCARGADO_AREA', client_id: 1, name: 'Roberto Díaz', area: 'TI' };
       } else if (user === 'supervisor' && pass === 'supervisor123') {
-        authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Supervisor de Onboarding' };
+        authData = { role: 'SUPERVISOR_ONBOARDING', client_id: 1, name: 'Carlos Jerez' };
       } else if (user === 'employee' && pass === 'employee123') {
         authData = { role: 'EMPLOYEE', client_id: 1, name: 'Juan Pérez', email: 'juan.perez@company.com', id: 1 };
       }

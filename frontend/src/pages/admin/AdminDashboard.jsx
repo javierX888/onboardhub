@@ -95,13 +95,13 @@ const AdminDashboard = () => {
                         {emp.template_name || 'Proceso de Onboarding'}
                       </h3>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                        Rol: <strong>{emp.role}</strong>
+                        {t('dashboard_rol')}: <strong>{emp.role}</strong>
                       </p>
                     </div>
                     
                     <div style={{ marginBottom: '1.25rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-main)' }}>Progreso General</span>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-main)' }}>{t('dashboard_progreso_general')}</span>
                         <span style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--primary)' }}>
                           {emp.progress}%
                         </span>
@@ -120,7 +120,7 @@ const AdminDashboard = () => {
                     {emp.tasks && emp.tasks.length > 0 && (
                       <div>
                         <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-main)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
-                          Tareas Pendientes
+                          {t('dashboard_tasks_pendientes')}
                         </h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           {emp.tasks.filter(t => !t.completed).slice(0, 5).map((task, idx) => (
@@ -135,25 +135,25 @@ const AdminDashboard = () => {
                                 <span style={{ fontWeight: '500', fontSize: '0.875rem', color: 'var(--text-main)', flex: 1 }}>{task.title}</span>
                                 {task.is_overdue && (
                                   <span className="badge badge-inactive" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-                                    Vencida
+                                    {t('badge_overdue')}
                                   </span>
                                 )}
                               </div>
                               {task.deadline && (
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                  Vence: {task.deadline}
+                                  {t('dashboard_task_vence')}: {task.deadline}
                                 </div>
                               )}
                             </div>
                           ))}
                           {emp.tasks.filter(t => !t.completed).length > 5 && (
                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.75rem' }}>
-                              +{emp.tasks.filter(t => !t.completed).length - 5} tareas más
+                              +{emp.tasks.filter(t => !t.completed).length - 5} {t('dashboard_mas_tareas')}
                             </div>
                           )}
                           {emp.tasks.filter(t => !t.completed).length === 0 && (
                             <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                              ✓ ¡Todas las tareas completadas!
+                              ✓ {t('dashboard_todas_completadas')}
                             </div>
                           )}
                         </div>
@@ -164,7 +164,7 @@ const AdminDashboard = () => {
               </div>
             ) : (
               <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                No hay procesos de onboarding en progreso.
+                {t('dashboard_no_onboardings')}
               </div>
             )}
           </div>
@@ -175,13 +175,17 @@ const AdminDashboard = () => {
               <div className="alert-list">
                 {data.recent_alerts.slice(0, 8).map((alert, i) => (
                   <div key={i} className={`alert-card alert-${alert.type}`}>
-                    <div style={{ fontWeight: '600', marginBottom: '0.25rem', fontSize: '0.875rem' }}>{alert.title}</div>
-                    <div style={{ opacity: 0.8, fontSize: '0.75rem' }}>{alert.time}</div>
+                    <div style={{ fontWeight: '600', marginBottom: '0.25rem', fontSize: '0.875rem' }}>
+                      {alert.is_overdue ? `${t('alert_overdue_task')}: ${alert.title}` : alert.title}
+                    </div>
+                    <div style={{ opacity: 0.8, fontSize: '0.75rem' }}>
+                      {alert.time === 'Vencida' ? t('alert_time_overdue') : alert.time === 'Reciente' ? t('alert_time_recent') : alert.time}
+                    </div>
                   </div>
                 ))}
                 {data.recent_alerts.length === 0 && (
                   <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    Sin alertas pendientes.
+                    {t('alert_no_pending')}
                   </div>
                 )}
               </div>
@@ -211,17 +215,17 @@ const AdminDashboard = () => {
         <div className="modal-overlay" onClick={() => setSelectedEmployee(null)}>
           <div className="card" style={{ width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Detalles del Proceso</h2>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '600' }}>{t('dashboard_detalles_proceso')}</h2>
               <X size={20} style={{ cursor: 'pointer', color: 'var(--text-muted)' }} onClick={() => setSelectedEmployee(null)} />
             </div>
             
             <div style={{ marginBottom: '1rem' }}>
-              <p><strong>Empleado:</strong> {selectedEmployee.name}</p>
-              <p><strong>Rol:</strong> {selectedEmployee.role}</p>
-              <p><strong>Progreso:</strong> {selectedEmployee.progress}%</p>
+              <p><strong>{t('dashboard_empleado')}:</strong> {selectedEmployee.name}</p>
+              <p><strong>{t('dashboard_rol')}:</strong> {selectedEmployee.role}</p>
+              <p><strong>{t('dashboard_progreso')}:</strong> {selectedEmployee.progress}%</p>
             </div>
 
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', marginTop: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Tareas del Proceso</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', marginTop: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>{t('dashboard_tareas_proceso')}</h3>
             
             {selectedEmployee.tasks && selectedEmployee.tasks.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -235,21 +239,21 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                       <span style={{ fontWeight: '500', color: task.completed ? '#065f46' : 'var(--text-main)' }}>{task.title}</span>
                       {task.completed ? (
-                        <span className="badge badge-active">Completada</span>
+                        <span className="badge badge-active">{t('badge_completed')}</span>
                       ) : task.is_overdue ? (
-                        <span className="badge badge-inactive" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>Vencida</span>
+                        <span className="badge badge-inactive" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>{t('badge_overdue')}</span>
                       ) : (
-                        <span className="badge badge-inactive">Pendiente</span>
+                        <span className="badge badge-inactive">{t('badge_pending')}</span>
                       )}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      Etapa: {task.stage || 'General'} {task.deadline && ` | Vence: ${task.deadline}`}
+                      {t('stage_label') || 'Etapa'}: {task.stage || 'General'} {task.deadline && ` | ${t('dashboard_task_vence')}: ${task.deadline}`}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No hay tareas registradas para este proceso.</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{t('dashboard_no_tareas')}</p>
             )}
           </div>
         </div>
@@ -310,7 +314,7 @@ const AdminDashboard = () => {
                 <tr>
                   <th>{t('table_name')}</th>
                   <th>{t('table_process')}</th>
-                  <th>Progreso</th>
+                  <th>{t('dashboard_progreso')}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -378,13 +382,17 @@ const AdminDashboard = () => {
           <div className="alert-list">
             {data.recent_alerts.map((alert, i) => (
               <div key={i} className={`alert-card alert-${alert.type}`}>
-                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{alert.title}</div>
-                <div style={{ opacity: 0.8, fontSize: '0.75rem' }}>{alert.time}</div>
+                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                  {alert.is_overdue ? `${t('alert_overdue_task')}: ${alert.title}` : alert.title}
+                </div>
+                <div style={{ opacity: 0.8, fontSize: '0.75rem' }}>
+                  {alert.time === 'Vencida' ? t('alert_time_overdue') : alert.time === 'Reciente' ? t('alert_time_recent') : alert.time}
+                </div>
               </div>
             ))}
             {data.recent_alerts.length === 0 && (
                 <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    Sin alertas pendientes.
+                    {t('alert_no_pending')}
                 </div>
             )}
           </div>
