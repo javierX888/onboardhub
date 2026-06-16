@@ -255,7 +255,7 @@ export default function ProcessesList() {
 
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Progreso Promedio</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{t('dashboard_kpi_progress_avg')}</span>
                                             <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)' }}>{groupAvgProgress}%</span>
                                         </div>
                                         {isExpanded ? <ChevronUp size={20} color="var(--text-muted)" /> : <ChevronDown size={20} color="var(--text-muted)" />}

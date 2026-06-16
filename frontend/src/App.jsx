@@ -113,6 +113,25 @@ function AdminLayout({ children, onLogout }) {
   const isActive = (path) => location.pathname.startsWith(path) ? 'nav-item active' : 'nav-item';
   const canAccess = (section) => hasAccessToSection(user.role, section);
 
+  const getHeaderUserInfo = () => {
+    let name = user.name || '';
+    let role = '';
+    if (user.role) {
+      role = t(`role_${user.role.toLowerCase()}`) || user.role;
+    }
+    
+    if (name === 'Admin RRHH' || name.toLowerCase() === 'admin hr' || name.toLowerCase() === 'admin') {
+      name = t('role_admin');
+    } else if (name.toLowerCase() === 'supervisor' || name.toLowerCase() === 'onboarding supervisor') {
+      name = t('role_supervisor_onboarding');
+    }
+    
+    const showRole = name.toLowerCase() !== role.toLowerCase();
+    return { name, role, showRole };
+  };
+
+  const { name: displayUserName, role: displayUserRole, showRole } = getHeaderUserInfo();
+
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -184,8 +203,8 @@ function AdminLayout({ children, onLogout }) {
       <main className="main-content">
         <div className="top-bar">
           <div className="user-info">
-            <span className="user-name">{user.name}</span>
-            <span className="user-role">{t(`role_${user.role.toLowerCase()}`) || user.role}</span>
+            <span className="user-name">{displayUserName}</span>
+            {showRole && <span className="user-role">{displayUserRole}</span>}
           </div>
           {user.role === 'EMPLOYEE' && (
             <button 
