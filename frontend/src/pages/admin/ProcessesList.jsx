@@ -244,11 +244,11 @@ export default function ProcessesList() {
                                                     {isCustom ? t('processes_group_custom') : (template?.name || `Proceso ID: ${tId}`)}
                                                 </h3>
                                                 <span className="badge badge-active" style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
-                                                    {templateJourneys.length} {templateJourneys.length === 1 ? 'colaborador' : 'colaboradores'}
+                                                    {templateJourneys.length} {templateJourneys.length === 1 ? t('processes_colaborador') : t('processes_colaboradores')}
                                                 </span>
                                             </div>
                                             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                                {isCustom ? 'Jornadas individuales sin plantilla base o con plantilla eliminada' : (template?.description || 'Sin descripción disponible')}
+                                                {isCustom ? t('processes_custom_desc') : (template?.description || t('processes_no_desc'))}
                                             </p>
                                         </div>
                                     </div>
