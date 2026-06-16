@@ -9,10 +9,64 @@ import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext';
 import { UserPlus, Briefcase, MapPin, Calendar, CheckCircle, X } from 'lucide-react';
 
+const countriesData = {
+  "Chile": [
+    "Santiago",
+    "Valparaíso",
+    "Concepción",
+    "La Serena",
+    "Antofagasta",
+    "Rancagua",
+    "Talca",
+    "Temuco",
+    "Puerto Montt",
+    "Punta Arenas"
+  ],
+  "Colombia": [
+    "Bogotá",
+    "Medellín",
+    "Cali",
+    "Barranquilla",
+    "Cartagena",
+    "Bucaramanga"
+  ],
+  "México": [
+    "Ciudad de México",
+    "Guadalajara",
+    "Monterrey",
+    "Puebla",
+    "Tijuana",
+    "Cancún"
+  ],
+  "Perú": [
+    "Lima",
+    "Arequipa",
+    "Trujillo",
+    "Chiclayo",
+    "Cusco"
+  ]
+};
+
 export default function UsersList() {
     const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
     const isSuperAdmin = authUser.role === 'SUPERADMIN';
     const clientId = authUser.client_id;
+
+    const getCountriesList = (currentCountry) => {
+        const countries = Object.keys(countriesData);
+        if (currentCountry && !countries.includes(currentCountry)) {
+            return [currentCountry, ...countries];
+        }
+        return countries;
+    };
+
+    const getCitiesList = (country, currentCity) => {
+        const cities = countriesData[country] || [];
+        if (currentCity && !cities.includes(currentCity)) {
+            return [currentCity, ...cities];
+        }
+        return cities;
+    };
 
     const [users, setUsers] = useState([]);
     const [companiesList, setCompaniesList] = useState([]);
@@ -828,10 +882,7 @@ export default function UsersList() {
                                             ))}
                                         </select>
                                     )}
-                                </div>
-                            )}
-
-                            {/* Ubicación del Usuario (País, Ciudad, Comuna, Sucursal) */}
+                                                            {/* Ubicación del Usuario (País, Ciudad, Sucursal) */}
                             {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
                                     <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
@@ -839,37 +890,34 @@ export default function UsersList() {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <label className="form-label">{t('label_country')}</label>
-                                            <input
+                                            <select
                                                 className="form-input"
-                                                type="text"
                                                 value={newUser.pais || ''}
-                                                onChange={(e) => setNewUser({ ...newUser, pais: e.target.value })}
-                                                placeholder={t('placeholder_country')}
-                                            />
+                                                onChange={(e) => setNewUser({ ...newUser, pais: e.target.value, ciudad: '' })}
+                                            >
+                                                <option value="">{t('select_country_placeholder')}</option>
+                                                {getCountriesList(newUser.pais).map(country => (
+                                                    <option key={country} value={country}>{country}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <label className="form-label">{t('label_city')}</label>
-                                            <input
+                                            <select
                                                 className="form-input"
-                                                type="text"
                                                 value={newUser.ciudad || ''}
                                                 onChange={(e) => setNewUser({ ...newUser, ciudad: e.target.value })}
-                                                placeholder={t('placeholder_city')}
-                                            />
+                                                disabled={!newUser.pais}
+                                            >
+                                                <option value="">{t('select_city_placeholder')}</option>
+                                                {newUser.pais && getCitiesList(newUser.pais, newUser.ciudad).map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                        <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">{t('label_commune')}</label>
-                                            <input
-                                                className="form-input"
-                                                type="text"
-                                                value={newUser.comuna || ''}
-                                                onChange={(e) => setNewUser({ ...newUser, comuna: e.target.value })}
-                                                placeholder={t('placeholder_commune')}
-                                            />
-                                        </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                                 <label className="form-label" style={{ margin: 0 }}>{t('label_office_branch')}</label>
@@ -1116,47 +1164,41 @@ export default function UsersList() {
                                             ))}
                                         </select>
                                     )}
-                                </div>
-                            )}
-
-                            {!isSuperAdmin && (
+                                                          {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
                                     <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
 
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <label className="form-label">{t('label_country')}</label>
-                                            <input
+                                            <select
                                                 className="form-input"
-                                                type="text"
                                                 value={editingUser.pais || ''}
-                                                onChange={(e) => setEditingUser({ ...editingUser, pais: e.target.value })}
-                                                placeholder={t('placeholder_country')}
-                                            />
+                                                onChange={(e) => setEditingUser({ ...editingUser, pais: e.target.value, ciudad: '' })}
+                                            >
+                                                <option value="">{t('select_country_placeholder')}</option>
+                                                {getCountriesList(editingUser.pais).map(country => (
+                                                    <option key={country} value={country}>{country}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <label className="form-label">{t('label_city')}</label>
-                                            <input
+                                            <select
                                                 className="form-input"
-                                                type="text"
                                                 value={editingUser.ciudad || ''}
                                                 onChange={(e) => setEditingUser({ ...editingUser, ciudad: e.target.value })}
-                                                placeholder={t('placeholder_city')}
-                                            />
+                                                disabled={!editingUser.pais}
+                                            >
+                                                <option value="">{t('select_city_placeholder')}</option>
+                                                {editingUser.pais && getCitiesList(editingUser.pais, editingUser.ciudad).map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                        <div className="form-group" style={{ marginBottom: 0 }}>
-                                            <label className="form-label">{t('label_commune')}</label>
-                                            <input
-                                                className="form-input"
-                                                type="text"
-                                                value={editingUser.comuna || ''}
-                                                onChange={(e) => setEditingUser({ ...editingUser, comuna: e.target.value })}
-                                                placeholder={t('placeholder_commune')}
-                                            />
-                                        </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1rem' }}>
                                         <div className="form-group" style={{ marginBottom: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                                 <label className="form-label" style={{ margin: 0 }}>{t('label_office_branch')}</label>

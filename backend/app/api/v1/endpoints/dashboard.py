@@ -112,13 +112,15 @@ async def get_admin_dashboard_stats(
         recent_alerts.append({
             "type": a.severity,
             "title": a.message,
+            "is_overdue": False,
             "time": "Reciente"
         })
         
     for t in overdue_tasks_list[:5]:
         recent_alerts.append({
             "type": "danger",
-            "title": f"Tarea Vencida: {t.title}",
+            "title": t.title,
+            "is_overdue": True,
             "time": "Vencida"
         })
 
@@ -232,7 +234,8 @@ async def get_supervisor_dashboard_stats(
     for t in overdue_tasks_list[:10]:
         recent_alerts.append({
             "type": "danger",
-            "title": f"Tarea Vencida: {t.title}",
+            "title": t.title,
+            "is_overdue": True,
             "time": "Vencida"
         })
 
@@ -337,6 +340,7 @@ async def get_employee_dashboard_stats(
         recent_alerts.append({
             "type": a.severity,
             "title": a.message,
+            "is_overdue": False,
             "time": "Reciente"
         })
     
@@ -346,7 +350,8 @@ async def get_employee_dashboard_stats(
             if not t.completed and t.deadline and t.deadline < now:
                 recent_alerts.append({
                     "type": "danger",
-                    "title": f"Tarea vencida: {t.title}",
+                    "title": t.title,
+                    "is_overdue": True,
                     "time": "Vencida"
                 })
     

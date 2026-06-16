@@ -99,7 +99,7 @@ export default function TemplatesList() {
                     {!isAdminRole && areas.length > 0 && (
                         <div style={{ width: '250px' }}>
                             <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.35rem', display: 'block' }}>
-                                Filtrar por Área
+                                {t('filter_by_area')}
                             </label>
                             <select
                                 className="form-input"
@@ -107,7 +107,7 @@ export default function TemplatesList() {
                                 onChange={(e) => setSelectedArea(e.target.value)}
                                 style={{ marginBottom: 0 }}
                             >
-                                <option value="">Todas las Áreas</option>
+                                <option value="">{t('all_areas')}</option>
                                 {areas.map(a => (
                                     <option key={a.id} value={a.name}>{a.name}</option>
                                 ))}
@@ -124,7 +124,7 @@ export default function TemplatesList() {
                                 <th>{t('table_id')}</th>
                                 <th>{t('table_name')}</th>
                                 {isAdminRole && <th>{t('table_company')}</th>}
-                                {!isAdminRole && <th>Área</th>}
+                                {!isAdminRole && <th>{t('label_area')}</th>}
                                 <th>{t('table_status')}</th>
                                 <th>{t('table_tasks')}</th>
                                 <th>{t('table_actions')}</th>
