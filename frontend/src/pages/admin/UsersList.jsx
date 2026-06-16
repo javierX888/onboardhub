@@ -882,7 +882,9 @@ export default function UsersList() {
                                             ))}
                                         </select>
                                     )}
-                                                            {/* Ubicación del Usuario (País, Ciudad, Sucursal) */}
+                                </div>
+                            )}
+                            {/* Ubicación del Usuario (País, Ciudad, Sucursal) */}
                             {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
                                     <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
@@ -1164,7 +1166,9 @@ export default function UsersList() {
                                             ))}
                                         </select>
                                     )}
-                                                          {!isSuperAdmin && (
+                                </div>
+                            )}
+                            {!isSuperAdmin && (
                                 <div style={{ borderTop: '1px solid var(--border)', marginTop: '1.5rem', paddingTop: '1rem' }}>
                                     <h4 style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>{t('label_location')}</h4>
 
