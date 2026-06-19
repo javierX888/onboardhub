@@ -16,6 +16,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
   const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
   const isEmployee = authUser.role === 'EMPLOYEE';
@@ -29,23 +30,47 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboard = async () => {
       const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
-      const clientId = authUser.client_id || 1; 
+      const clientId = authUser.client_id;
       try {
         if (authUser.role === 'EMPLOYEE') {
+          if (!authUser.id) {
+            setError(t('dashboard_error_missing_user'));
+            return;
+          }
           // Para empleados, traer solo sus datos
           const dashboardData = await dashboardService.getEmployeeDashboard(authUser.id);
           setData(dashboardData);
         } else if (authUser.role === 'SUPERVISOR_ONBOARDING') {
-          const users = await userService.getUsersByCompany(clientId);
-          const me = users.find(u => u.email === authUser.email || u.role === authUser.role) || { id: 4 };
-          const dashboardData = await dashboardService.getSupervisorDashboard(clientId, me.id);
+          if (!clientId) {
+            setError(t('dashboard_error_missing_company'));
+            return;
+          }
+
+          let supervisorId = authUser.id;
+          if (!supervisorId && authUser.email) {
+            const users = await userService.getUsersByCompany(clientId);
+            const me = users.find(u => u.email === authUser.email);
+            supervisorId = me?.id;
+          }
+
+          if (!supervisorId) {
+            setError(t('dashboard_error_missing_user'));
+            return;
+          }
+
+          const dashboardData = await dashboardService.getSupervisorDashboard(clientId, supervisorId);
           setData(dashboardData);
         } else {
+          if (!clientId) {
+            setError(t('dashboard_error_missing_company'));
+            return;
+          }
           const dashboardData = await dashboardService.getAdminDashboard(clientId);
           setData(dashboardData);
         }
       } catch (err) {
         console.error("Error fetching dashboard", err);
+        setError(t('msg_error_generic'));
       } finally {
         setLoading(false);
       }
@@ -54,6 +79,7 @@ const AdminDashboard = () => {
   }, []);
 
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('msg_loading')}</div>;
+  if (error) return <div style={{ padding: '2rem', textAlign: 'center' }}>{error}</div>;
   if (!data) return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('msg_error_generic')}</div>;
 
   // Dashboard simplificado para EMPLOYEE
