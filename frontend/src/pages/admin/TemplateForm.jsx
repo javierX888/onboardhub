@@ -34,7 +34,7 @@ export default function TemplateForm() {
         client_id: '',
         parent_template_id: null,
         tasks: [
-            { title: '', description: '', stage: `${stagePrefix} 1`, type: 'read_text', resource_url: '', is_evidence_mandatory: false }
+            { title: '', description: '', stage: `${stagePrefix} 1`, type: 'read_text', resource_url: '', is_evidence_mandatory: false, sla_days: null }
         ]
     });
 
@@ -134,7 +134,7 @@ export default function TemplateForm() {
         }
         setTemplate({
             ...template,
-            tasks: [...template.tasks, { title: '', description: '', stage: nextStage, type: 'read_text', resource_url: '', is_evidence_mandatory: false }]
+            tasks: [...template.tasks, { title: '', description: '', stage: nextStage, type: 'read_text', resource_url: '', is_evidence_mandatory: false, sla_days: null }]
         });
     };
 
@@ -145,7 +145,21 @@ export default function TemplateForm() {
 
     const updateTask = (index, field, value) => {
         const newTasks = [...template.tasks];
-        newTasks[index][field] = value;
+        if (field === 'sla_days') {
+            if (value === '' || value === null || value === undefined) {
+                newTasks[index][field] = null;
+            } else {
+                let n = parseInt(value, 10);
+                if (isNaN(n)) n = null;
+                else {
+                    if (n < 1) n = 1;
+                    if (n > 365) n = 365;
+                }
+                newTasks[index][field] = n;
+            }
+        } else {
+            newTasks[index][field] = value;
+        }
         setTemplate({ ...template, tasks: newTasks });
     };
 
@@ -400,6 +414,21 @@ export default function TemplateForm() {
                                             />
                                         </div>
                                     )}
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <input
+                                            className="form-input"
+                                            type="number"
+                                            inputMode="numeric"
+                                            min={1}
+                                            max={365}
+                                            placeholder={t('placeholder_sla_days')}
+                                            value={task.sla_days ?? ''}
+                                            onChange={e => updateTask(index, 'sla_days', e.target.value)}
+                                        />
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                                            {t('label_sla_days')}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <textarea
