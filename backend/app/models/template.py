@@ -34,4 +34,7 @@ class TemplateTask(MultiTenantBase):
     responsible_role = Column(String(50), nullable=True, default="HR")
     is_evidence_mandatory = Column(Boolean, default=False)
 
+    # SLA in days for this task. When set, task deadline = journey.start_date + sla_days
+    sla_days = Column(Integer, nullable=True)
+
     template = relationship("Template", back_populates="tasks")

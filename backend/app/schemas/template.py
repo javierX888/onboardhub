@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class TemplateTaskBase(BaseModel):
@@ -10,6 +10,8 @@ class TemplateTaskBase(BaseModel):
     resource_url: Optional[str] = None
     responsible_role: Optional[str] = "HR"
     is_evidence_mandatory: Optional[bool] = False
+    # SLA in days: integer between 1 and 365; None means no deadline
+    sla_days: Optional[int] = Field(default=None, ge=1, le=365)
 
 class TemplateTaskCreate(TemplateTaskBase):
     pass

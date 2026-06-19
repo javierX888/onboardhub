@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
-import re
 from typing import Any, List
 
 from app.core.database import get_db
@@ -75,13 +74,12 @@ async def create_journey(
         if template:
             for t_task in template.tasks:
                 task_deadline = None
-                if journey.start_date:
-                    days_offset = 0
-                    if t_task.stage:
-                        match = re.search(r'\d+', t_task.stage)
-                        if match:
-                            days_offset = int(match.group())
-                    task_deadline = journey.start_date + timedelta(days=days_offset)
+                # Deadline comes from explicit SLA days when provided
+                if journey.start_date and getattr(t_task, "sla_days", None) is not None:
+                    try:
+                        task_deadline = journey.start_date + timedelta(days=int(t_task.sla_days))
+                    except Exception:
+                        task_deadline = None
 
                 j_task = JourneyTaskModel(
                     journey_id=journey.id,
