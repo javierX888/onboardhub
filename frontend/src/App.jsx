@@ -10,6 +10,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import MobileDashboard from './pages/employee/MobileDashboard';
 import EmployeePortal from './pages/employee/EmployeePortal';
 import ProcessesList from './pages/admin/ProcessesList';
+import AlertsCenter from './pages/admin/AlertsCenter';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
@@ -321,7 +322,7 @@ function App() {
                     <Route path="templates/:id/edit" element={<TemplateForm />} />
                     <Route path="talent-management" element={<UsersList />} />
                     <Route path="onboarding-team" element={<PlaceholderPage titleKey="sidebar_equipo_onboarding" />} />
-                    <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
+                    <Route path="alerts" element={<AlertsCenter />} />
                     <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
@@ -336,7 +337,7 @@ function App() {
                   <Routes>
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="processes" element={<ProcessesList />} />
-                    <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
+                    <Route path="alerts" element={<AlertsCenter />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </AdminLayout>
@@ -349,7 +350,7 @@ function App() {
                 <AdminLayout onLogout={handleLogout}>
                   <Routes>
                     <Route path="processes" element={<ProcessesList />} />
-                    <Route path="alerts" element={<PlaceholderPage titleKey="sidebar_alertas" />} />
+                    <Route path="alerts" element={<AlertsCenter />} />
                     <Route path="*" element={<Navigate to="processes" replace />} />
                   </Routes>
                 </AdminLayout>

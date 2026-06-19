@@ -10,6 +10,7 @@ from app.models.company import Company
 from app.models.user import User
 from app.models.journey import Journey, JourneyTask
 from app.models.template import Template, TemplateTask
+from app.models.alert import Alert
 
 
 async def create_all():
