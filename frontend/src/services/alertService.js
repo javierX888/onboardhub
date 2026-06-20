@@ -1,8 +1,14 @@
 import api from './api';
 
 export const alertService = {
-  async getAlerts(clientId, status = 'active') {
-    const response = await api.get(`/alerts/?client_id=${clientId}&status=${status}`);
+  async getAlerts(clientId, status = 'active', userId = null) {
+    const response = await api.get('/alerts/', {
+      params: {
+        client_id: clientId,
+        status,
+        ...(userId ? { user_id: userId } : {})
+      }
+    });
     return response.data;
   },
 
