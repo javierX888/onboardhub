@@ -3,6 +3,7 @@ import { AlertTriangle, Briefcase, Calendar, CheckCircle, Clock, Download, Refre
 import JSZip from 'jszip';
 import { useLanguage } from '../../context/LanguageContext';
 import { reportService } from '../../services/reportService';
+import { companyService } from '../../services/companyService';
 
 const toInputDate = (date) => date.toISOString().slice(0, 10);
 
@@ -112,11 +113,13 @@ export default function AnalyticsReport() {
     hasta: defaultRange.hasta
   });
   const [report, setReport] = useState(null);
+  const [companyName, setCompanyName] = useState(authUser.company_name || authUser.company || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const summary = report?.summary || {};
   const detail = report?.detail || [];
+  const companyLabel = companyName || (filters.empresaId ? `${t('analytics_session_company')} ${filters.empresaId}` : '');
 
   const getLocalizedStatus = (status) => {
     const statusMap = {
@@ -169,6 +172,21 @@ export default function AnalyticsReport() {
     fetchReport();
   }, []);
 
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      if (!authUser.client_id || companyName) return;
+
+      try {
+        const company = await companyService.getCompany(authUser.client_id);
+        setCompanyName(company?.name || '');
+      } catch (err) {
+        console.error('Error fetching session company', err);
+      }
+    };
+
+    fetchCompanyName();
+  }, [authUser.client_id, companyName]);
+
   const handleFilterChange = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));
   };
@@ -182,7 +200,7 @@ export default function AnalyticsReport() {
     if (!report) return;
 
     const summaryRows = [
-      [t('analytics_company'), authUser.client_id],
+      [t('analytics_company'), companyLabel || authUser.client_id],
       [t('analytics_from'), filters.desde],
       [t('analytics_to'), filters.hasta],
       [t('analytics_total_onboardings'), summary.total_onboardings || 0],
@@ -303,7 +321,7 @@ export default function AnalyticsReport() {
           <input
             className="form-input"
             type="text"
-            value={filters.empresaId ? `${t('analytics_session_company')} ${filters.empresaId}` : ''}
+            value={companyLabel}
             disabled
             style={{ width: '100%' }}
           />
