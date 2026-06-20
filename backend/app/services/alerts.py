@@ -19,6 +19,7 @@ async def evaluate_overdue_alerts(db: AsyncSession, client_id: int) -> int:
         .join(UserModel, JourneyModel.employee_id == UserModel.id)
         .where(JourneyTaskModel.client_id == client_id)
         .where(JourneyModel.client_id == client_id)
+        .where(UserModel.status == True)
         .where(JourneyModel.status == True)
         .where(JourneyTaskModel.completed == False)
         .where(JourneyTaskModel.deadline.isnot(None))
@@ -69,6 +70,7 @@ async def build_alert_response(alert: AlertModel, db: AsyncSession) -> dict:
             .join(JourneyModel, JourneyTaskModel.journey_id == JourneyModel.id)
             .join(UserModel, JourneyModel.employee_id == UserModel.id)
             .where(JourneyTaskModel.id == alert.journey_task_id)
+            .where(UserModel.status == True)
         )
         row = result.first()
         if row:

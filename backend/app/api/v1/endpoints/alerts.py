@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.alert import Alert as AlertModel
+from app.models.journey import Journey as JourneyModel
+from app.models.user import User as UserModel
 from app.schemas.alert import Alert, AlertAttendResponse
 from app.services.alerts import build_alert_response, evaluate_overdue_alerts
 
@@ -21,7 +23,13 @@ async def read_alerts(
 ) -> Any:
     await evaluate_overdue_alerts(db, client_id)
 
-    query = select(AlertModel).where(AlertModel.client_id == client_id)
+    query = (
+        select(AlertModel)
+        .join(JourneyModel, AlertModel.journey_id == JourneyModel.id)
+        .join(UserModel, JourneyModel.employee_id == UserModel.id)
+        .where(AlertModel.client_id == client_id)
+        .where(UserModel.status == True)
+    )
     if status == "active":
         query = query.where(AlertModel.is_read == False)
     elif status == "history":

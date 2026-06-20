@@ -53,6 +53,7 @@ function LoginPage({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let authData = null;
+    let loginErrorKey = 'error_invalid_credentials';
     try {
       // Try real backend login first (treat input as email)
       const { authService } = await import('./services/authService');
@@ -60,6 +61,9 @@ function LoginPage({ onLogin }) {
       const u = res.user;
       authData = { role: u.role, client_id: u.client_id, name: u.name, email: u.email, id: u.id };
     } catch (err) {
+      if (err?.response?.status === 403 && err?.response?.data?.detail === 'User inactive') {
+        loginErrorKey = 'error_user_inactive';
+      }
       // Fallback to demo accounts for development/testing
       if (user === 'admin' && pass === 'admin123') {
         authData = { role: 'SUPERADMIN', client_id: null, name: 'Alloxentric' };
@@ -75,7 +79,7 @@ function LoginPage({ onLogin }) {
     }
 
     if (!authData) {
-      alert(t('error_invalid_credentials'));
+      alert(t(loginErrorKey));
       return;
     }
 

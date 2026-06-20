@@ -19,11 +19,11 @@ class LoginRequest(BaseModel):
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(UserModel).where(UserModel.email == payload.email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
     if hasattr(user, "status") and user.status is False:
         raise HTTPException(status_code=403, detail="User inactive")
+
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     return {
         "user": {
