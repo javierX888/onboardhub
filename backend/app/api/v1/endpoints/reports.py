@@ -50,6 +50,7 @@ async def get_onboarding_report(
         .join(UserModel, JourneyModel.employee_id == UserModel.id)
         .outerjoin(TemplateModel, JourneyModel.template_id == TemplateModel.id)
         .where(JourneyModel.client_id == company_id)
+        .where(UserModel.status == True)
         .where(JourneyModel.status == True)
         .order_by(JourneyModel.start_date.desc().nullslast(), JourneyModel.created_at.desc())
     )

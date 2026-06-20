@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import selectinload
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from app.core.database import get_db
@@ -49,12 +49,47 @@ async def get_admin_dashboard_stats(
     overdue_tasks_list = overdue_tasks_q.scalars().all()
     overdue_tasks_count = len(overdue_tasks_list)
 
-    # Average NPS
+    # Average NPS from active users only
     nps_q = await db.execute(
         select(func.avg(NPSModel.score))
+        .join(UserModel, NPSModel.employee_id == UserModel.id)
         .where(NPSModel.client_id == client_id)
+        .where(UserModel.status == True)
     )
-    avg_nps = nps_q.scalar() or 4.2
+    avg_nps = nps_q.scalar()
+
+    current_period_start = now - timedelta(days=30)
+    previous_period_start = now - timedelta(days=60)
+
+    current_nps_q = await db.execute(
+        select(func.avg(NPSModel.score))
+        .join(UserModel, NPSModel.employee_id == UserModel.id)
+        .where(NPSModel.client_id == client_id)
+        .where(UserModel.status == True)
+        .where(NPSModel.created_at >= current_period_start)
+    )
+    current_nps = current_nps_q.scalar()
+
+    previous_nps_q = await db.execute(
+        select(func.avg(NPSModel.score))
+        .join(UserModel, NPSModel.employee_id == UserModel.id)
+        .where(NPSModel.client_id == client_id)
+        .where(UserModel.status == True)
+        .where(NPSModel.created_at >= previous_period_start)
+        .where(NPSModel.created_at < current_period_start)
+    )
+    previous_nps = previous_nps_q.scalar()
+
+    nps_value = "-" if avg_nps is None else str(round(float(avg_nps), 1))
+    nps_delta = "-"
+    nps_delta_type = "neutral"
+    if current_nps is not None and previous_nps is not None:
+        nps_delta_value = round(float(current_nps) - float(previous_nps), 1)
+        nps_delta = f"{nps_delta_value:+.1f}"
+        if nps_delta_value > 0:
+            nps_delta_type = "up"
+        elif nps_delta_value < 0:
+            nps_delta_type = "down"
 
     # 2. Employee Status (Show only the latest journey per employee to avoid duplicates)
     latest_journeys_subq = (
@@ -129,7 +164,7 @@ async def get_admin_dashboard_stats(
             {"label": "dashboard_kpi_active", "value": str(active_processes), "delta": "+1", "deltaType": "up"},
             {"label": "dashboard_kpi_employees", "value": str(employees_onboarding), "delta": "+2", "deltaType": "up"},
             {"label": "dashboard_kpi_overdue", "value": str(overdue_tasks_count), "delta": "-1", "deltaType": "down"},
-            {"label": "dashboard_kpi_nps", "value": str(round(float(avg_nps), 1)), "delta": "+0.5", "deltaType": "up"},
+            {"label": "dashboard_kpi_nps", "value": nps_value, "delta": nps_delta, "deltaType": nps_delta_type},
         ],
         "employee_status": employee_status,
         "recent_alerts": recent_alerts[:10]
