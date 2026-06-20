@@ -11,6 +11,7 @@ import MobileDashboard from './pages/employee/MobileDashboard';
 import EmployeePortal from './pages/employee/EmployeePortal';
 import ProcessesList from './pages/admin/ProcessesList';
 import AlertsCenter from './pages/admin/AlertsCenter';
+import AnalyticsReport from './pages/admin/AnalyticsReport';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
@@ -323,7 +324,7 @@ function App() {
                     <Route path="talent-management" element={<UsersList />} />
                     <Route path="onboarding-team" element={<PlaceholderPage titleKey="sidebar_equipo_onboarding" />} />
                     <Route path="alerts" element={<AlertsCenter />} />
-                    <Route path="analytics" element={<PlaceholderPage titleKey="sidebar_analitica" />} />
+                    <Route path="analytics" element={<AnalyticsReport />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </AdminLayout>
