@@ -20,7 +20,7 @@ export default function AlertsCenter() {
     setLoading(true);
     setError('');
     try {
-      const data = await alertService.getAlerts(clientId, status);
+      const data = await alertService.getAlerts(clientId, status, userId);
       setAlerts(data);
     } catch (err) {
       console.error('Error loading alerts:', err);

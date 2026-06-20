@@ -19,9 +19,22 @@ router = APIRouter()
 async def read_alerts(
     client_id: int = Query(...),
     status: str = Query("active"),
+    user_id: int | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     await evaluate_overdue_alerts(db, client_id)
+
+    current_user = None
+    if user_id is not None:
+        current_user_result = await db.execute(
+            select(UserModel)
+            .where(UserModel.id == user_id)
+            .where(UserModel.client_id == client_id)
+            .where(UserModel.status == True)
+        )
+        current_user = current_user_result.scalar_one_or_none()
+        if not current_user:
+            raise HTTPException(status_code=404, detail="User not found")
 
     query = (
         select(AlertModel)
@@ -30,6 +43,10 @@ async def read_alerts(
         .where(AlertModel.client_id == client_id)
         .where(UserModel.status == True)
     )
+
+    if current_user and current_user.role == "ENCARGADO_AREA":
+        query = query.where(UserModel.area == current_user.area)
+
     if status == "active":
         query = query.where(AlertModel.is_read == False)
     elif status == "history":

@@ -59,7 +59,7 @@ function LoginPage({ onLogin }) {
       const { authService } = await import('./services/authService');
       const res = await authService.login(user.trim(), pass);
       const u = res.user;
-      authData = { role: u.role, client_id: u.client_id, name: u.name, email: u.email, id: u.id };
+      authData = { role: u.role, client_id: u.client_id, name: u.name, email: u.email, id: u.id, area: u.area };
     } catch (err) {
       if (err?.response?.status === 403 && err?.response?.data?.detail === 'User inactive') {
         loginErrorKey = 'error_user_inactive';

@@ -32,5 +32,6 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
             "email": user.email,
             "role": user.role,
             "client_id": user.client_id,
+            "area": user.area,
         }
     }
