@@ -102,7 +102,7 @@ const downloadWorkbook = async (fileName, sheets) => {
 };
 
 export default function AnalyticsReport() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const authUser = JSON.parse(sessionStorage.getItem('onboardhub_user') || '{}');
   const defaultRange = useMemo(() => getDefaultDateRange(), []);
 
@@ -117,6 +117,29 @@ export default function AnalyticsReport() {
 
   const summary = report?.summary || {};
   const detail = report?.detail || [];
+
+  const getLocalizedStatus = (status) => {
+    const statusMap = {
+      Completado: t('analytics_status_completed'),
+      'En curso': t('analytics_status_in_progress'),
+      Atrasado: t('analytics_status_delayed')
+    };
+    return statusMap[status] || status;
+  };
+
+  const getLocalizedProcessName = (processName) => {
+    if (!processName) return '-';
+
+    const knownProcessNames = {
+      'Proceso personalizado': t('analytics_custom_process'),
+      'Induccion TI': language === 'en' ? 'IT Induction' : 'Induccion TI',
+      'Inducción TI': language === 'en' ? 'IT Induction' : 'Inducción TI',
+      'Onboarding Area Finanzas': language === 'en' ? 'Finance Area Onboarding' : 'Onboarding Area Finanzas',
+      'Onboarding Área Finanzas': language === 'en' ? 'Finance Area Onboarding' : 'Onboarding Área Finanzas'
+    };
+
+    return knownProcessNames[processName] || processName;
+  };
 
   const fetchReport = async () => {
     if (!authUser.client_id) {
@@ -185,11 +208,11 @@ export default function AnalyticsReport() {
       ],
       ...detail.map((row) => [
         row.employee_name,
-        row.template_name,
+        getLocalizedProcessName(row.template_name),
         row.role,
         row.start_date,
         row.end_date,
-        row.status,
+        getLocalizedStatus(row.status),
         `${row.progress}%`,
         row.total_tasks,
         row.completed_tasks,
@@ -385,12 +408,12 @@ export default function AnalyticsReport() {
                       <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{row.employee_name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatValue(row.role)}</div>
                     </td>
-                    <td style={tableCellStyle}>{row.template_name}</td>
+                    <td style={tableCellStyle}>{getLocalizedProcessName(row.template_name)}</td>
                     <td style={tableCellStyle}>{formatValue(row.start_date)}</td>
                     <td style={tableCellStyle}>{formatValue(row.end_date)}</td>
                     <td style={tableCellStyle}>
                       <span style={{ ...getStatusStyle(row.status), padding: '0.3rem 0.55rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700 }}>
-                        {row.status}
+                        {getLocalizedStatus(row.status)}
                       </span>
                     </td>
                     <td style={tableCellStyle}>
