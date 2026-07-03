@@ -11,6 +11,7 @@ from app.core.storage import storage_service
 from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
 from app.models.template import Template as TemplateModel
 from app.schemas.journey import Journey, JourneyCreate, JourneyTaskUpdate, JourneyUpdate
+from app.services.alerts import resolve_task_alerts
 
 router = APIRouter()
 
@@ -123,6 +124,8 @@ async def update_task_status(
     
     if task_in.completed is not None:
         task.completed = task_in.completed
+        if task_in.completed:
+            await resolve_task_alerts(db, client_id, task.id)
     
     if task_in.responsible_id is not None:
         task.responsible_id = task_in.responsible_id
@@ -184,6 +187,7 @@ async def complete_task(
 
     # 3. Marcar como completada
     task.completed = True
+    await resolve_task_alerts(db, client_id, task.id)
     await db.commit()
 
     # 4. Recalcular progreso del Journey

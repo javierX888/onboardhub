@@ -15,7 +15,7 @@ import AnalyticsReport from './pages/admin/AnalyticsReport';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import AjustesModal from './components/AjustesModal';
-import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard, Zap, Briefcase } from 'lucide-react';
+import { Bell, BarChart3, Users as UsersIcon, ClipboardList, LayoutDashboard, Briefcase } from 'lucide-react';
 import { hasAccessToSection } from './config/rolePermissions';
 
 export const getRoleRoutePrefix = (role) => {
@@ -32,16 +32,6 @@ export const getRoleRedirectPath = (role) => {
   if (role === 'SUPERADMIN') return `${prefix}/talent-management`;
   if (role === 'EMPLOYEE') return `${prefix}/dashboard`;
   return `${prefix}/dashboard`;
-};
-
-const PlaceholderPage = ({ titleKey }) => {
-  const { t, language } = useLanguage();
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1 className="page-title">{t(titleKey)}</h1>
-      <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Módulo en desarrollo para el siguiente Sprint.</p>
-    </div>
-  );
 };
 
 function LoginPage({ onLogin }) {
@@ -167,12 +157,6 @@ function AdminLayout({ children, onLogout }) {
           {canAccess('talent-management') && (
             <Link to={`${prefix}/talent-management`} className={isActive(`${prefix}/talent-management`)}>
               <UsersIcon size={18} style={{ marginRight: '8px' }} /> {t('sidebar_talento')}
-            </Link>
-          )}
-
-          {canAccess('onboarding-team') && (
-            <Link to={`${prefix}/onboarding-team`} className={isActive(`${prefix}/onboarding-team`)}>
-              <Zap size={18} style={{ marginRight: '8px' }} /> {t('sidebar_equipo_onboarding')}
             </Link>
           )}
 
@@ -326,7 +310,6 @@ function App() {
                     <Route path="templates/new" element={<TemplateForm />} />
                     <Route path="templates/:id/edit" element={<TemplateForm />} />
                     <Route path="talent-management" element={<UsersList />} />
-                    <Route path="onboarding-team" element={<PlaceholderPage titleKey="sidebar_equipo_onboarding" />} />
                     <Route path="alerts" element={<AlertsCenter />} />
                     <Route path="analytics" element={<AnalyticsReport />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
