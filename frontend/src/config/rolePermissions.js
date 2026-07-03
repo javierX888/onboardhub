@@ -13,7 +13,6 @@ export const ROLE_PERMISSIONS = {
       'processes',
       'templates',
       'talent-management',
-      'onboarding-team',
       'alerts',
       'analytics',
       'settings'

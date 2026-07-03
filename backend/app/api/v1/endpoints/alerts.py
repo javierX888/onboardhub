@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.alert import Alert as AlertModel
-from app.models.journey import Journey as JourneyModel
+from app.models.journey import Journey as JourneyModel, JourneyTask as JourneyTaskModel
 from app.models.user import User as UserModel
 from app.schemas.alert import Alert, AlertAttendResponse
 from app.services.alerts import build_alert_response, evaluate_overdue_alerts
@@ -48,7 +48,11 @@ async def read_alerts(
         query = query.where(UserModel.area == current_user.area)
 
     if status == "active":
-        query = query.where(AlertModel.is_read == False)
+        query = (
+            query.outerjoin(JourneyTaskModel, AlertModel.journey_task_id == JourneyTaskModel.id)
+            .where(AlertModel.is_read == False)
+            .where(or_(AlertModel.journey_task_id.is_(None), JourneyTaskModel.completed == False))
+        )
     elif status == "history":
         query = query.where(AlertModel.is_read == True)
     elif status != "all":

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, or_
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timedelta
 from typing import Any
@@ -136,7 +136,10 @@ async def get_admin_dashboard_stats(
     # 3. Recent Alerts
     alerts_q = await db.execute(
         select(AlertModel)
+        .outerjoin(JourneyTaskModel, AlertModel.journey_task_id == JourneyTaskModel.id)
         .where(AlertModel.client_id == client_id)
+        .where(AlertModel.is_read == False)
+        .where(or_(AlertModel.journey_task_id.is_(None), JourneyTaskModel.completed == False))
         .order_by(AlertModel.created_at.desc())
         .limit(5)
     )

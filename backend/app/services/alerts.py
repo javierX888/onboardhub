@@ -60,6 +60,27 @@ async def evaluate_overdue_alerts(db: AsyncSession, client_id: int) -> int:
     return created
 
 
+async def resolve_task_alerts(db: AsyncSession, client_id: int, task_id: int, user_id: int | None = None) -> int:
+    result = await db.execute(
+        select(AlertModel).where(
+            and_(
+                AlertModel.client_id == client_id,
+                AlertModel.type == SLA_EXPIRED,
+                AlertModel.journey_task_id == task_id,
+                AlertModel.is_read == False,
+            )
+        )
+    )
+    alerts = result.scalars().all()
+    attended_at = datetime.utcnow()
+    for alert in alerts:
+        alert.is_read = True
+        alert.attended_at = attended_at
+        alert.attended_by = user_id
+
+    return len(alerts)
+
+
 async def build_alert_response(alert: AlertModel, db: AsyncSession) -> dict:
     task = None
     employee_name = None
